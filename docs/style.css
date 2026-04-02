@@ -758,6 +758,52 @@ em { color: var(--v8); font-style: normal; }
   font-style: italic;
 }
 
+/* === Two Owls === */
+.two-owls-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+@media (max-width: 768px) {
+  .two-owls-grid { grid-template-columns: 1fr; }
+}
+
+.owl-profile {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.5rem;
+}
+
+.owl-profile.mage {
+  border-color: var(--v3);
+  box-shadow: 0 0 25px rgba(49, 104, 142, 0.1);
+}
+
+.owl-class {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  margin-bottom: 1rem;
+  font-style: italic;
+}
+
+.owl-profile .stat-val {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  min-width: 2rem;
+  text-align: right;
+}
+
+.owl-profile .stat-row {
+  grid-template-columns: 90px 1fr 2rem;
+}
+
+.mini-fill.mage-fill {
+  background: linear-gradient(90deg, var(--v1), var(--v4));
+}
+
 /* === Question Status === */
 .question-item.resolved { border-left: 3px solid var(--positive); }
 .question-item.partial { border-left: 3px solid var(--v8); }
@@ -781,7 +827,8 @@ em { color: var(--v8); font-style: normal; }
 .stat-card,
 .rarity-bar,
 .trait-group,
-.timing-card {
+.timing-card,
+.owl-profile {
   opacity: 0;
   transform: translateY(20px);
   transition: opacity 0.5s ease, transform 0.5s ease;

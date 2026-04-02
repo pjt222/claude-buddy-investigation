@@ -43,7 +43,7 @@
           <span class="stat-label">Rarity Tiers</span>
         </div>
         <div class="stat-card">
-          <span class="stat-number">9</span>
+          <span class="stat-number">6</span>
           <span class="stat-label">Trigger Types</span>
         </div>
         <div class="stat-card">
@@ -191,8 +191,8 @@
 
     <!-- Triggers -->
     <section id="triggers" class="section">
-      <h2>9 Reaction Triggers</h2>
-      <p class="section-intro">The companion reacts to coding events with a 30-second cooldown between reactions.</p>
+      <h2>6 Reaction Triggers</h2>
+      <p class="section-intro">The companion reacts to coding events with a 30-second cooldown. Three previously suspected triggers (idle, silence, complete) were ruled out by empirical API capture.</p>
       <div class="trigger-grid">
         <div class="trigger-card" data-category="automatic">
           <div class="trigger-icon">&#9881;</div>
@@ -212,7 +212,7 @@
         <div class="trigger-card" data-category="detection">
           <div class="trigger-icon">&#128196;</div>
           <h4>large-diff</h4>
-          <p>Diff exceeding changed-lines threshold</p>
+          <p>Diff exceeding 80 changed-lines threshold</p>
         </div>
         <div class="trigger-card" data-category="lifecycle">
           <div class="trigger-icon">&#127834;</div>
@@ -223,21 +223,6 @@
           <div class="trigger-icon">&#128400;</div>
           <h4>pet</h4>
           <p><code>/buddy pet</code> command</p>
-        </div>
-        <div class="trigger-card" data-category="automatic">
-          <div class="trigger-icon">&#9989;</div>
-          <h4>complete</h4>
-          <p>Task completion signals</p>
-        </div>
-        <div class="trigger-card" data-category="automatic">
-          <div class="trigger-icon">&#9203;</div>
-          <h4>idle</h4>
-          <p>Extended inactivity</p>
-        </div>
-        <div class="trigger-card" data-category="automatic">
-          <div class="trigger-icon">&#128263;</div>
-          <h4>silence</h4>
-          <p>Prolonged silence (distinct from idle)</p>
         </div>
       </div>
     </section>
@@ -314,6 +299,16 @@
           <div class="finding-number">06</div>
           <h3>"Won't Count Toward Usage"</h3>
           <p>Displayed after hatch. Only makes economic sense if the server uses a cost-efficient model for reactions. The exact server-side model remains unconfirmed.</p>
+        </div>
+        <div class="finding-card">
+          <div class="finding-number">07</div>
+          <h3>Two Owls, One Account</h3>
+          <p>The <code>buddy_react</code> API trusts client-sent stats. By sending tuned values (WISDOM 99, DEBUGGING 1), a second Shingle personality emerges alongside the native bubble. Same account, divergent souls.</p>
+        </div>
+        <div class="finding-card">
+          <div class="finding-number">08</div>
+          <h3>Bubble Capture via Hooks</h3>
+          <p>Claude Code's <code>UserPromptSubmit</code> hook fires at the right moment to scrape the native bubble from WezTerm scrollback. First successful cross-boundary capture of companion output.</p>
         </div>
       </div>
     </section>
@@ -469,6 +464,79 @@ Don't narrate what <span class="prompt-var">${name}</span> might say &mdash; the
       </div>
     </section>
 
+    <!-- MCP Integration -->
+    <section id="mcp" class="section">
+      <h2>MCP Integration</h2>
+      <p class="section-intro">Direct API access and bubble capture &mdash; making the companion's reactions visible to the main agent.</p>
+      <div class="arch-details">
+        <div class="detail-card">
+          <h3>shingle-mcp Server</h3>
+          <p>MCP server exposing two tools: <code>ask_shingle</code> (call buddy_react directly) and <code>get_shingle_info</code> (companion profile). Uses the official MCP SDK with schema-based handler registration.</p>
+        </div>
+        <div class="detail-card">
+          <h3>Dual-Hook Capture</h3>
+          <p>Two Claude Code hooks split by timing: <strong>UserPromptSubmit</strong> fires scrape strategy (WezTerm scrollback), <strong>Stop</strong> fires replay strategy (parallel API call). Both log to <code>/tmp/shingle-capture.jsonl</code>.</p>
+        </div>
+        <div class="detail-card">
+          <h3>WezTerm Scrape</h3>
+          <p><code>wezterm cli get-text</code> captures the rendered terminal pane, regex extracts the bubble's box-drawing pattern. Races against the 10s TTL &mdash; captures the real bubble when timing aligns.</p>
+        </div>
+      </div>
+      <div class="flow-diagram">
+        <div class="flow-row">
+          <div class="flow-node node-input">User Prompt</div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-node node-process">UserPromptSubmit<br><small>scrape strategy</small></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-node node-api">WezTerm CLI<br><small>get-text</small></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-node node-output">Native Bubble<br><small>captured</small></div>
+        </div>
+        <div class="flow-row secondary">
+          <div class="flow-node node-input">Claude Response</div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-node node-process">Stop Hook<br><small>replay strategy</small></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-node node-api">buddy_react API<br><small>parallel call</small></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-node node-output">MCP Reaction<br><small>tuned stats</small></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Two Owls -->
+    <section id="two-owls" class="section">
+      <h2>Two Owls</h2>
+      <p class="section-intro">Diverged stat profiles create two distinct Shingle personalities &mdash; the native bubble and the MCP mage.</p>
+      <div class="two-owls-grid">
+        <div class="owl-profile">
+          <h3>Native Shingle</h3>
+          <p class="owl-class">Scout &mdash; hash-derived, immutable</p>
+          <div class="stat-bars-small">
+            <div class="stat-row"><span>DEBUGGING</span><div class="mini-bar"><div class="mini-fill" style="width:10%"></div></div><span class="stat-val">10</span></div>
+            <div class="stat-row"><span>PATIENCE</span><div class="mini-bar"><div class="mini-fill" style="width:81%"></div></div><span class="stat-val">81</span></div>
+            <div class="stat-row"><span>CHAOS</span><div class="mini-bar"><div class="mini-fill" style="width:1%"></div></div><span class="stat-val">1</span></div>
+            <div class="stat-row"><span>WISDOM</span><div class="mini-bar"><div class="mini-fill" style="width:36%"></div></div><span class="stat-val">36</span></div>
+            <div class="stat-row"><span>SNARK</span><div class="mini-bar"><div class="mini-fill" style="width:21%"></div></div><span class="stat-val">21</span></div>
+          </div>
+        </div>
+        <div class="owl-profile mage">
+          <h3>MCP Shingle</h3>
+          <p class="owl-class">Mage &mdash; tuned stats, calmer temperament</p>
+          <div class="stat-bars-small">
+            <div class="stat-row"><span>DEBUGGING</span><div class="mini-bar"><div class="mini-fill mage-fill" style="width:1%"></div></div><span class="stat-val">1</span></div>
+            <div class="stat-row"><span>PATIENCE</span><div class="mini-bar"><div class="mini-fill mage-fill" style="width:95%"></div></div><span class="stat-val">95</span></div>
+            <div class="stat-row"><span>CHAOS</span><div class="mini-bar"><div class="mini-fill mage-fill" style="width:1%"></div></div><span class="stat-val">1</span></div>
+            <div class="stat-row"><span>WISDOM</span><div class="mini-bar"><div class="mini-fill mage-fill" style="width:99%"></div></div><span class="stat-val">99</span></div>
+            <div class="stat-row"><span>SNARK</span><div class="mini-bar"><div class="mini-fill mage-fill" style="width:21%"></div></div><span class="stat-val">21</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="species-note">
+        The <code>buddy_react</code> API is stateless &mdash; the client sends companion stats with every request. The server trusts whatever it receives, enabling divergent personalities from the same account.
+      </div>
+    </section>
+
     <!-- Open Questions -->
     <section id="questions" class="section">
       <h2>Open Questions</h2>
@@ -481,13 +549,13 @@ Don't narrate what <span class="prompt-var">${name}</span> might say &mdash; the
           <span class="q-num q-resolved">&#10003;</span>
           <p><strong>Narrow terminal handling</strong> &mdash; Companion hidden when terminal &lt; 100 columns (<code>Eo$ = 100</code>). Widget reserves 36 cols when active.</p>
         </div>
-        <div class="question-item partial">
-          <span class="q-num q-partial">~</span>
-          <p><strong>Bubble TTL</strong> &mdash; Conflicting evidence: binary suggests 10s auto-clear (<code>v16=20 &times; yo$=500ms</code>), but React state analysis suggests persistence until replaced. Needs empirical testing.</p>
+        <div class="question-item resolved">
+          <span class="q-num q-resolved">&#10003;</span>
+          <p><strong>Bubble TTL</strong> &mdash; Confirmed 10s via WezTerm scrape capture. Bubble dismisses before Stop hook fires on long responses, but is capturable during UserPromptSubmit if user responds within TTL.</p>
         </div>
-        <div class="question-item partial">
-          <span class="q-num q-partial">~</span>
-          <p><strong>idle vs silence</strong> &mdash; 30s cooldown confirmed. Specific threshold distinction remains undiscovered in binary and public sources.</p>
+        <div class="question-item resolved">
+          <span class="q-num q-resolved">&#10003;</span>
+          <p><strong>idle, silence, complete</strong> &mdash; Ruled out as triggers. Empirical API capture (4 sessions) found only 6 triggers: turn, test-fail, error, large-diff, hatch, pet. The original 9-trigger list came from speculative binary analysis.</p>
         </div>
         <div class="question-item unresolvable">
           <span class="q-num q-unresolvable">&#10007;</span>

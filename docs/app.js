@@ -165,7 +165,7 @@ function initScrollAnimations() {
         // Stagger siblings
         const parent = entry.target.parentElement;
         const siblings = Array.from(parent.children).filter(
-          el => el.matches('.detail-card, .species-card, .trigger-card, .security-card, .finding-card, .strategy-card, .command-row, .question-item, .stat-card, .rarity-bar, .trait-group, .timing-card')
+          el => el.matches('.detail-card, .species-card, .trigger-card, .security-card, .finding-card, .strategy-card, .command-row, .question-item, .stat-card, .rarity-bar, .trait-group, .timing-card, .owl-profile')
         );
         const sibIdx = siblings.indexOf(entry.target);
         const delay = sibIdx >= 0 ? sibIdx * 60 : 0;
@@ -182,7 +182,7 @@ function initScrollAnimations() {
 
   // Observe all animatable elements
   document.querySelectorAll(
-    '.section > h2, .section > .section-intro, .detail-card, .species-card, .trigger-card, .security-card, .finding-card, .strategy-card, .command-row, .question-item, .stat-card, .rarity-bar, .trait-group, .timing-card'
+    '.section > h2, .section > .section-intro, .detail-card, .species-card, .trigger-card, .security-card, .finding-card, .strategy-card, .command-row, .question-item, .stat-card, .rarity-bar, .trait-group, .timing-card, .owl-profile'
   ).forEach(el => observer.observe(el));
 }
 
