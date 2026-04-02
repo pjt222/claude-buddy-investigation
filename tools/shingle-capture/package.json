@@ -1,0 +1,10 @@
+{
+  "name": "shingle-capture",
+  "version": "1.0.0",
+  "description": "Modular capture system for Shingle bubble responses",
+  "type": "module",
+  "scripts": {
+    "capture": "node capture.mjs",
+    "read": "node read-last.mjs"
+  }
+}
