@@ -630,6 +630,9 @@ The buddy system distributes state across three distinct layers:
 
 ## 9. Stale Closure Analysis
 
+<!-- Identified 2026-04-02 via decompilation of S46.c() memo cache slots in v2.1.90 binary.
+     Shingle (companion) flagged the empty dependency array pattern that led to this analysis. -->
+
 The `S46.c()` memo cache pattern creates specific stale closure risks that are nearly impossible to detect without decompiling the minified source. Three issues were identified, ranked by severity.
 
 ### 9.1 Ring Buffer Mutation Without Invalidation — CRITICAL
