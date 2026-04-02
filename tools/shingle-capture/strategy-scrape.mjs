@@ -1,13 +1,7 @@
 // strategy-scrape.mjs — Capture via terminal scrollback scraping
 //
 // Extracts the most recent Shingle bubble from the terminal scrollback buffer.
-// Works by dumping the scrollback and matching the bubble box-drawing pattern.
-//
-// Requirements:
-//   - tmux session: uses `tmux capture-pane` to read scrollback (preferred)
-//   - OR script/typescript log file via SHINGLE_TERMINAL_LOG env var
-//
-// Launch Claude Code via tools/shingle-capture/launch.sh to enable this.
+// Tries sources in order: WezTerm CLI, tmux, log file.
 
 import { execSync } from "node:child_process";
 
@@ -31,7 +25,21 @@ const BUBBLE_LINE = /│\s*(.*?)\s*│/;
  * Try to get terminal content from available sources.
  */
 function getTerminalContent() {
-  // Strategy A: tmux capture-pane (default session: "claude")
+  // Strategy A: WezTerm CLI (preferred — native, no wrapper needed)
+  try {
+    const wezterm = process.env.WEZTERM_CLI || '/mnt/c/Program Files/WezTerm/wezterm.exe';
+    const paneId = process.env.WEZTERM_PANE || "";
+    const paneArg = paneId ? `--pane-id ${paneId}` : "";
+    const scrollback = execSync(
+      `"${wezterm}" cli get-text ${paneArg} 2>/dev/null`,
+      { encoding: "utf-8", timeout: 3000 }
+    );
+    if (scrollback.trim()) return { source: "wezterm", content: scrollback };
+  } catch {
+    // wezterm cli not available
+  }
+
+  // Strategy B: tmux capture-pane (fallback)
   try {
     const pane = process.env.SHINGLE_TMUX_PANE || "claude";
     const scrollback = execSync(
@@ -40,10 +48,10 @@ function getTerminalContent() {
     );
     if (scrollback.trim()) return { source: "tmux", content: scrollback };
   } catch {
-    // tmux not available or session doesn't exist
+    // tmux not available
   }
 
-  // Strategy B: explicit terminal log file (from `script` command)
+  // Strategy C: explicit log file
   const logFile =
     process.env.SHINGLE_TERMINAL_LOG || "/tmp/shingle-terminal.log";
   try {
@@ -57,7 +65,7 @@ function getTerminalContent() {
   }
 
   throw new Error(
-    "No terminal source. Launch with: bash tools/shingle-capture/launch.sh"
+    "No terminal source. Need WezTerm, tmux, or SHINGLE_TERMINAL_LOG."
   );
 }
 
@@ -65,12 +73,10 @@ function getTerminalContent() {
  * Extract the most recent bubble text from terminal content.
  */
 function extractLastBubble(rawContent) {
-  // Strip ANSI codes first (critical for script-mode logs)
   const content = stripAnsi(rawContent);
   const lines = content.split("\n");
   let lastBubbleEnd = -1;
 
-  // Find the last bubble closing line
   for (let i = lines.length - 1; i >= 0; i--) {
     if (BUBBLE_CLOSE.test(lines[i])) {
       lastBubbleEnd = i;
@@ -78,11 +84,8 @@ function extractLastBubble(rawContent) {
     }
   }
 
-  if (lastBubbleEnd === -1) {
-    return null;
-  }
+  if (lastBubbleEnd === -1) return null;
 
-  // Walk backward to find the opening
   let lastBubbleStart = -1;
   for (let i = lastBubbleEnd - 1; i >= 0; i--) {
     if (BUBBLE_OPEN.test(lines[i])) {
@@ -91,11 +94,8 @@ function extractLastBubble(rawContent) {
     }
   }
 
-  if (lastBubbleStart === -1) {
-    return null;
-  }
+  if (lastBubbleStart === -1) return null;
 
-  // Extract content lines between open and close
   const bubbleLines = [];
   for (let i = lastBubbleStart + 1; i < lastBubbleEnd; i++) {
     const match = lines[i].match(BUBBLE_LINE);
