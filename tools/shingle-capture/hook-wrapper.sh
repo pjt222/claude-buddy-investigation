@@ -1,12 +1,15 @@
 #!/bin/bash
-# hook-wrapper.sh — Stop hook entry point
+# hook-wrapper.sh — Dual-hook entry point for Shingle bubble capture
 #
-# Reads the hook JSON payload from stdin, extracts conversation context,
-# and runs capture.mjs with it. Dumps raw payload for debugging on first runs.
+# Handles two hook events:
+#   UserPromptSubmit — user just hit enter, bubble likely still visible → scrape strategy
+#   Stop            — Claude finished responding → replay strategy (parallel API call)
+#
+# Reads the hook JSON payload from stdin, branches on hook_event_name,
+# and runs capture.mjs with the appropriate strategy.
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PAYLOAD_DUMP="/tmp/shingle-hook-payload.json"
-STRATEGY="${SHINGLE_CAPTURE_STRATEGY:-both}"
 
 # Read stdin (hook payload) — must happen before backgrounding
 PAYLOAD="$(cat)"
@@ -14,9 +17,25 @@ PAYLOAD="$(cat)"
 # Dump raw payload for debugging (overwrite each time)
 echo "$PAYLOAD" > "$PAYLOAD_DUMP"
 
-# Extract conversation context from the hook payload
-# Stop hook provides: session_id, transcript_path, last_assistant_message, cwd
-CONTEXT=$(echo "$PAYLOAD" | python3 -c "
+# Determine which hook event fired
+HOOK_EVENT=$(echo "$PAYLOAD" | python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    print(data.get('hook_event_name', 'unknown'))
+except:
+    print('unknown')
+" 2>/dev/null)
+
+if [ "$HOOK_EVENT" = "UserPromptSubmit" ]; then
+  # Bubble is likely still visible — scrape the terminal
+  SHINGLE_CAPTURE_STRATEGY="scrape" \
+  SHINGLE_LAST_CONTEXT="(scrape-only, no context needed)" \
+    node "$SCRIPT_DIR/capture.mjs" &
+
+elif [ "$HOOK_EVENT" = "Stop" ]; then
+  # Claude finished responding — replay via API with conversation context
+  CONTEXT=$(echo "$PAYLOAD" | python3 -c "
 import sys, json, os
 try:
     data = json.load(sys.stdin)
@@ -59,7 +78,10 @@ except Exception as e:
     print(f'(payload parse error: {e})')
 " 2>/dev/null)
 
-# Run capture with extracted context
-SHINGLE_CAPTURE_STRATEGY="$STRATEGY" \
-SHINGLE_LAST_CONTEXT="${CONTEXT:-"(no context extracted)"}" \
-  node "$SCRIPT_DIR/capture.mjs" &
+  SHINGLE_CAPTURE_STRATEGY="replay" \
+  SHINGLE_LAST_CONTEXT="${CONTEXT:-"(no context extracted)"}" \
+    node "$SCRIPT_DIR/capture.mjs" &
+
+else
+  echo "shingle-capture: unknown hook event '$HOOK_EVENT'" >&2
+fi
