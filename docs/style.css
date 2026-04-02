@@ -689,6 +689,84 @@ em { color: var(--v8); font-style: normal; }
   background: rgba(53, 183, 121, 0.1);
 }
 
+/* === Timing Constants === */
+.timing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.timing-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.2rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.timing-card:hover {
+  border-color: var(--v4);
+  transform: translateY(-2px);
+}
+
+.timing-value {
+  display: block;
+  font-size: 1.8rem;
+  font-weight: 300;
+  background: linear-gradient(180deg, var(--v5), var(--v8));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.3em;
+}
+
+.timing-name {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  margin-bottom: 0.2em;
+}
+
+.timing-desc {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+/* === System Prompt === */
+.prompt-block {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  font-size: 0.85rem;
+}
+
+.prompt-block code {
+  background: none;
+  color: var(--text);
+  padding: 0;
+}
+
+.prompt-header {
+  color: var(--v6);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.prompt-var {
+  color: var(--v9);
+  font-style: italic;
+}
+
+/* === Question Status === */
+.question-item.resolved { border-left: 3px solid var(--positive); }
+.question-item.partial { border-left: 3px solid var(--v8); }
+.question-item.unresolvable { border-left: 3px solid var(--text-dim); }
+
+.q-resolved { color: var(--positive) !important; }
+.q-partial { color: var(--v8) !important; }
+.q-unresolvable { color: var(--text-dim) !important; }
+
 /* === Scroll animations === */
 .section > h2,
 .section > .section-intro,
@@ -702,7 +780,8 @@ em { color: var(--v8); font-style: normal; }
 .question-item,
 .stat-card,
 .rarity-bar,
-.trait-group {
+.trait-group,
+.timing-card {
   opacity: 0;
   transform: translateY(20px);
   transition: opacity 0.5s ease, transform 0.5s ease;

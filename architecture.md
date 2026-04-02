@@ -126,6 +126,7 @@ accountUuid + SALT ("friend-2026-401")
 | `HOf()` | **Transcript builder.** Extracts the last 12 messages from the conversation, truncating each to 300 characters. Produces the compact transcript sent to the API. |
 | `Bi$()` | **Reaction API sender.** Sends POST to `buddy_react` endpoint with 6 parameters: companion config, transcript, trigger reason, recent context, addressed flag, abort signal. |
 | `E46()` | **Ring buffer store.** Maintains a fixed-size circular buffer of recent reactions for context continuity and deduplication. |
+| `Rb7()` | **Column reservation.** Returns companion widget width (0 if muted or terminal < 100 columns). |
 
 ### UI and Prompt Integration
 
@@ -292,14 +293,35 @@ Animation: 500ms tick interval, cycling through 3 frames
               │  ← tail points toward sprite
           [sprite]
           │
-6. Bubble remains visible until next turn or timeout
+6. Auto-dismiss: ~10s (v16=20 ticks × yo$=500ms), fade begins at 7s
+   NOTE: Conflicting analysis — may persist via React state until
+   replaced by next reaction. Empirical testing recommended.
           │
 7. Reaction stored in E46() ring buffer
 ```
 
+### Timing Constants (from binary)
+
+| Constant | Value | Meaning |
+|----------|-------|---------|
+| `$Of` | `30000` | 30s cooldown between reactions |
+| `qOf` | `3` | Ring buffer size (recent reactions) |
+| `KOf` | `80` | Large-diff line threshold for `AOf()` |
+| `yo$` | `500` | Animation/bubble tick interval (ms) |
+| `v16` | `20` | Bubble display ticks (× 500ms = 10s TTL) |
+| `Eb7` | `6` | Fade-out start offset (tick 14 = 7s) |
+| `BXf` | `2500` | Rapid-input suppression threshold (ms) |
+| `Eo$` | `100` | Terminal width threshold — hide companion below 100 cols |
+| `cXf` | `36` | Widget width when reaction active (columns reserved) |
+| `dXf` | `12` | Base sprite width |
+| `LGf` | `3` | Left gutter offset |
+
 ### Layout Coordination
 
-The `companionReservedColumns()` function calculates horizontal space needed for the sprite + speech bubble, ensuring the main prompt input area is not occluded. The terminal width minus reserved columns determines the available input width.
+The `Rb7()` function calculates companion column reservation:
+- Returns `0` when `companionMuted` is true or terminal width < 100 columns (`Eo$ = 100`)
+- Returns `cXf = 36` columns when a reaction is active (sprite + bubble)
+- Prompt input width: `terminalWidth - LGf - Rb7()`
 
 ### Rarity Color Mapping
 

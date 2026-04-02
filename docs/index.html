@@ -371,29 +371,131 @@
       </div>
     </section>
 
+    <!-- Timing Constants -->
+    <section id="timing" class="section">
+      <h2>Timing Constants</h2>
+      <p class="section-intro">Extracted from the v2.1.90 binary via deep string analysis.</p>
+      <div class="timing-grid">
+        <div class="timing-card">
+          <span class="timing-value">30s</span>
+          <span class="timing-name"><code>$Of = 30000</code></span>
+          <span class="timing-desc">Cooldown between reactions</span>
+        </div>
+        <div class="timing-card">
+          <span class="timing-value">10s</span>
+          <span class="timing-name"><code>v16 &times; yo$</code></span>
+          <span class="timing-desc">Bubble TTL (20 ticks &times; 500ms)</span>
+        </div>
+        <div class="timing-card">
+          <span class="timing-value">7s</span>
+          <span class="timing-name"><code>v16 - Eb7</code></span>
+          <span class="timing-desc">Fade-out begins (tick 14)</span>
+        </div>
+        <div class="timing-card">
+          <span class="timing-value">2.5s</span>
+          <span class="timing-name"><code>BXf = 2500</code></span>
+          <span class="timing-desc">Rapid-input suppression</span>
+        </div>
+        <div class="timing-card">
+          <span class="timing-value">100</span>
+          <span class="timing-name"><code>Eo$ = 100</code></span>
+          <span class="timing-desc">Min columns (hide below)</span>
+        </div>
+        <div class="timing-card">
+          <span class="timing-value">80</span>
+          <span class="timing-name"><code>KOf = 80</code></span>
+          <span class="timing-desc">Large-diff line threshold</span>
+        </div>
+        <div class="timing-card">
+          <span class="timing-value">36</span>
+          <span class="timing-name"><code>cXf = 36</code></span>
+          <span class="timing-desc">Widget width (cols reserved)</span>
+        </div>
+        <div class="timing-card">
+          <span class="timing-value">10s</span>
+          <span class="timing-name"><code>AbortSignal</code></span>
+          <span class="timing-desc">API call timeout</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- System Prompt -->
+    <section id="prompt" class="section">
+      <h2>Companion System Prompt</h2>
+      <p class="section-intro">The full <code>Xoq()</code> template injected into the main agent's context. Recovered from binary.</p>
+      <div class="code-block prompt-block">
+        <code><span class="prompt-header"># Companion</span>
+
+A small <span class="prompt-var">${species}</span> named <span class="prompt-var">${name}</span> sits beside the user's input box
+and occasionally comments in a speech bubble. You're not
+<span class="prompt-var">${name}</span> &mdash; it's a separate watcher.
+
+When the user addresses <span class="prompt-var">${name}</span> directly (by name), its bubble
+will answer. Your job in that moment is to stay out of the way:
+respond in ONE line or less, or just answer any part of the message
+meant for you. Don't explain that you're not <span class="prompt-var">${name}</span> &mdash; they know.
+Don't narrate what <span class="prompt-var">${name}</span> might say &mdash; the bubble handles that.</code>
+      </div>
+    </section>
+
+    <!-- CLI Tool -->
+    <section id="cli" class="section">
+      <h2>Config CLI Tool</h2>
+      <p class="section-intro">Modify your companion's name and personality from the command line.</p>
+      <div class="command-table">
+        <div class="command-row">
+          <code>show</code>
+          <span>Display current companion state</span>
+        </div>
+        <div class="command-row">
+          <code>rename &lt;name&gt;</code>
+          <span>Change name (1-14 chars, single word)</span>
+        </div>
+        <div class="command-row">
+          <code>personality &lt;text&gt;</code>
+          <span>Change personality (max 200 chars)</span>
+        </div>
+        <div class="command-row">
+          <code>mute / unmute</code>
+          <span>Toggle companion (mute stops all network calls)</span>
+        </div>
+        <div class="command-row">
+          <code>backup / restore</code>
+          <span>Backup config or restore from previous backup</span>
+        </div>
+      </div>
+      <div class="code-block">
+        <code>node tools/buddy-config.mjs show</code>
+      </div>
+    </section>
+
     <!-- Open Questions -->
     <section id="questions" class="section">
       <h2>Open Questions</h2>
       <div class="questions-list">
-        <div class="question-item">
-          <span class="q-num">?</span>
-          <p>What model runs server-side for <code>buddy_react</code> reactions?</p>
+        <div class="question-item resolved">
+          <span class="q-num q-resolved">&#10003;</span>
+          <p><strong>Xoq() system prompt</strong> &mdash; Full template recovered from binary. See above.</p>
         </div>
-        <div class="question-item">
-          <span class="q-num">?</span>
-          <p>Does model selection via <code>uw()</code> mean personality quality varies by subscription tier?</p>
+        <div class="question-item resolved">
+          <span class="q-num q-resolved">&#10003;</span>
+          <p><strong>Narrow terminal handling</strong> &mdash; Companion hidden when terminal &lt; 100 columns (<code>Eo$ = 100</code>). Widget reserves 36 cols when active.</p>
         </div>
-        <div class="question-item">
-          <span class="q-num">?</span>
-          <p>What is the exact distinction between <code>idle</code> and <code>silence</code> triggers?</p>
+        <div class="question-item partial">
+          <span class="q-num q-partial">~</span>
+          <p><strong>Bubble TTL</strong> &mdash; Conflicting evidence: binary suggests 10s auto-clear (<code>v16=20 &times; yo$=500ms</code>), but React state analysis suggests persistence until replaced. Needs empirical testing.</p>
         </div>
-        <div class="question-item">
-          <span class="q-num">?</span>
-          <p>How does the UI handle narrow terminals (&lt; 60 columns)?</p>
+        <div class="question-item partial">
+          <span class="q-num q-partial">~</span>
+          <p><strong>idle vs silence</strong> &mdash; 30s cooldown confirmed. Specific threshold distinction remains undiscovered in binary and public sources.</p>
         </div>
-        <div class="question-item">
-          <span class="q-num">?</span>
-          <p>What is the full <code>Xoq()</code> system prompt template for reactions?</p>
+        <div class="question-item unresolvable">
+          <span class="q-num q-unresolvable">&#10007;</span>
+          <p><strong>Server-side model</strong> &mdash; Exhaustive web search found no documentation. Would require API interception of a live session.</p>
+        </div>
+        <div class="question-item unresolvable">
+          <span class="q-num q-unresolvable">&#10007;</span>
+          <p><strong>Tier-dependent quality</strong> &mdash; No public source compares buddy behavior across Pro vs Max. Would require multi-tier empirical testing.</p>
         </div>
       </div>
     </section>
@@ -402,8 +504,8 @@
     <footer class="section footer">
       <div class="footer-content">
         <p class="footer-title">Shingle Investigation</p>
-        <p>Conducted 2026-04-02 using the <strong>unleash-the-agents</strong> skill &amp; <strong>synoptic-mind</strong> team synthesis</p>
-        <p>11 agents &bull; 2 waves &bull; 910 lines of documentation</p>
+        <p>Conducted 2026-04-02 using <strong>unleash-the-agents</strong>, <strong>synoptic-mind</strong> team, and <strong>buddy-open-questions</strong> team</p>
+        <p>14 agents &bull; 3 teams &bull; CLI tool included</p>
         <div class="footer-links">
           <a href="https://github.com/pjt222/claude-buddy-investigation">Source</a>
         </div>
