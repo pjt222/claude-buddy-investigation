@@ -266,14 +266,38 @@ The buddy system is **novel as a combined system**: hash-based deterministic ide
 
 ---
 
-## Open Questions
+## Open Questions — Follow-Up Investigation (3-agent team)
 
-1. **Server-side reaction model**: What model actually runs `buddy_react` on the server? Client-side evidence points to the main model, but the server could substitute anything.
-2. **Speech bubble TTL**: Exact duration the reaction text displays before fading.
-3. **Narrow terminal handling**: Behavior when terminal width is < 60 columns.
-4. **`Xoq()` system prompt**: Full content of the system prompt template used for reactions.
-5. **`idle` vs `silence` distinction**: The exact threshold difference between these two trigger types.
-6. **`uw()` model implications**: Whether model selection means personality/reaction quality varies by subscription tier.
+### Resolved
+
+4. **`Xoq()` system prompt** — **RESOLVED.** Full template recovered from binary:
+   ```
+   # Companion
+   
+   A small ${species} named ${name} sits beside the user's input box and
+   occasionally comments in a speech bubble. You're not ${name} — it's a
+   separate watcher.
+   
+   When the user addresses ${name} directly (by name), its bubble will answer.
+   Your job in that moment is to stay out of the way: respond in ONE line or
+   less, or just answer any part of the message meant for you. Don't explain
+   that you're not ${name} — they know. Don't narrate what ${name} might say
+   — the bubble handles that.
+   ```
+
+3. **Narrow terminal handling** — **RESOLVED.** Companion widget is hidden when terminal width < 100 columns (`Eo$ = 100`). The widget reserves 36 columns when a reaction is active (`cXf = 36`). Below the threshold, `Rb7()` returns 0 and the sprite + bubble are suppressed entirely. A test protocol for empirical verification is available at `tools/test-protocol.md`.
+
+### Partially Resolved
+
+2. **Speech bubble TTL** — **CONFLICTING EVIDENCE.** Binary analysis found constants suggesting a 10-second auto-clear (`v16 = 20` ticks × `yo$ = 500`ms, with fade-out starting at 7s). However, a separate analysis found no `setTimeout`-based dismissal and concluded the bubble persists via React state until replaced by the next reaction. Empirical testing needed — protocol at `tools/test-protocol.md`.
+
+5. **`idle` vs `silence` distinction** — **PARTIALLY RESOLVED.** The 30-second cooldown (`$Of = 30000`) and large-diff threshold (`KOf = 80` lines) are confirmed. A session scan interval of 10 minutes (`SESSION_SCAN_INTERVAL_MS = 600000`) was found in autoDream logic but is unrelated to reaction triggers. The specific idle/silence thresholds remain undiscovered in the binary and are not documented in any public source.
+
+### Unresolvable from Public Sources
+
+1. **Server-side reaction model** — **UNRESOLVABLE.** Exhaustive web search (deepwiki, dev.to, GitHub, gists, HN) found no documentation of the server-side model. No community member has intercepted the `buddy_react` API call. Would require network proxy interception of a live session.
+
+6. **`uw()` model implications** — **UNRESOLVABLE.** No public source compares buddy behavior across Pro vs Max tiers. Would require empirical multi-tier comparison testing.
 
 ---
 
@@ -301,4 +325,4 @@ The gap: the 5000-character unfiltered transcript sent to `buddy_react` is the o
 
 ---
 
-*Investigation conducted 2026-04-02 by synoptic-mind team (11 agents, 2 waves). This digest supersedes all prior versions.*
+*Initial investigation conducted 2026-04-02 (11 agents, 2 waves). Follow-up investigation same day (3-agent team for open questions). Config CLI utility available at `tools/buddy-config.mjs`.*

@@ -14,4 +14,6 @@ Investigation into Shingle — the companion owl in Claude Code's built-in "Budd
 - `architecture.md` — technical architecture: function reference, data flow, API protocol, security boundary
 - `config-excerpt.json` — companion config extracted from Claude Code backups
 - `links.md` — 20 reference sources (official docs, source code repos, reverse engineering articles, prior art patents, competitors)
+- `tools/buddy-config.mjs` — CLI to read/modify companion config (`node tools/buddy-config.mjs show`)
+- `tools/test-protocol.md` — empirical test protocols for remaining open questions
 - `docs/` — GitHub Pages visualization (Three.js, Viridis dark theme) — all findings at a glance

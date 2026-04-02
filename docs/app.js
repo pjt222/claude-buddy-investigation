@@ -6,16 +6,16 @@ const VIRIDIS = [
 ];
 
 const SPECIES_DATA = [
-  { name: 'axolotl', emoji: '\u{1F41F}' },
+  { name: 'axolotl', emoji: '\u{1F98E}' },
   { name: 'blob', emoji: '\u{1FAE0}' },
   { name: 'cactus', emoji: '\u{1F335}' },
-  { name: 'capybara', emoji: '\u{1F43F}' },
+  { name: 'capybara', emoji: '\u{1F9AB}' },
   { name: 'cat', emoji: '\u{1F431}' },
-  { name: 'chonk', emoji: '\u{1F43B}' },
+  { name: 'chonk', emoji: '\u{1F99B}' },
   { name: 'dragon', emoji: '\u{1F409}' },
   { name: 'duck', emoji: '\u{1F986}' },
   { name: 'ghost', emoji: '\u{1F47B}' },
-  { name: 'goose', emoji: '\u{1FAA8}' },
+  { name: 'goose', emoji: '\u{1FABF}' },
   { name: 'mushroom', emoji: '\u{1F344}' },
   { name: 'octopus', emoji: '\u{1F419}' },
   { name: 'owl', emoji: '\u{1F989}', current: true },

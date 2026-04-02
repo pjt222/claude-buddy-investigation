@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Purpose
 
-Research repository documenting findings about Claude Code's built-in "Buddy" companion system — specifically the owl companion named Shingle. This is a documentation-only repo with no build system, tests, or runnable code.
+Research repository documenting findings about Claude Code's built-in "Buddy" companion system — specifically the owl companion named Shingle. Includes a CLI utility for modifying companion config.
 
 ## Repository Structure
 
@@ -13,6 +13,9 @@ Research repository documenting findings about Claude Code's built-in "Buddy" co
 - `config-excerpt.json` — companion config extracted from `~/.claude/backups/` state files
 - `links.md` — 20 reference sources organized by category (official docs, source analysis, reverse engineering, prior art, competitors)
 - `README.md` — project overview
+- `tools/buddy-config.mjs` — CLI to read/modify companion config (Node.js 18+, zero deps)
+- `tools/test-protocol.md` — empirical test protocols for bubble TTL and narrow terminal behavior
+- `docs/` — GitHub Pages visualization (Three.js, Viridis dark theme)
 
 ## Key Context
 
