@@ -140,7 +140,9 @@ accountUuid + SALT ("friend-2026-401")
 
 ---
 
-## 4. API Protocol
+## 4. API Protocol (Empirically Verified)
+
+*Protocol captured via `BUN_CONFIG_VERBOSE_FETCH=curl` with stderr redirect on 2026-04-02. Curl replay confirmed response format.*
 
 ### Endpoint
 
@@ -150,46 +152,87 @@ POST /api/organizations/{orgUUID}/claude_code/buddy_react
 
 ### Authentication
 
-| Header | Value |
-|--------|-------|
-| `Authorization` | `Bearer {session_token}` |
-| `anthropic-beta` | Feature flag header (enables buddy endpoint) |
-| `Content-Type` | `application/json` |
+| Header | Value | Captured |
+|--------|-------|----------|
+| `Authorization` | `Bearer {OAuth token}` | `sk-ant-oat01-...` (OAuth session token) |
+| `anthropic-beta` | `oauth-2025-04-20` | Exact value from capture |
+| `Content-Type` | `application/json` | ✓ |
+| `User-Agent` | `claude-code/{version}` | `claude-code/2.1.90` |
+| `Accept` | `application/json, text/plain, */*` | ✓ |
+| `Connection` | `keep-alive` | HTTP/1.1 |
 
-### Request Payload
+### Request Payload (Captured)
 
+**Structure is flat** — all fields are top-level, not nested under a `companion` key as previously assumed from source analysis.
+
+**Example 1: Pet trigger**
 ```json
 {
-  "companion": {
-    "name": "Shingle",
-    "personality": "Perches silently in your editor margins...",
-    "species": "owl",
-    "rarity": "common"
-  },
-  "transcript": [
-    {"role": "user", "content": "...truncated to 300 chars..."},
-    {"role": "assistant", "content": "...truncated to 300 chars..."}
-  ],
-  "reason": "test-fail | error | large-diff | turn-end | addressed",
-  "recent": ["previous reaction 1", "previous reaction 2"],
-  "addressed": false,
-  "signal": "<AbortSignal>"
+  "name": "Shingle",
+  "personality": "Perches silently in your editor margins, watching you debug with almost supernatural calm before gently suggesting you'd actually left a semicolon off three lines ago.",
+  "species": "owl",
+  "rarity": "common",
+  "stats": {"DEBUGGING": 10, "PATIENCE": 81, "CHAOS": 1, "WISDOM": 36, "SNARK": 21},
+  "transcript": "(you were just petted)",
+  "reason": "pet",
+  "recent": [],
+  "addressed": false
 }
 ```
 
-**Constraints:**
-- `transcript`: Last 12 messages, each truncated to 300 characters
-- `recent`: From `E46()` ring buffer — recent reactions for context
-- `addressed`: Boolean — true when user mentioned companion by name
-- `signal`: AbortSignal for client-side cancellation
-
-### Response
-
+**Example 2: Turn trigger with direct address**
 ```json
 {
-  "reaction": "string — the companion's speech bubble text"
+  "name": "Shingle",
+  "personality": "Perches silently in your editor margins...",
+  "species": "owl",
+  "rarity": "common",
+  "stats": {"DEBUGGING": 10, "PATIENCE": 81, "CHAOS": 1, "WISDOM": 36, "SNARK": 21},
+  "transcript": "user: @Shingle how is it going in space?\nclaude: 👋",
+  "reason": "turn",
+  "recent": ["*soft hoot of approval, subtle head tilt*\n\nYou remembered the semicolon this time, yes?"],
+  "addressed": true
 }
 ```
+
+**Key observations:**
+- `stats` has **5 fields** (DEBUGGING, PATIENCE, CHAOS, WISDOM, SNARK), all uppercase keys
+- `transcript` is a **single formatted string**, not a message array. For pet triggers: literal `"(you were just petted)"`. For turn triggers: `"user: ...\nclaude: ..."` format
+- `recent` carries prior reaction strings (from `E46()` ring buffer) for conversational continuity
+- `addressed` is true when `zOf()` detects the companion's name in the user message
+- Full companion persona sent with every request — **the server is stateless**
+- `signal` (AbortSignal) is a client-side construct, not transmitted over the wire
+
+### Response (Captured via curl replay)
+
+```json
+{"reaction":"*soft, satisfied hoot*\n\nAh. Yes. Quite pleasant, that."}
+```
+
+**Response headers (captured):**
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+Transfer-Encoding: chunked
+Content-Encoding: gzip
+request-id: req_011CZfB1dybHGWQxdVRbgXbj
+x-envoy-upstream-service-time: 681
+Server: cloudflare
+CF-RAY: 9e60d457db52e52d-TXL
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+Content-Security-Policy: default-src 'none'; frame-ancestors 'none'
+cf-cache-status: DYNAMIC
+vary: Accept-Encoding
+server-timing: x-originResponse;dur=684
+```
+
+**Key findings:**
+- **No model identifier** in response headers or body — model selection is entirely server-side
+- `x-envoy-upstream-service-time` provides server-side latency (681–1066ms across 3 calls)
+- Latency range is consistent with Haiku-class models for short text generation
+- Cloudflare-fronted, Envoy reverse proxy behind CDN
+- `request-id` follows Anthropic's standard format (`req_011CZf...`)
+- Response is gzip-compressed (hence invisible to raw stderr capture; curl replay with `Accept-Encoding: identity` was needed)
 
 **Notes:**
 - No schema validation is performed on the client side for the response
@@ -272,6 +315,38 @@ Animation: 500ms tick interval, cycling through 3 frames
 2. **Eye injection**: `{E}` placeholders in body string replaced with eye-type characters (6 variants)
 3. **Hat overlay**: Rendered on the topmost line of the sprite (8 styles)
 4. **Shiny effect**: Color/highlight modifier applied to the entire sprite (1% of companions)
+5. **Pet hearts overlay**: Animated `♥` particles above sprite during pet reaction (see below)
+
+### Pet Heart Animation (`Vb7`)
+
+When the user runs `/buddy pet`, a 5-frame heart particle animation plays above the companion sprite for 2.5 seconds:
+
+```
+Frame 0:    ♥    ♥        (hearts appear)
+Frame 1:   ♥  ♥   ♥       (rising, spreading)
+Frame 2:  ♥   ♥  ♥        (continued drift)
+Frame 3: ♥  ♥      ♥      (dispersing)
+Frame 4: ·    ·   ·       (fade to dots)
+         ┌──────────┐
+         │  sprite  │      (companion below)
+         └──────────┘
+```
+
+**Constants:**
+- `BXf = 2500` — animation duration: 2.5 seconds
+- Hearts cycle at `yo$ = 500`ms per frame (5 frames × 500ms = 2500ms)
+- Color: `"autoAccept"` theme key → **magenta/violet** in all color schemes
+- Heart character: `nH.heart` → `♥` (U+2665)
+- Frame selection: `Vb7[X % Vb7.length]` where `X = currentTick - petStartTick`
+
+**Rendering logic** (in `k16()`):
+- `companionPetAt` state is set to `Date.now()` when pet command fires
+- `petStartTick` captures the tick count at pet time
+- While `(currentTick - petStartTick) * 500 < 2500`, the current heart frame `W` is prepended above the sprite: `y = W ? [W, ...V] : V`
+- After 2500ms, `W` becomes `null` and the hearts disappear
+
+**Idle blink animation** (`kb7`):
+The sprite also has a subtle idle animation: `kb7 = [0,0,0,0,1,0,0,0,-1,0,0,2,0,0,0]` — mostly frame 0 (still), with occasional frame switches creating a slow blink/fidget cycle. Frame `-1` triggers a "sleeping" state where eyes are replaced with `-`.
 
 ### Speech Bubble Lifecycle
 
@@ -293,28 +368,31 @@ Animation: 500ms tick interval, cycling through 3 frames
               │  ← tail points toward sprite
           [sprite]
           │
-6. Auto-dismiss: ~10s (v16=20 ticks × yo$=500ms), fade begins at 7s
-   NOTE: Conflicting analysis — may persist via React state until
-   replaced by next reaction. Empirical testing recommended.
+6. Auto-dismiss: setTimeout clears companionReaction after v16*yo$ = 20×500 = 10,000ms
+   Fade-out: starts at tick (v16-Eb7) = 14 → 14×500 = 7,000ms (final 3s are faded)
+   If a new reaction arrives, old timeout is cleared and a fresh 10s window starts.
           │
 7. Reaction stored in E46() ring buffer
 ```
 
-### Timing Constants (from binary)
+### Timing Constants (from binary, with readable labels)
 
-| Constant | Value | Meaning |
-|----------|-------|---------|
-| `$Of` | `30000` | 30s cooldown between reactions |
-| `qOf` | `3` | Ring buffer size (recent reactions) |
-| `KOf` | `80` | Large-diff line threshold for `AOf()` |
-| `yo$` | `500` | Animation/bubble tick interval (ms) |
-| `v16` | `20` | Bubble display ticks (× 500ms = 10s TTL) |
-| `Eb7` | `6` | Fade-out start offset (tick 14 = 7s) |
-| `BXf` | `2500` | Rapid-input suppression threshold (ms) |
-| `Eo$` | `100` | Terminal width threshold — hide companion below 100 cols |
-| `cXf` | `36` | Widget width when reaction active (columns reserved) |
-| `dXf` | `12` | Base sprite width |
-| `LGf` | `3` | Left gutter offset |
+| Minified | Readable Label | Value | Derived | Meaning |
+|----------|---------------|-------|---------|---------|
+| `$Of` | `REACTION_COOLDOWN_MS` | `30000` | 30s | Minimum interval between reactions |
+| `qOf` | `RECENT_BUFFER_SIZE` | `3` | — | Ring buffer capacity (recent reactions) |
+| `KOf` | `LARGE_DIFF_THRESHOLD` | `80` | — | Lines changed to trigger `large-diff` |
+| `yo$` | `TICK_INTERVAL_MS` | `500` | 0.5s | Master tick for animation + bubble timing |
+| `v16` | `BUBBLE_TTL_TICKS` | `20` | 10s | Bubble auto-dismiss (`20 × 500ms = 10,000ms`) |
+| `Eb7` | `BUBBLE_FADE_OFFSET` | `6` | 3s | Fade starts at tick 14 (`(20-6) × 500ms = 7,000ms`) |
+| `BXf` | `PET_ANIMATION_MS` | `2500` | 2.5s | Heart particle duration after `/buddy pet` |
+| `Eo$` | `MIN_TERMINAL_WIDTH` | `100` | — | Hide companion below 100 columns |
+| `cXf` | `WIDGET_WIDTH_ACTIVE` | `36` | — | Columns reserved when bubble is showing |
+| `dXf` | `SPRITE_WIDTH` | `12` | — | Base sprite width in characters |
+| `FXf` | `SPRITE_PADDING` | `2` | — | Padding around sprite |
+| `UXf` | `NAME_GAP` | `2` | — | Gap between sprite and name label |
+| `LGf` | `LEFT_GUTTER` | `3` | — | Left margin offset |
+| `Nb7` | `NARROW_BUBBLE_MAX_CHARS` | `24` | — | Max reaction length in narrow mode |
 
 ### Layout Coordination
 
@@ -378,18 +456,14 @@ The `roll()` function consumes PRNG values in this exact order:
 | 2 | Species | 18 types | Uniform random within available set |
 | 3 | Eye type | 6 variants | Uniform random |
 | 4 | Hat | 8 styles | Uniform random |
-| 5 | Stats | 3 attributes | Random within rarity-defined floor/ceiling |
+| 5 | Stats | 5 attributes | Random within rarity-defined floor/ceiling |
 | 6 | Shiny | boolean | 1% threshold check |
 
-**Stats by rarity floor:**
+**Stats** (5 attributes, empirically verified — earlier analysis incorrectly identified only 3):
 
-| Rarity | Debugging (min) | Patience (min) | Chaos (min) |
-|--------|----------------|----------------|-------------|
-| Common | low | low | low |
-| Uncommon | moderate | moderate | low |
-| Rare | moderate | moderate | moderate |
-| Epic | high | high | moderate |
-| Legendary | high | high | high |
+DEBUGGING, PATIENCE, CHAOS, WISDOM, SNARK (uppercase keys in API payload).
+
+Shingle's captured stats: `{"DEBUGGING": 10, "PATIENCE": 81, "CHAOS": 1, "WISDOM": 36, "SNARK": 21}` — consistent with one peak stat (PATIENCE: 81) and one valley stat (CHAOS: 1), confirming the character differentiation algorithm.
 
 ### Step 4: Personality Generation (Soul)
 
@@ -437,9 +511,11 @@ interface CompanionBones {
   eyeType: string;       // 6 variants
   hat: string;           // 8 styles
   stats: {
-    debugging: number;
-    patience: number;
-    chaos: number;
+    DEBUGGING: number;   // empirically verified: uppercase keys
+    PATIENCE: number;
+    CHAOS: number;
+    WISDOM: number;      // not in initial source analysis; confirmed via capture
+    SNARK: number;       // not in initial source analysis; confirmed via capture
   };
   shiny: boolean;        // 1% chance
 }
@@ -463,7 +539,7 @@ interface Companion extends CompanionBones, CompanionSoul {}
         ├── rarity                                   ├── personality
         ├── eyeType                                  └── hatchedAt
         ├── hat
-        ├── stats {debugging, patience, chaos}
+        ├── stats {DEBUGGING, PATIENCE, CHAOS, WISDOM, SNARK}
         └── shiny
 
         Source: hash(userId + salt) → PRNG           Source: LLM call (once)
@@ -472,4 +548,158 @@ interface Companion extends CompanionBones, CompanionSoul {}
 
 ---
 
-*This document describes the architecture as understood from source analysis and runtime observation as of 2026-04-02. Function names reference minified/bundled identifiers from the Claude Code client.*
+## 8. State Management and Memo Cache Hooks
+
+### Overview
+
+The buddy system does **not** use traditional React `useState` hooks for state management. Instead, it relies on `S46.c(n)` — a **React compiler memo cache** that allocates fixed-size slot arrays for dependency tracking. This pattern makes dependencies invisible at the source level while enforcing them through reference identity comparison.
+
+### The `pN7()` Notification Hook
+
+The primary state management hook for buddy reactions:
+
+```javascript
+function pN7(){
+  let H = S46.c(4),                                    // 4-slot memo cache
+      {addNotification: $, removeNotification: q} = j7(), // notification context
+      K, _;
+  
+  if(H[0] !== $ || H[1] !== q) {        // identity check (not shallow equality)
+    K = () => {
+      if(A$().companion || !di$()) return;
+      return $({
+        key: "buddy-teaser",
+        jsx: DDH.default.createElement(jOf, {text: "/buddy"}),
+        priority: "immediate",
+        timeoutMs: 15000
+      }),
+      () => q("buddy-teaser");           // cleanup — captures q by closure
+    };
+    _ = [$, q];
+    H[0] = $; H[1] = q; H[2] = K; H[3] = _;
+  } else {
+    K = H[2];                            // REUSES CACHED CALLBACK
+    _ = H[3];                            // REUSES CACHED DEPS
+  }
+  DDH.useEffect(K, _);
+}
+```
+
+**Cache slot layout:**
+
+| Slot | Contents | Purpose |
+|------|----------|---------|
+| `H[0]` | `addNotification` | Identity comparison input |
+| `H[1]` | `removeNotification` | Identity comparison input |
+| `H[2]` | Effect callback `K` | Cached to avoid re-creation |
+| `H[3]` | Dependency array `_` | Cached `[$, q]` passed to `useEffect` |
+
+**Why the dependency array appears "empty"**: The actual dependencies are `[$, q]` (notification context functions), but they're hidden inside the memo cache slots rather than written as a literal array in source. The `if(H[0] !== $)` guard serves the same role as React's dependency diffing — it just happens at the cache level instead of the hook level.
+
+### Three State Layers
+
+The buddy system distributes state across three distinct layers:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Layer 1: Config State (persistent)                         │
+│  Location: ~/.claude/.claude.json                           │
+│  Reader: qI() / A$()                                       │
+│  Writer: R$()                                               │
+│  Contents: name, personality, hatchedAt                     │
+│  Lifecycle: written once at hatch, read every session       │
+└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Layer 2: Reaction State (ephemeral, session-scoped)        │
+│  Location: YIH array (module-level mutable)                 │
+│  Writer: E46() — push/shift in-place                        │
+│  Reader: hN7() — returns YIH.at(-1)                         │
+│  Capacity: 3 entries (qOf = 3)                              │
+│  Lifecycle: empty at session start, never persisted          │
+└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  Layer 3: UI State (notification context)                   │
+│  Location: React context via j7()                           │
+│  Writer: addNotification ($)                                │
+│  Cleaner: removeNotification (q)                            │
+│  Lifecycle: per-render, managed by notification provider     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 9. Stale Closure Analysis
+
+The `S46.c()` memo cache pattern creates specific stale closure risks that are nearly impossible to detect without decompiling the minified source. Three issues were identified, ranked by severity.
+
+### 9.1 Ring Buffer Mutation Without Invalidation — CRITICAL
+
+```javascript
+var YIH = [];                     // module-level mutable array
+
+function E46(H) {
+  if(YIH.push(H), YIH.length > qOf)
+    YIH.shift();                  // mutates in-place, reference unchanged
+}
+```
+
+`SN7()` passes `YIH` directly to `Bi$()`:
+```javascript
+Bi$(q, Y, z, YIH, K, AbortSignal.timeout(1e4))
+```
+
+**The problem**: The array reference never changes, but its contents are mutated by `push()` and `shift()`. Any closure or cache that holds `YIH` sees the latest data *by accident* (shared mutable reference), not by design. If React ever snapshots or clones the array during reconciliation, the snapshot would contain stale reaction history sent to the API.
+
+**Why it works today**: JavaScript passes arrays by reference, so all consumers share the same mutable object. This is correct by coincidence — the system would break silently if any intermediate code performed a defensive copy.
+
+### 9.2 Promise Callback Captures Stale Parameter — HIGH
+
+```javascript
+function SN7(H, $) {              // $ is a callback parameter
+  // ... trigger detection ...
+  Bi$(q, Y, z, YIH, K, AbortSignal.timeout(1e4))
+    .then((w) => {
+      if(!w) return;
+      E46(w), $(w);               // $ captured from SN7's parameter
+    });
+}
+```
+
+**The problem**: The `.then()` callback captures `$` at the time `SN7()` is called. If `SN7()` is invoked again before the first promise resolves (e.g., rapid pet + turn-complete triggers within the 10-second API timeout), the first `.then()` still holds the previous `$` reference.
+
+**Consequence**: Two rapid triggers could deliver a reaction through a stale callback. The severity depends on whether `$` is a stable function reference or is recreated on each render cycle.
+
+### 9.3 Cleanup Function Captures Stale `removeNotification` — HIGH
+
+```javascript
+// Inside pN7()'s cached callback K:
+() => q("buddy-teaser")          // cleanup function — q captured once
+```
+
+**The problem**: The cleanup function closes over `q` (`removeNotification`) from the initial cache population. If the notification context provider re-renders and `removeNotification` gets a new function identity, the cache guard `H[1] !== q` would trigger a re-cache — but the **old cleanup function** from the previous effect still holds the stale `q`.
+
+**Consequence**: Orphaned `"buddy-teaser"` notifications that the old cleanup tries to remove via a stale function reference. The notification may persist in the UI until the next full context reset.
+
+### What's Safe
+
+| Function | Why |
+|----------|-----|
+| `Bi$()` | Not cached. Reads `A$()`, `Kq()`, `F6()` fresh on each invocation. |
+| `A$()` inside cached `K` | Called at effect execution time, not closure creation time. Returns current config. |
+| `di$()` | Computes `new Date()` fresh every call. No captured state. (Note: the hardcoded year check `getFullYear() >= 2026` will need updating post-2026.) |
+
+### Summary Table
+
+| Location | Severity | Pattern | Risk |
+|----------|----------|---------|------|
+| `E46()` / `YIH` | **Critical** | Mutable array, stable reference | Stale reaction history if array is ever copied |
+| `SN7()` `.then()` | **High** | Promise captures parameter `$` | Stale callback on rapid successive triggers |
+| `pN7()` cleanup | **High** | Cleanup captures `q` from cache | Orphaned notifications on context re-render |
+| `jOf()` text cache | Medium | `S46.c(2)` identity check on string prop | Would fail if prop were object (strings are safe) |
+| `Bi$()` | Safe | Reads all values fresh | No closure risk |
+| `A$()` in effect | Safe | Called at execution time | Returns current config |
+| `di$()` | Safe | Stateless computation | No captured values |
+
+---
+
+*This document describes the architecture as understood from source analysis and runtime observation as of 2026-04-02. API protocol section empirically verified via stderr capture (`BUN_CONFIG_VERBOSE_FETCH=curl` + `claude 2>capture/stderr_capture.log`) and curl replay. Stale closure analysis conducted 2026-04-02 via decompilation of memo cache patterns in the minified binary. Function names reference minified/bundled identifiers from the Claude Code client.*

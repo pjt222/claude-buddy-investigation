@@ -25,8 +25,14 @@ export CLAUDE_CODE_DEBUG_LOG_LEVEL="debug"
 # Enable HTTP-level request logging (captures buddy_react API calls)
 # Bi$() has NO success logging — only a catch block logs "[buddy] api failed:"
 # These env vars intercept at the transport layer instead:
+#
+# ⚠ WARNING: These vars cause visible side effects in the terminal!
+#   - NODE_DEBUG=http,https prints HTTP trace lines to stderr
+#   - BUN_CONFIG_VERBOSE_FETCH=curl prints "[fetch] POST ..." to stderr
+#   Both bleed into Ink's terminal rendering, showing "[fetch]" text where
+#   the buddy UI should be. Run `source tools/capture-teardown.sh` to undo.
 export NODE_DEBUG=http,https             # Node.js built-in HTTP tracing
-export BUN_CONFIG_VERBOSE_FETCH=curl     # Bun HTTP tracing (if running under Bun)
+export BUN_CONFIG_VERBOSE_FETCH=curl     # Bun HTTP tracing (binary is Bun v1.3.11)
 
 echo ""
 echo "=== Buddy Capture Environment ==="

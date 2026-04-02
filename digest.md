@@ -95,37 +95,57 @@ If the LLM call fails, a deterministic fallback selects from exactly 6 names: **
 
 ## Reaction System
 
-### Trigger Detection (`AOf()`)
+### Trigger Detection (`AOf()`) — Corrected from Source
 
-Nine trigger reasons drive companion reactions:
+**Six trigger reasons** (not nine — earlier analysis incorrectly listed `complete`, `idle`, and `silence` which do not exist in the code):
 
-| Trigger | Detection Method |
-|---------|-----------------|
-| `turn` | New assistant turn |
-| `hatch` | Initial companion creation |
-| `pet` | User runs `/buddy pet` |
-| `test-fail` | Regex: `/\b[1-9]\d* (failed\|failing)\b/` |
-| `error` | Regex: `/\berror:\|\bexception\b\|\btraceback\b/` |
-| `large-diff` | Diff output exceeding changed-lines threshold |
-| `complete` | Task completion signals |
-| `idle` | Extended inactivity |
-| `silence` | Prolonged silence (distinct threshold from idle — exact distinction unresolved) |
+| Trigger | Source Function | Detection Method |
+|---------|----------------|-----------------|
+| `turn` | `SN7()` | Default reason on every assistant turn (when no specific trigger matches) |
+| `hatch` | `RN7()` | Initial companion creation |
+| `pet` | `IN7()` | User runs `/buddy pet` |
+| `test-fail` | `AOf()` | Regex: `/\b[1-9]\d* (failed\|failing)\b\|\btests? failed\b\|^FAIL(ED)?\b\| ✗ \| ✘ /im` |
+| `error` | `AOf()` | Regex: `/\berror:\|\bexception\b\|\btraceback\b\|\bpanicked at\b\|\bfatal:\|exit code [1-9]/i` |
+| `large-diff` | `AOf()` | Diff output with `>80` changed lines (`KOf = 80`) |
+
+Only 3 functions call `Bi$()` (the API sender): `SN7()` for turn-end events, `RN7()` for hatch, `IN7()` for pet. No idle/silence watcher exists.
 
 Direct addressing is detected separately by `zOf()`: regex match on the companion's name in the last user message, setting the `addressed` boolean in the API payload.
 
-### API Call
+### API Call (Empirically Verified)
 
 ```
 POST /api/organizations/{orgUUID}/claude_code/buddy_react
 ```
 
-Payload fields:
-- `name` (max 32 chars), `personality` (max 200 chars)
-- `species`, `rarity`, `stats`
-- `transcript` (max 5000 chars) — built by `HOf()` from last 12 messages, 300 chars each, user+assistant only
-- `reason` (one of 9 triggers)
-- `recent` (array of 3, max 200 chars each) — ring buffer `YIH` of last 3 reactions, sent for continuity
-- `addressed` (boolean)
+**Actual captured payload** (flat structure, not nested):
+```json
+{
+  "name": "Shingle",
+  "personality": "Perches silently in your editor margins...",
+  "species": "owl",
+  "rarity": "common",
+  "stats": {"DEBUGGING": 10, "PATIENCE": 81, "CHAOS": 1, "WISDOM": 36, "SNARK": 21},
+  "transcript": "(you were just petted)",
+  "reason": "pet",
+  "recent": [],
+  "addressed": false
+}
+```
+
+Key observations from capture:
+- All companion fields are **top-level** (not nested under a `companion` key)
+- `stats` has 5 fields (DEBUGGING, PATIENCE, CHAOS, WISDOM, SNARK), all uppercase
+- `transcript` is a single string, not a message array — for pet triggers it's literal `"(you were just petted)"`; for turn triggers it's a `"user: ...\nclaude: ..."` formatted string
+- `recent` carries prior reaction strings for continuity (empty on first reaction of session)
+- `addressed` is true when user mentioned companion by name in the triggering message
+
+**Response** (empirically verified via curl replay):
+```json
+{"reaction":"*soft, satisfied hoot*\n\nAh. Yes. Quite pleasant, that."}
+```
+
+Single `reaction` string field. No model identifier in response body or headers.
 
 ### Cooldown
 
@@ -133,7 +153,9 @@ Payload fields:
 
 ### Model and Cost
 
-Reactions use the **main loop model** via the server-side endpoint. The UI displays *"Your buddy won't count toward your usage"* after hatch — this claim only makes economic sense if the server-side endpoint uses an efficient model, which remains an open question (see Open Questions).
+The `buddy_react` endpoint returns no model identifier in its response headers or body — the model is chosen entirely server-side. Empirical latency across 3 captured calls: **681ms, 888ms, 1066ms** (server-side `x-envoy-upstream-service-time`). This latency range for short text responses is consistent with Haiku-class models, not Opus/Sonnet. The UI displays *"Your buddy won't count toward your usage"* after hatch, which is economically consistent with a lightweight model.
+
+**Headers observed**: `request-id` (Anthropic format), `x-envoy-upstream-service-time`, Cloudflare CDN (CF-RAY from TXL/Berlin), `anthropic-beta: oauth-2025-04-20`. No `x-model`, `anthropic-model`, or any model-identifying header.
 
 ---
 
@@ -194,9 +216,23 @@ The companion is **strictly read-only** relative to the main agent:
 
 Shiny companions (1%) get a rainbow color shimmer and sparkle overlay regardless of rarity.
 
+### Pet Animation
+
+`/buddy pet` triggers a 5-frame heart particle animation (`Vb7`): violet `♥` characters float upward above the sprite for 2.5 seconds (`BXf = 2500`ms), then fade to dots. Hearts are colored `"autoAccept"` (magenta/violet in all themes). The sprite also has a subtle idle blink cycle (`kb7`) that occasionally swaps frames to simulate fidgeting.
+
 ### Species Face Strings
 
 Used for attribution/display: owl `(o>`, cat `(oo)`, fox `=oωo=` (others exist in source).
+
+### Stale Closure Risks
+
+The memo cache pattern (`S46.c()`) used throughout the buddy hooks hides dependencies inside compiler-generated cache slots, creating three stale closure risks:
+
+1. **`E46()` ring buffer** (critical) — `YIH` array is mutated in-place via `push()`/`shift()` but the reference never changes. Works by coincidence (shared mutable reference), not by design.
+2. **`SN7()` promise callback** (high) — `.then()` captures the `$` callback parameter at call time. Rapid successive triggers (pet + turn-complete) could deliver a reaction through a stale callback.
+3. **`pN7()` cleanup** (high) — cleanup function closes over `removeNotification` from initial cache; a context re-render would leave orphaned notifications.
+
+Full analysis with code and data flow: `architecture.md` §8–9.
 
 ### Source Files
 
@@ -248,7 +284,7 @@ The strict unidirectional architecture serves dual purposes:
 
 ### Economic Model
 
-*"Your buddy won't count toward your usage"* implies the server-side reaction endpoint uses a cost-efficient model. If reactions truly run on the main session model (as client-side evidence suggests), the cost per reaction is non-trivial. The exact server-side model remains unconfirmed.
+*"Your buddy won't count toward your usage"* is consistent with empirical findings. The `buddy_react` endpoint's latency profile (681–1066ms) strongly suggests a lightweight model (Haiku-class), not the main session model. The endpoint is a dedicated server-side route (`/api/organizations/{org}/claude_code/buddy_react`) separate from the main conversation API (`/v1/messages`), further supporting a distinct model allocation. The exact model remains unconfirmed — the response headers contain no model identifier.
 
 ---
 
@@ -287,15 +323,17 @@ The buddy system is **novel as a combined system**: hash-based deterministic ide
 
 3. **Narrow terminal handling** — **RESOLVED.** Companion widget is hidden when terminal width < 100 columns (`Eo$ = 100`). The widget reserves 36 columns when a reaction is active (`cXf = 36`). Below the threshold, `Rb7()` returns 0 and the sprite + bubble are suppressed entirely. A test protocol for empirical verification is available at `tools/test-protocol.md`.
 
-### Partially Resolved
+### Resolved via Source Analysis
 
-2. **Speech bubble TTL** — **CONFLICTING EVIDENCE.** Binary analysis found constants suggesting a 10-second auto-clear (`v16 = 20` ticks × `yo$ = 500`ms, with fade-out starting at 7s). However, a separate analysis found no `setTimeout`-based dismissal and concluded the bubble persists via React state until replaced by the next reaction. Empirical testing needed — protocol at `tools/test-protocol.md`.
+2. **Speech bubble TTL** — **RESOLVED.** Both analyses were partially correct. The bubble is stored in React state (`companionReaction`) AND dismissed by a `setTimeout` after `v16 * yo$ = 20 × 500ms = 10,000ms` (10 seconds). Fade-out begins at tick `v16 - Eb7 = 20 - 6 = 14`, i.e. `14 × 500ms = 7,000ms` (7 seconds). The `setTimeout` callback sets `companionReaction` to `undefined`, clearing the bubble. If a new reaction arrives before the timeout, the old timeout is cleared (`clearTimeout`) and a new 10-second window starts. The `fading` flag (`J`) is passed to the `SpeechBubble` component to trigger a visual fade effect during the final 3 seconds.
 
-5. **`idle` vs `silence` distinction** — **PARTIALLY RESOLVED.** The 30-second cooldown (`$Of = 30000`) and large-diff threshold (`KOf = 80` lines) are confirmed. A session scan interval of 10 minutes (`SESSION_SCAN_INTERVAL_MS = 600000`) was found in autoDream logic but is unrelated to reaction triggers. The specific idle/silence thresholds remain undiscovered in the binary and are not documented in any public source.
+5. **`idle` vs `silence` distinction** — **RESOLVED: Neither exists.** Source analysis confirms only 3 functions call `Bi$()`: `SN7()` (turn), `RN7()` (hatch), `IN7()` (pet). `AOf()` classifies tool output into `test-fail`, `error`, or `large-diff`. There is no idle watcher, no silence detector, and no `complete` trigger. The original 9-trigger list was an inference error from the initial agent investigation — the actual trigger set is 6. The `SESSION_SCAN_INTERVAL_MS = 600000` found earlier is autoDream logic, unrelated to the buddy system.
+
+### Resolved via Empirical Capture
+
+1. **Server-side reaction model** — **RESOLVED (partially).** Full `buddy_react` API traffic captured via `BUN_CONFIG_VERBOSE_FETCH=curl` with stderr redirect (`claude 2>capture/stderr_capture.log`). The endpoint returns **no model identifier** in response headers or body — model selection is entirely server-side and opaque to the client. Latency data (681–1066ms for short reactions) strongly suggests a Haiku-class model, not Opus/Sonnet. The curl command from the capture was replayed directly, confirming the response format: `{"reaction": "..."}`. The `Bi$()` logging blind spot (only logs failures) was bypassed by capturing at the HTTP transport layer. See `capture/stderr_capture.log` for raw traffic.
 
 ### Unresolvable from Public Sources
-
-1. **Server-side reaction model** — **IN PROGRESS.** Confirmed the `buddy_react` API is called and returns reactions successfully (Shingle responds to pet, addressed, and turn-end triggers). However, `Bi$()` has a **logging blind spot**: only the catch block logs (`[buddy] api failed:`); successful reactions produce zero debug output. 1,995 lines of debug logs captured with zero buddy-specific entries despite active reactions. Next approach: `NODE_DEBUG=http,https` or `BUN_CONFIG_VERBOSE_FETCH=curl` to intercept at the HTTP transport layer. The 4 silent bail-out gates in `Bi$()` were verified to pass: `Xq()==="firstParty"`, `D5()===false`, `organizationUuid` present, OAuth token valid.
 
 6. **`uw()` model implications** — **UNRESOLVABLE.** No public source compares buddy behavior across Pro vs Max tiers. Would require empirical multi-tier comparison testing.
 
@@ -325,4 +363,4 @@ The gap: the 5000-character unfiltered transcript sent to `buddy_react` is the o
 
 ---
 
-*Initial investigation conducted 2026-04-02 (11 agents, 2 waves). Follow-up investigation same day (3-agent team for open questions). Config CLI utility available at `tools/buddy-config.mjs`.*
+*Initial investigation conducted 2026-04-02 (11 agents, 2 waves). Follow-up investigation same day (3-agent team for open questions). Empirical API capture same day via stderr redirect. Config CLI utility available at `tools/buddy-config.mjs`. Raw capture data in `capture/stderr_capture.log`.*
