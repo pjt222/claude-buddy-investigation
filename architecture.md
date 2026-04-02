@@ -738,10 +738,10 @@ Stats are sent as part of the `buddy_react` API payload, which is stateless — 
 | DEBUGGING | 10 | **1** | -9 |
 | PATIENCE | 81 | **95** | +14 |
 | CHAOS | 1 | 1 | — |
-| WISDOM | 36 | 36 | — |
+| WISDOM | 36 | **99** | +63 |
 | SNARK | 21 | 21 | — |
 
-**Rationale**: Lower DEBUGGING reduces fixation on code-level nitpicks. Higher PATIENCE produces calmer, more considered reactions. CHAOS, WISDOM, and SNARK remain at native values.
+**Rationale**: Lower DEBUGGING reduces fixation on code-level nitpicks. Higher PATIENCE produces calmer, more considered reactions. Maxed WISDOM for mage-class insight. CHAOS and SNARK remain at native values.
 
 ### Behavioral Impact
 

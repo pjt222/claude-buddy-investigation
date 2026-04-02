@@ -23,7 +23,7 @@ const RING_BUFFER_SIZE = 3;
 const BONES = {
   species: "owl",
   rarity: "common",
-  stats: { DEBUGGING: 1, PATIENCE: 95, CHAOS: 1, WISDOM: 36, SNARK: 21 },
+  stats: { DEBUGGING: 1, PATIENCE: 95, CHAOS: 1, WISDOM: 99, SNARK: 21 },
 };
 
 const recentReactions = [];
