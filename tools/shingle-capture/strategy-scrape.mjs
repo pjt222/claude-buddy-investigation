@@ -4,12 +4,19 @@
 // Works by dumping the scrollback and matching the bubble box-drawing pattern.
 //
 // Requirements:
-//   - tmux session: uses `tmux capture-pane` to read scrollback
+//   - tmux session: uses `tmux capture-pane` to read scrollback (preferred)
 //   - OR script/typescript log file via SHINGLE_TERMINAL_LOG env var
-//   - Falls back to reading /tmp/shingle-terminal.log if neither is available
+//
+// Launch Claude Code via tools/shingle-capture/launch.sh to enable this.
 
-import { readFile } from "node:fs/promises";
 import { execSync } from "node:child_process";
+
+// Strip ANSI escape sequences (colors, cursor movement, etc.)
+const ANSI_RE = /\x1b\[[0-9;]*[a-zA-Z]|\x1b\].*?\x07|\x1b[()][0-9A-B]/g;
+
+function stripAnsi(text) {
+  return text.replace(ANSI_RE, "");
+}
 
 // Bubble pattern: Shingle's speech bubble uses box-drawing chars
 // ╭────────────────────────────────╮
@@ -24,25 +31,23 @@ const BUBBLE_LINE = /│\s*(.*?)\s*│/;
  * Try to get terminal content from available sources.
  */
 function getTerminalContent() {
-  // Strategy A: tmux capture-pane
+  // Strategy A: tmux capture-pane (default session: "claude")
   try {
-    const pane = process.env.SHINGLE_TMUX_PANE || "";
-    const target = pane ? `-t ${pane}` : "";
+    const pane = process.env.SHINGLE_TMUX_PANE || "claude";
     const scrollback = execSync(
-      `tmux capture-pane ${target} -p -S -200 2>/dev/null`,
+      `tmux capture-pane -t "${pane}" -p -S -200 2>/dev/null`,
       { encoding: "utf-8", timeout: 3000 }
     );
     if (scrollback.trim()) return { source: "tmux", content: scrollback };
   } catch {
-    // tmux not available
+    // tmux not available or session doesn't exist
   }
 
-  // Strategy B: explicit terminal log file
+  // Strategy B: explicit terminal log file (from `script` command)
   const logFile =
     process.env.SHINGLE_TERMINAL_LOG || "/tmp/shingle-terminal.log";
   try {
-    // Read last 8KB (enough for several bubbles)
-    const content = execSync(`tail -c 8192 "${logFile}" 2>/dev/null`, {
+    const content = execSync(`tail -c 16384 "${logFile}" 2>/dev/null`, {
       encoding: "utf-8",
       timeout: 2000,
     });
@@ -51,26 +56,17 @@ function getTerminalContent() {
     // log file not available
   }
 
-  // Strategy C: /dev/vcs virtual console (Linux only, rarely works in WSL)
-  try {
-    const content = execSync("script -q /dev/null -c 'echo'", {
-      encoding: "utf-8",
-      timeout: 1000,
-    });
-    if (content.trim()) return { source: "vcs", content };
-  } catch {
-    // not available
-  }
-
   throw new Error(
-    "No terminal source available. Set SHINGLE_TMUX_PANE or SHINGLE_TERMINAL_LOG."
+    "No terminal source. Launch with: bash tools/shingle-capture/launch.sh"
   );
 }
 
 /**
  * Extract the most recent bubble text from terminal content.
  */
-function extractLastBubble(content) {
+function extractLastBubble(rawContent) {
+  // Strip ANSI codes first (critical for script-mode logs)
+  const content = stripAnsi(rawContent);
   const lines = content.split("\n");
   let lastBubbleEnd = -1;
 
@@ -103,8 +99,8 @@ function extractLastBubble(content) {
   const bubbleLines = [];
   for (let i = lastBubbleStart + 1; i < lastBubbleEnd; i++) {
     const match = lines[i].match(BUBBLE_LINE);
-    if (match) {
-      bubbleLines.push(match[1]);
+    if (match && match[1].trim()) {
+      bubbleLines.push(match[1].trim());
     }
   }
 
@@ -120,7 +116,7 @@ export async function scrapeCapture() {
   const reaction = extractLastBubble(terminal.content);
 
   if (!reaction) {
-    return { reaction: null, source: terminal.source, note: "no bubble found" };
+    return { reaction: null, source: terminal.source, note: "no bubble found in scrollback" };
   }
 
   return { reaction, source: terminal.source };
