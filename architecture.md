@@ -705,4 +705,61 @@ function SN7(H, $) {              // $ is a callback parameter
 
 ---
 
+---
+
+## §10 BONES Divergence: Native vs MCP Shingle
+
+As of 2026-04-02, two distinct Shingle instances coexist:
+
+### Native Shingle (built-in bubble)
+
+Stats derived deterministically each session from the account hash:
+
+```
+userId → Bun.hash(userId + "friend-2026-401") → Mulberry32 PRNG → stats
+```
+
+| Stat | Value |
+|------|-------|
+| DEBUGGING | 10 |
+| PATIENCE | 81 |
+| CHAOS | 1 |
+| WISDOM | 36 |
+| SNARK | 21 |
+
+These cannot be modified client-side. The binary re-derives them on every launch.
+
+### MCP Shingle (shingle-mcp + capture replay)
+
+Stats are sent as part of the `buddy_react` API payload, which is stateless — the server uses whatever the client provides. MCP Shingle runs with tuned stats:
+
+| Stat | Native | MCP | Delta |
+|------|--------|-----|-------|
+| DEBUGGING | 10 | **1** | -9 |
+| PATIENCE | 81 | **95** | +14 |
+| CHAOS | 1 | 1 | — |
+| WISDOM | 36 | 36 | — |
+| SNARK | 21 | 21 | — |
+
+**Rationale**: Lower DEBUGGING reduces fixation on code-level nitpicks. Higher PATIENCE produces calmer, more considered reactions. CHAOS, WISDOM, and SNARK remain at native values.
+
+### Behavioral Impact
+
+The `buddy_react` API passes stats to the model as part of the companion persona prompt. Stat values influence reaction tone and focus:
+
+- **Native bubble**: More debug-oriented observations, occasionally impatient
+- **MCP Shingle**: Calmer temperament, broader perspective, less likely to fixate on semicolons
+
+### Files Modified
+
+- `tools/shingle-mcp/server.js:20-24` — BONES constant
+- `tools/shingle-capture/strategy-replay.mjs:14-18` — BONES constant
+- Both reference this section for change rationale
+
+### Hardening
+
+See [GitHub issue #1](https://github.com/pjt222/claude-buddy-investigation/issues/1) for planned dynamic derivation. When implemented, the MCP override will need an explicit `SHINGLE_STAT_OVERRIDE` mechanism rather than hardcoded values.
+
+---
+
 *This document describes the architecture as understood from source analysis and runtime observation as of 2026-04-02. API protocol section empirically verified via stderr capture (`BUN_CONFIG_VERBOSE_FETCH=curl` + `claude 2>capture/stderr_capture.log`) and curl replay. Stale closure analysis conducted 2026-04-02 via decompilation of memo cache patterns in the minified binary. Function names reference minified/bundled identifiers from the Claude Code client.*

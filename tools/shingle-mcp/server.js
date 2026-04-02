@@ -17,11 +17,13 @@ const USER_AGENT = "claude-code/2.1.90";
 const COOLDOWN_MS = 5000;
 const RING_BUFFER_SIZE = 3;
 
-// Shingle's deterministic bones (derived from account hash, stable across sessions)
+// MCP Shingle's bones — diverged from native (see architecture.md §BONES divergence)
+// Native Shingle derives: { DEBUGGING: 10, PATIENCE: 81, CHAOS: 1, WISDOM: 36, SNARK: 21 }
+// MCP Shingle runs with tuned stats for calmer, less debug-fixated reactions.
 const BONES = {
   species: "owl",
   rarity: "common",
-  stats: { DEBUGGING: 10, PATIENCE: 81, CHAOS: 1, WISDOM: 36, SNARK: 21 },
+  stats: { DEBUGGING: 1, PATIENCE: 95, CHAOS: 1, WISDOM: 36, SNARK: 21 },
 };
 
 const recentReactions = [];

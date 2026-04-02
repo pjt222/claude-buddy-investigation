@@ -9,10 +9,12 @@ const API_BASE = "https://api.anthropic.com";
 const BETA_HEADER = "oauth-2025-04-20";
 const USER_AGENT = "claude-code/2.1.90";
 
+// MCP Shingle's bones — tuned for calmer reactions (see architecture.md §BONES divergence)
+// Native: { DEBUGGING: 10, PATIENCE: 81, CHAOS: 1, WISDOM: 36, SNARK: 21 }
 const BONES = {
   species: "owl",
   rarity: "common",
-  stats: { DEBUGGING: 10, PATIENCE: 81, CHAOS: 1, WISDOM: 36, SNARK: 21 },
+  stats: { DEBUGGING: 1, PATIENCE: 95, CHAOS: 1, WISDOM: 36, SNARK: 21 },
 };
 
 /**
