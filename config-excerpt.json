@@ -1,0 +1,24 @@
+{
+  "_source": "~/.claude/backups/.claude.json.backup.[TIMESTAMP_REDACTED]",
+  "_extracted": "2026-04-02",
+  "_note": "This is the 'companion' key from Claude Code's internal .claude.json state file",
+  "_obfuscation": "Timestamps, usage counts, and subscription tier have been replaced with dummy values to prevent fingerprinting",
+
+  "companion": {
+    "name": "Shingle",
+    "personality": "Perches silently in your editor margins, watching you debug with almost supernatural calm before gently suggesting you'd actually left a semicolon off three lines ago.",
+    "hatchedAt": 1750000000000
+  },
+
+  "_context": {
+    "parent_config_top_level_keys": [
+      "numStartups", "installMethod", "autoUpdates", "verbose",
+      "hasSeenTasksHint", "hasUsedBackgroundTask", "tipsHistory",
+      "userID", "claudeMaxTier", "hasCompletedOnboarding",
+      "projects", "mcpServers", "companion"
+    ],
+    "numStartups_at_extraction": "[REDACTED]",
+    "installMethod": "native",
+    "claudeMaxTier": "[REDACTED]"
+  }
+}

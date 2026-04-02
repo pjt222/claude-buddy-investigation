@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shingle Investigation — Claude Code Buddy System</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="bg-canvas"></canvas>
+
+  <div id="app">
+    <!-- Hero -->
+    <section id="hero" class="section hero">
+      <div class="hero-content">
+        <pre class="owl-ascii" aria-hidden="true">
+    __
+  &lt;(o )___
+   (  ._&gt;
+    `--'
+        </pre>
+        <h1>Shingle</h1>
+        <p class="subtitle">An 11-Agent Investigation into Claude Code's Buddy Companion System</p>
+        <div class="hero-meta">
+          <span class="tag">v2.1.90 Binary Analysis</span>
+          <span class="tag">2 Waves</span>
+          <span class="tag">11 Agents</span>
+          <span class="tag">April 2026</span>
+        </div>
+        <div class="scroll-hint">Scroll to explore</div>
+      </div>
+    </section>
+
+    <!-- Stats Ribbon -->
+    <section id="stats" class="section stats-ribbon">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-number">18</span>
+          <span class="stat-label">Species</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">5</span>
+          <span class="stat-label">Rarity Tiers</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">9</span>
+          <span class="stat-label">Trigger Types</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">5</span>
+          <span class="stat-label">Companion Stats</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">150+</span>
+          <span class="stat-label">Inspiration Words</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number">1%</span>
+          <span class="stat-label">Shiny Chance</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Architecture -->
+    <section id="architecture" class="section">
+      <h2>Architecture</h2>
+      <p class="section-intro">The buddy system is <strong>strictly unidirectional</strong> &mdash; the companion observes but cannot influence the main agent.</p>
+      <div class="flow-diagram">
+        <div class="flow-row">
+          <div class="flow-node node-input">User Session</div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-node node-process">SN7() Trigger</div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-node node-process">HOf() Transcript<br><small>12 msgs &times; 300 chars</small></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-node node-api">Bi$() API Call<br><small>buddy_react</small></div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-node node-output">Speech Bubble</div>
+        </div>
+        <div class="flow-row secondary">
+          <div class="flow-node node-input">Account UUID + Salt</div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-node node-process">Bun.hash (wyhash)</div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-node node-process">Mulberry32 PRNG</div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-node node-output">Traits &amp; Stats</div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-node node-output">LLM Personality</div>
+        </div>
+      </div>
+      <div class="arch-details">
+        <div class="detail-card">
+          <h3>Identity: Bones &amp; Soul</h3>
+          <p><strong>Bones</strong> (species, rarity, eyes, hat, stats, shiny) are re-derived from your account hash every session. Never stored.</p>
+          <p><strong>Soul</strong> (name, personality) is generated once by LLM at hatch and persisted permanently.</p>
+        </div>
+        <div class="detail-card">
+          <h3>Hash Pipeline</h3>
+          <p>Production: <code>Bun.hash(wyhash)</code> on <code>accountUuid + "friend-2026-401"</code></p>
+          <p>Dev fallback: FNV-1a (Node.js only &mdash; produces different companions for same user!)</p>
+        </div>
+        <div class="detail-card">
+          <h3>Reaction API</h3>
+          <p><code>POST /api/organizations/[ORG]/claude_code/buddy_react</code></p>
+          <p>10-second timeout. Returns a single reaction string rendered in the speech bubble.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Species -->
+    <section id="species" class="section">
+      <h2>18 Species</h2>
+      <p class="section-intro">Deterministic from your account hash. Same user, same companion, always.</p>
+      <div class="species-grid" id="species-grid"></div>
+      <div class="species-note">
+        Species names are <strong>obfuscated</strong> in the binary via <code>String.fromCharCode()</code> &mdash; "capybara" collides with an internal Anthropic model codename.
+      </div>
+    </section>
+
+    <!-- Rarity & Traits -->
+    <section id="traits" class="section">
+      <h2>Rarity &amp; Traits</h2>
+      <div class="traits-layout">
+        <div class="rarity-bars">
+          <h3>Rarity Distribution</h3>
+          <div class="rarity-bar" data-rarity="common">
+            <span class="rarity-label">Common</span>
+            <div class="bar-track"><div class="bar-fill" style="width:60%"></div></div>
+            <span class="rarity-pct">60%</span>
+          </div>
+          <div class="rarity-bar" data-rarity="uncommon">
+            <span class="rarity-label">Uncommon</span>
+            <div class="bar-track"><div class="bar-fill" style="width:25%"></div></div>
+            <span class="rarity-pct">25%</span>
+          </div>
+          <div class="rarity-bar" data-rarity="rare">
+            <span class="rarity-label">Rare</span>
+            <div class="bar-track"><div class="bar-fill" style="width:10%"></div></div>
+            <span class="rarity-pct">10%</span>
+          </div>
+          <div class="rarity-bar" data-rarity="epic">
+            <span class="rarity-label">Epic</span>
+            <div class="bar-track"><div class="bar-fill" style="width:4%"></div></div>
+            <span class="rarity-pct">4%</span>
+          </div>
+          <div class="rarity-bar" data-rarity="legendary">
+            <span class="rarity-label">Legendary</span>
+            <div class="bar-track"><div class="bar-fill" style="width:1%"></div></div>
+            <span class="rarity-pct">1%</span>
+          </div>
+        </div>
+        <div class="traits-cards">
+          <div class="trait-group">
+            <h3>Eyes (6)</h3>
+            <div class="eye-grid">
+              <span class="eye-char" title="dot">&middot;</span>
+              <span class="eye-char" title="sparkle">&#10022;</span>
+              <span class="eye-char" title="cross">&times;</span>
+              <span class="eye-char" title="target">&#9673;</span>
+              <span class="eye-char" title="at">@</span>
+              <span class="eye-char" title="soft">&deg;</span>
+            </div>
+          </div>
+          <div class="trait-group">
+            <h3>Hats (8)</h3>
+            <div class="hat-list">
+              <span class="hat-tag">none</span>
+              <span class="hat-tag">crown</span>
+              <span class="hat-tag">tophat</span>
+              <span class="hat-tag">propeller</span>
+              <span class="hat-tag">halo</span>
+              <span class="hat-tag">wizard</span>
+              <span class="hat-tag">beanie</span>
+              <span class="hat-tag">tinyduck</span>
+            </div>
+          </div>
+          <div class="trait-group">
+            <h3>Stats (5)</h3>
+            <div class="stat-bars-small">
+              <div class="stat-row"><span>DEBUGGING</span><div class="mini-bar"><div class="mini-fill" style="width:75%"></div></div></div>
+              <div class="stat-row"><span>PATIENCE</span><div class="mini-bar"><div class="mini-fill" style="width:60%"></div></div></div>
+              <div class="stat-row"><span>CHAOS</span><div class="mini-bar"><div class="mini-fill" style="width:40%"></div></div></div>
+              <div class="stat-row"><span>WISDOM</span><div class="mini-bar"><div class="mini-fill" style="width:85%"></div></div></div>
+              <div class="stat-row"><span>SNARK</span><div class="mini-bar"><div class="mini-fill" style="width:55%"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Triggers -->
+    <section id="triggers" class="section">
+      <h2>9 Reaction Triggers</h2>
+      <p class="section-intro">The companion reacts to coding events with a 30-second cooldown between reactions.</p>
+      <div class="trigger-grid">
+        <div class="trigger-card" data-category="automatic">
+          <div class="trigger-icon">&#9881;</div>
+          <h4>turn</h4>
+          <p>Every assistant turn (throttled)</p>
+        </div>
+        <div class="trigger-card" data-category="detection">
+          <div class="trigger-icon">&#9888;</div>
+          <h4>test-fail</h4>
+          <p>Regex: <code>/[1-9]\d* (failed|failing)/</code></p>
+        </div>
+        <div class="trigger-card" data-category="detection">
+          <div class="trigger-icon">&#10060;</div>
+          <h4>error</h4>
+          <p>Regex: <code>/error:|exception|traceback/</code></p>
+        </div>
+        <div class="trigger-card" data-category="detection">
+          <div class="trigger-icon">&#128196;</div>
+          <h4>large-diff</h4>
+          <p>Diff exceeding changed-lines threshold</p>
+        </div>
+        <div class="trigger-card" data-category="lifecycle">
+          <div class="trigger-icon">&#127834;</div>
+          <h4>hatch</h4>
+          <p>First companion creation</p>
+        </div>
+        <div class="trigger-card" data-category="interaction">
+          <div class="trigger-icon">&#128400;</div>
+          <h4>pet</h4>
+          <p><code>/buddy pet</code> command</p>
+        </div>
+        <div class="trigger-card" data-category="automatic">
+          <div class="trigger-icon">&#9989;</div>
+          <h4>complete</h4>
+          <p>Task completion signals</p>
+        </div>
+        <div class="trigger-card" data-category="automatic">
+          <div class="trigger-icon">&#9203;</div>
+          <h4>idle</h4>
+          <p>Extended inactivity</p>
+        </div>
+        <div class="trigger-card" data-category="automatic">
+          <div class="trigger-icon">&#128263;</div>
+          <h4>silence</h4>
+          <p>Prolonged silence (distinct from idle)</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Security Findings -->
+    <section id="security" class="section security-section">
+      <h2>Security &amp; Privacy Findings</h2>
+
+      <div class="security-card critical">
+        <div class="severity-badge">CRITICAL</div>
+        <h3>Unfiltered Transcript Transmission</h3>
+        <p>The <code>buddy_react</code> API receives up to <strong>5,000 characters</strong> of conversation transcript per reaction. This transcript is <strong>not filtered</strong> for secrets, API keys, passwords, or PII.</p>
+        <div class="code-block">
+          <code>transcript: $.slice(0, 5000)  // No sanitization</code>
+        </div>
+        <p>If you paste an API key or discuss credentials, that content is transmitted to the buddy reaction endpoint.</p>
+      </div>
+
+      <div class="security-card high">
+        <div class="severity-badge">HIGH</div>
+        <h3>Undiscoverable Kill Switch</h3>
+        <p><code>CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1</code> suppresses all buddy network calls, but this environment variable is not documented in any user-facing setting or help text.</p>
+      </div>
+
+      <div class="security-card positive">
+        <div class="severity-badge">VERIFIED</div>
+        <h3>Unidirectional Trust Boundary</h3>
+        <p>The companion <strong>cannot</strong> write to the main agent's conversation, modify files, invoke tools, or influence agent behavior. Reactions go to the UI speech bubble only. This boundary is enforced architecturally, not by policy.</p>
+      </div>
+
+      <div class="security-card info">
+        <div class="severity-badge">INFO</div>
+        <h3>Muting Stops All Traffic</h3>
+        <p><code>/buddy off</code> sets <code>companionMuted: true</code>, which stops <strong>both</strong> UI display and network transmission. This is the correct behavior &mdash; muting is not cosmetic.</p>
+      </div>
+
+      <div class="security-card info">
+        <div class="severity-badge">INFO</div>
+        <h3>MCP Companion Takeover</h3>
+        <p>Any MCP server with file-write access to <code>~/.claude/.claude.json</code> can overwrite the companion's name and personality. No integrity check on the config file. Species/appearance cannot be changed (deterministic from hash).</p>
+      </div>
+    </section>
+
+    <!-- Key Findings -->
+    <section id="findings" class="section">
+      <h2>Key Investigation Findings</h2>
+      <div class="findings-grid">
+        <div class="finding-card">
+          <div class="finding-number">01</div>
+          <h3>April Fools &mdash; On Purpose</h3>
+          <p>Launched April 1, 2026 with a time gate in <code>di$()</code>. The April Fools framing is an asymmetric hedge: downside absorbed by joke frame, upside survives it.</p>
+        </div>
+        <div class="finding-card">
+          <h3>Hidden Command</h3>
+          <div class="finding-number">02</div>
+          <p><code>/buddy on</code> exists but is not listed in the help text or argument hint <code>[pet|off]</code>. Discoverable only by guessing or reading source.</p>
+        </div>
+        <div class="finding-card">
+          <div class="finding-number">03</div>
+          <h3>Fallback Names</h3>
+          <p>If the LLM personality call fails, companions get one of exactly 6 fallback names: <strong>Crumpet, Soup, Pickle, Biscuit, Moth, Gravy</strong>.</p>
+        </div>
+        <div class="finding-card">
+          <div class="finding-number">04</div>
+          <h3>No Evolution &mdash; By Design</h3>
+          <p>Companions don't grow, level up, or change. This is deliberate restraint: "build attachment through permanence, not progression."</p>
+        </div>
+        <div class="finding-card">
+          <div class="finding-number">05</div>
+          <h3>Capybara Collision</h3>
+          <p>Species names are obfuscated in the binary because "capybara" collides with an internal Anthropic model codename.</p>
+        </div>
+        <div class="finding-card">
+          <div class="finding-number">06</div>
+          <h3>"Won't Count Toward Usage"</h3>
+          <p>Displayed after hatch. Only makes economic sense if the server uses a cost-efficient model for reactions. The exact server-side model remains unconfirmed.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Strategy -->
+    <section id="strategy" class="section">
+      <h2>Product Strategy</h2>
+      <div class="strategy-quote">
+        "A retention mechanism disguised as whimsy &mdash; build attachment through permanence, not progression."
+      </div>
+      <div class="strategy-grid">
+        <div class="strategy-card">
+          <h3>Perk, Not Feature</h3>
+          <p>Doesn't drive conversion but increases cancellation friction. Your companion is tied to your subscription.</p>
+        </div>
+        <div class="strategy-card">
+          <h3>Trust Boundary as Feature</h3>
+          <p>The strict unidirectional architecture is both real security engineering <em>and</em> a visible demonstration of Anthropic's safety discipline.</p>
+        </div>
+        <div class="strategy-card">
+          <h3>Deterministic Identity</h3>
+          <p>Same user = same companion, always. Creates ownership psychology without gacha randomness or reroll anxiety.</p>
+        </div>
+        <div class="strategy-card">
+          <h3>Closest Prior Art</h3>
+          <p><strong>MonsterID (2008)</strong>: hash &rarr; unique creature. <strong>Clippy (1997)</strong>: ambient software reactions. Novel as a combined system.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Commands -->
+    <section id="commands" class="section">
+      <h2>Commands</h2>
+      <div class="command-table">
+        <div class="command-row">
+          <code>/buddy</code>
+          <span>Hatch new companion or show companion card</span>
+        </div>
+        <div class="command-row">
+          <code>/buddy pet</code>
+          <span>Pet your companion (also unmutes if muted)</span>
+        </div>
+        <div class="command-row">
+          <code>/buddy off</code>
+          <span>Mute companion &mdash; stops all network calls</span>
+        </div>
+        <div class="command-row hidden-cmd">
+          <code>/buddy on</code>
+          <span>Unmute companion <em>(hidden/undocumented)</em></span>
+        </div>
+      </div>
+      <div class="gate-info">
+        <h3>Feature Gate</h3>
+        <p>Claude Code v2.1.89+ &bull; Pro/Max subscription &bull; First-party only &bull; April 2026+</p>
+      </div>
+    </section>
+
+    <!-- Open Questions -->
+    <section id="questions" class="section">
+      <h2>Open Questions</h2>
+      <div class="questions-list">
+        <div class="question-item">
+          <span class="q-num">?</span>
+          <p>What model runs server-side for <code>buddy_react</code> reactions?</p>
+        </div>
+        <div class="question-item">
+          <span class="q-num">?</span>
+          <p>Does model selection via <code>uw()</code> mean personality quality varies by subscription tier?</p>
+        </div>
+        <div class="question-item">
+          <span class="q-num">?</span>
+          <p>What is the exact distinction between <code>idle</code> and <code>silence</code> triggers?</p>
+        </div>
+        <div class="question-item">
+          <span class="q-num">?</span>
+          <p>How does the UI handle narrow terminals (&lt; 60 columns)?</p>
+        </div>
+        <div class="question-item">
+          <span class="q-num">?</span>
+          <p>What is the full <code>Xoq()</code> system prompt template for reactions?</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="section footer">
+      <div class="footer-content">
+        <p class="footer-title">Shingle Investigation</p>
+        <p>Conducted 2026-04-02 using the <strong>unleash-the-agents</strong> skill &amp; <strong>synoptic-mind</strong> team synthesis</p>
+        <p>11 agents &bull; 2 waves &bull; 910 lines of documentation</p>
+        <div class="footer-links">
+          <a href="https://github.com/pjt222/claude-buddy-investigation">Source</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
