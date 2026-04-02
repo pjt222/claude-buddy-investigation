@@ -295,7 +295,7 @@ The buddy system is **novel as a combined system**: hash-based deterministic ide
 
 ### Unresolvable from Public Sources
 
-1. **Server-side reaction model** — **UNRESOLVABLE.** Exhaustive web search (deepwiki, dev.to, GitHub, gists, HN) found no documentation of the server-side model. No community member has intercepted the `buddy_react` API call. Would require network proxy interception of a live session.
+1. **Server-side reaction model** — **IN PROGRESS.** Confirmed the `buddy_react` API is called and returns reactions successfully (Shingle responds to pet, addressed, and turn-end triggers). However, `Bi$()` has a **logging blind spot**: only the catch block logs (`[buddy] api failed:`); successful reactions produce zero debug output. 1,995 lines of debug logs captured with zero buddy-specific entries despite active reactions. Next approach: `NODE_DEBUG=http,https` or `BUN_CONFIG_VERBOSE_FETCH=curl` to intercept at the HTTP transport layer. The 4 silent bail-out gates in `Bi$()` were verified to pass: `Xq()==="firstParty"`, `D5()===false`, `organizationUuid` present, OAuth token valid.
 
 6. **`uw()` model implications** — **UNRESOLVABLE.** No public source compares buddy behavior across Pro vs Max tiers. Would require empirical multi-tier comparison testing.
 

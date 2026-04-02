@@ -29,7 +29,7 @@ echo "--- Live feed ---"
 # Tail all log/txt files in the directory, filter for buddy-related content
 # Debug output is a single .txt file (session UUID), not .log files
 tail -F "$LOG_DIR"/*.txt "$LOG_DIR"/*.log 2>/dev/null | \
-  grep --line-buffered -iE '(buddy|companion|react|soul|muted|shingle|addressed|reason|transcript)' | \
+  grep --line-buffered -iE '(buddy|companion|react|soul|muted|shingle|addressed|reason|transcript|buddy_react|organizations.*claude_code|NODE_DEBUG|FETCH)' | \
   while IFS= read -r line; do
     # Colorize output
     timestamp=$(date '+%H:%M:%S.%3N')

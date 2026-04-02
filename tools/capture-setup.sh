@@ -22,6 +22,12 @@ export DEBUG=1
 export CLAUDE_CODE_DEBUG_LOGS_DIR="${LOG_DIR}/buddy-capture.txt"
 export CLAUDE_CODE_DEBUG_LOG_LEVEL="debug"
 
+# Enable HTTP-level request logging (captures buddy_react API calls)
+# Bi$() has NO success logging — only a catch block logs "[buddy] api failed:"
+# These env vars intercept at the transport layer instead:
+export NODE_DEBUG=http,https             # Node.js built-in HTTP tracing
+export BUN_CONFIG_VERBOSE_FETCH=curl     # Bun HTTP tracing (if running under Bun)
+
 echo ""
 echo "=== Buddy Capture Environment ==="
 echo ""

@@ -124,7 +124,7 @@ accountUuid + SALT ("friend-2026-401")
 | `AOf()` | **Tool output classifier.** Inspects tool results for trigger conditions: test failures, errors, large diffs. Returns a `reason` string for the API call. |
 | `zOf()` | **Addressed-by-name detector.** Scans user message for the companion's name (case-insensitive). Sets the `addressed` flag to true if found. |
 | `HOf()` | **Transcript builder.** Extracts the last 12 messages from the conversation, truncating each to 300 characters. Produces the compact transcript sent to the API. |
-| `Bi$()` | **Reaction API sender.** Sends POST to `buddy_react` endpoint with 6 parameters: companion config, transcript, trigger reason, recent context, addressed flag, abort signal. |
+| `Bi$()` | **Reaction API sender.** Sends POST to `buddy_react` endpoint with 6 parameters: companion config, transcript, trigger reason, recent context, addressed flag, abort signal. **Logging blind spot**: only logs on failure (`[buddy] api failed:`); successful reactions are completely invisible to debug logs. Has 4 silent bail-out gates: `Xq()!=="firstParty"`, `D5()` (nonessential traffic), missing `organizationUuid`, missing `accessToken`. |
 | `E46()` | **Ring buffer store.** Maintains a fixed-size circular buffer of recent reactions for context continuity and deduplication. |
 | `Rb7()` | **Column reservation.** Returns companion widget width (0 if muted or terminal < 100 columns). |
 
