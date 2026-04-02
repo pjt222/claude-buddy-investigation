@@ -16,7 +16,10 @@ LOG_DIR="${CAPTURE_DIR}/logs_${TIMESTAMP}"
 mkdir -p "$LOG_DIR"
 
 # Enable Claude Code debug logging
-export CLAUDE_CODE_DEBUG_LOGS_DIR="$LOG_DIR"
+# DEBUG=1 activates the debug writer; LOGS_DIR sets the output file path; LOG_LEVEL filters severity
+# Note: CLAUDE_CODE_DEBUG_LOGS_DIR is used as the file path directly, not a directory
+export DEBUG=1
+export CLAUDE_CODE_DEBUG_LOGS_DIR="${LOG_DIR}/buddy-capture.txt"
 export CLAUDE_CODE_DEBUG_LOG_LEVEL="debug"
 
 echo ""

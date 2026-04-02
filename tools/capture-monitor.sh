@@ -26,9 +26,9 @@ echo "  Press Ctrl+C to stop"
 echo ""
 echo "--- Live feed ---"
 
-# Tail all log files in the directory, filter for buddy-related content
-# Use --follow=name to handle log rotation
-tail -F "$LOG_DIR"/*.log "$LOG_DIR"/**/*.log 2>/dev/null | \
+# Tail all log/txt files in the directory, filter for buddy-related content
+# Debug output is a single .txt file (session UUID), not .log files
+tail -F "$LOG_DIR"/*.txt "$LOG_DIR"/*.log 2>/dev/null | \
   grep --line-buffered -iE '(buddy|companion|react|soul|muted|shingle|addressed|reason|transcript)' | \
   while IFS= read -r line; do
     # Colorize output
