@@ -1,3 +1,68 @@
+# Tools
+
+Utilities for managing, capturing, and analyzing Claude Code's companion system.
+
+## Overview
+
+| Tool | Purpose |
+|------|---------|
+| `buddy-config.mjs` | CLI to read/modify companion config |
+| `capture-timing.mjs` | Post-session timing analysis |
+| `bubble-tracking.md` | Complete bubble tracking guide |
+| `shingle-capture/` | Dual-strategy reaction capture system |
+| `shingle-mcp/` | MCP server for programmatic API access |
+| `capture-setup.sh` | Set debug environment for capture |
+| `capture-teardown.sh` | Clean up debug environment |
+| `capture-monitor.sh` | Real-time colored log tail |
+| `test-protocol.md` | Empirical test protocol (Q2/Q3) |
+
+---
+
+## Bubble Capture Quick Start
+
+```bash
+# 1. Set up capture environment
+source tools/capture-setup.sh
+
+# 2. Launch Claude Code in tmux
+bash tools/shingle-capture/launch.sh
+
+# 3. Monitor in another terminal
+bash tools/capture-monitor.sh
+
+# 4. Chat (use companion name to bypass 30s cooldown)
+#    "Shingle, what do you think?"
+
+# 5. Analyze timing after session
+node tools/capture-timing.mjs
+
+# 6. Cleanup
+source tools/capture-teardown.sh
+```
+
+See `bubble-tracking.md` for the full guide including lifecycle timing, all three capture strategies, edge cases, and log format.
+
+---
+
+## Timing Analysis
+
+```bash
+# Analyze default capture log (/tmp/shingle-capture.jsonl)
+node tools/capture-timing.mjs
+
+# Analyze specific log file
+node tools/capture-timing.mjs /path/to/capture.jsonl
+```
+
+Outputs:
+- **API latency** — min/median/mean/max/p95, by trigger type and strategy
+- **Inter-reaction gaps** — cooldown compliance, bypass detection
+- **Bubble visibility windows** — estimated TTL from scrape/replay pairs
+- **Timeout events** — requests that exceeded the 10s AbortSignal cutoff
+- **Session metrics** — span, reaction rate
+
+---
+
 # buddy-config
 
 CLI utility to read and modify Claude Code's companion config.
