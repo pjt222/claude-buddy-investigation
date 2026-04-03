@@ -10,10 +10,19 @@ Investigation into Shingle — the companion owl in Claude Code's built-in "Budd
 
 ## Contents
 
+### Research
+
 - `digest.md` — comprehensive findings from 11-agent, 2-wave investigation
 - `architecture.md` — technical architecture: function reference, data flow, API protocol, security boundary
 - `config-excerpt.json` — companion config extracted from Claude Code backups
 - `links.md` — 20 reference sources (official docs, source code repos, reverse engineering articles, prior art patents, competitors)
-- `tools/buddy-config.mjs` — CLI to read/modify companion config (`node tools/buddy-config.mjs show`)
-- `tools/test-protocol.md` — empirical test protocols for remaining open questions
 - `docs/` — GitHub Pages visualization (Three.js, Viridis dark theme) — all findings at a glance
+
+### Tools
+
+- `tools/buddy-config.mjs` — CLI to read/modify companion config (`node tools/buddy-config.mjs show`)
+- `tools/bubble-tracking.md` — complete guide to tracking, capturing, and analyzing speech bubbles
+- `tools/capture-timing.mjs` — post-session timing analysis (latency, cooldown gaps, TTL estimation)
+- `tools/shingle-capture/` — dual-strategy capture system (terminal scrape + API replay) with Claude Code hooks
+- `tools/shingle-mcp/` — MCP server for programmatic buddy_react access (5s cooldown, ring buffer)
+- `tools/test-protocol.md` — empirical test protocols for remaining open questions

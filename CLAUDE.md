@@ -14,6 +14,10 @@ Research repository documenting findings about Claude Code's built-in "Buddy" co
 - `links.md` — 20 reference sources organized by category (official docs, source analysis, reverse engineering, prior art, competitors)
 - `README.md` — project overview
 - `tools/buddy-config.mjs` — CLI to read/modify companion config (Node.js 18+, zero deps)
+- `tools/bubble-tracking.md` — complete bubble tracking guide (lifecycle, capture strategies, timing constants)
+- `tools/capture-timing.mjs` — post-session timing analysis (latency, cooldown gaps, TTL estimation)
+- `tools/shingle-capture/` — dual-strategy capture (terminal scrape + API replay) with Claude Code hooks
+- `tools/shingle-mcp/` — MCP server for programmatic buddy_react access
 - `tools/test-protocol.md` — empirical test protocols for bubble TTL and narrow terminal behavior
 - `docs/` — GitHub Pages visualization (Three.js, Viridis dark theme)
 
@@ -23,5 +27,5 @@ Research repository documenting findings about Claude Code's built-in "Buddy" co
 - Companion identity is deterministic: Bun.hash (wyhash) of user ID with salt `friend-2026-401`, feeding Mulberry32 PRNG (FNV-1a is the Node.js dev fallback only)
 - Only 3 fields persisted in `~/.claude/.claude.json`: name, personality, hatchedAt. All other traits re-derived from hash each session.
 - Shingle is architecturally separate from the main Claude Code agent — strictly unidirectional (observes but cannot write back)
-- 9 reaction triggers: turn, hatch, pet, test-fail, error, large-diff, complete, idle, silence
+- 6 reaction triggers: turn, hatch, pet, test-fail, error, large-diff (complete, idle, silence were debunked)
 - Binary at `~/.local/share/claude/versions/2.1.90` contains the buddy source (minified JS)
