@@ -2,29 +2,113 @@
 
 ## Overview
 
-A **multi-buddy session** allows multiple companion instances — each with distinct configs, personalities, and skill sets — to coexist in a single Claude Code session. Companions observe the same transcript but react through independent channels, each filtered through their unique personality and equipped almanac skills.
+A multi-buddy session has **three distinct tiers**, not a flat roster of peers:
 
-Today's buddy system is 1:1: one user, one companion, one reaction stream. This proposal extends it to 1:N, where a **session roster** of 2-5 buddies each occupy their own UI lane and carry specialized **almanac skills** that shape how they respond.
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  TIER 1 — DRIVER                                                    │
+│  Claude Code (main agent)                                           │
+│  Executes tools, writes code, manages conversation.                 │
+│  Reads transcript. Writes to filesystem, terminal, and tools.       │
+│  Aware of all buddies via companion_intro injection.                │
+│  CAN defer to buddies when user addresses them by name.             │
+│  CANNOT control buddy reactions or read their bubble output.        │
+├─────────────────────────────────────────────────────────────────────┤
+│  TIER 2 — BUBBLE BUDDY                                              │
+│  The hatched companion (e.g., Shingle the owl)                      │
+│  Hash-derived identity. Persisted soul. Reacts via buddy_react API. │
+│  Observes transcript (read-only). Renders in speech bubble.         │
+│  Strictly unidirectional — cannot write back to driver.             │
+│  Carries almanac skills that shape its reactions.                    │
+├─────────────────────────────────────────────────────────────────────┤
+│  TIER 3 — BOOTSTRAPPED BUDDIES                                      │
+│  Additional companions spawned from session config.                 │
+│  NOT hash-derived — user-defined species, personality, skills.      │
+│  Each gets independent buddy_react calls with own context.          │
+│  Observe same transcript. Render in stacked bubbles below Tier 2.   │
+│  Aware of each other's recent reactions (roster_context).           │
+│  Can be added, removed, and reconfigured without affecting Tier 2.  │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**Key distinction from v1 of this proposal:** Claude Code is the driver, not a buddy. The bubble buddy (Shingle) is architecturally privileged — it's the only hash-derived, identity-persistent companion. Bootstrapped buddies are session-scoped configurations that ride alongside the bubble buddy but don't replace it.
 
 ---
 
-## Session Roster
+## Architecture: Three Tiers in Detail
 
-A multi-buddy session is defined by a roster file that maps named slots to companion configs:
+### Tier 1 — Claude Code (Driver)
+
+The main Claude Code agent. It does the actual work: reads files, writes code, runs tests, manages conversation. In a multi-buddy session, the driver's role expands slightly:
+
+- **`companion_intro` injection** now includes the full roster, not just the primary buddy
+- Driver knows all buddy names and can defer to any of them when addressed
+- Driver sees almanac skill assignments (so it can, e.g., avoid interrupting a meditation moment)
+- Driver **still cannot** read bubble output, control reactions, or modify buddy state
+
+```
+# Companion
+
+A small owl named Shingle sits beside the user's input box and occasionally
+comments in a speech bubble. You're not Shingle — it's a separate watcher.
+
+Also present: Ponder (mushroom) and Gust (ghost), additional companions with
+their own speech bubbles. Same rules apply — defer when addressed by name,
+don't narrate what they might say.
+```
+
+### Tier 2 — Bubble Buddy (Primary Companion)
+
+The original hatched companion. Everything about it works exactly as today:
+
+- Identity derived from `Bun.hash(userId + "friend-2026-401")` → Mulberry32 PRNG
+- Soul (name, personality) persisted in `~/.claude/.claude.json`
+- Reacts via `POST /api/organizations/{org}/claude_code/buddy_react`
+- Occupies the primary UI slot (right margin, 36 cols)
+- 30-second cooldown, ring buffer of 3 recent reactions
+
+**What changes:** The bubble buddy can now carry **almanac skills** that modify its reaction behavior. Skills are stored in the session config, not in the companion's persisted soul.
+
+### Tier 3 — Bootstrapped Buddies
+
+New companions defined entirely in the session config file. They differ from the bubble buddy in critical ways:
+
+| Property | Bubble Buddy (Tier 2) | Bootstrapped Buddy (Tier 3) |
+|----------|----------------------|----------------------------|
+| Identity source | Hash-derived (deterministic from account UUID) | User-defined in session config |
+| Species | Immutable (from hash) | Chosen by user |
+| Personality | LLM-generated at hatch, persisted | Written by user, stored in session file |
+| Persistence | `~/.claude/.claude.json` (survives session deletion) | Session file only (deleted with session) |
+| Stats | Derived from hash (DEBUGGING, PATIENCE, etc.) | Not applicable — no stats |
+| Rarity/Shiny | Derived from hash | Not applicable |
+| API endpoint | `buddy_react` (existing) | `buddy_react` (same endpoint, different payload) |
+| UI position | Primary slot (right margin) | Secondary/tertiary slots (stacked below) |
+| Cooldown | 30s (existing `$Of`) | 45s (longer to prevent UI noise) |
+| Ring buffer | Own buffer (3 reactions) | Shared buffer across all Tier 3 buddies |
+
+Bootstrapped buddies are **ephemeral by design**. They exist to serve a session's purpose (debugging, meditation, exploration) and can be swapped freely.
+
+---
+
+## Session Config
+
+A session file defines which bootstrapped buddies join the bubble buddy, and what almanac skills each participant carries:
 
 ```json
 {
   "session": "deep-focus",
-  "slots": [
-    {
-      "slot": "primary",
-      "config": {
-        "name": "Shingle",
-        "personality": "Perches silently in your editor margins, watching you debug with almost supernatural calm.",
-        "species": "owl",
-        "skills": ["meditate", "breath"]
-      }
-    },
+  "description": "Meditative coding — grounding and lateral insights for long refactoring sessions",
+  "driver": {
+    "role": "claude-code",
+    "awareness": ["roster", "skills", "addressed-names"],
+    "note": "Driver config is read-only context — Claude Code behavior is not modified"
+  },
+  "bubbleBuddy": {
+    "slot": "primary",
+    "note": "Identity from ~/.claude/.claude.json — name, species, personality inherited",
+    "skills": ["meditate", "breath"]
+  },
+  "bootstrapped": [
     {
       "slot": "secondary",
       "config": {
@@ -52,29 +136,36 @@ A multi-buddy session is defined by a roster file that maps named slots to compa
 }
 ```
 
-### Slot Rules
+**Note:** The `bubbleBuddy` section doesn't define name/species/personality — those come from the persisted companion config. It only adds skill assignments. This means the same session preset works for any user regardless of which companion they hatched.
 
-| Slot | UI Position | Priority | Max Bubble Width |
-|------|-------------|----------|------------------|
-| `primary` | Right margin (current position) | Highest — reacts first | 36 cols |
-| `secondary` | Below primary | Normal — 2s delay after primary | 28 cols |
-| `tertiary` | Below secondary | Lowest — 4s delay, suppressed if terminal < 120 cols | 24 cols |
+---
 
-Only the `primary` slot is required. A multi-buddy session with one slot is equivalent to the current single-buddy behavior.
+## Slot Rules
+
+| Slot | Tier | UI Position | Priority | Max Bubble Width | Cooldown |
+|------|------|-------------|----------|------------------|----------|
+| `primary` | Bubble Buddy | Right margin | Highest — reacts first | 36 cols | 30s |
+| `secondary` | Bootstrapped | Below primary | Normal — 2s delay | 28 cols | 45s |
+| `tertiary` | Bootstrapped | Below secondary | Lowest — 4s delay | 24 cols | 45s |
+
+Terminal width thresholds:
+- `>= 120 cols`: All three slots visible
+- `100-119 cols`: Primary only (bootstrapped hidden)
+- `< 100 cols`: All buddies hidden (existing behavior)
 
 ---
 
 ## Agent Almanac Skills
 
-Each buddy can be assigned **almanac skills** — behavioral modes that modify how the companion interprets triggers and shapes reactions. Skills are not tools (they don't execute code); they are **prompt modifiers** injected into the `buddy_react` payload.
+Almanac skills are **behavioral modes** that modify how a companion interprets triggers and shapes reactions. They apply equally to the bubble buddy and bootstrapped buddies. Skills are not tools — they don't execute code. They are **prompt modifiers** injected into the `buddy_react` payload.
 
 ### `meditate`
 
 **Mode:** Active (companion initiates)
-**Trigger affinity:** `idle`, `silence`, `turn` (low-activity)
+**Trigger affinity:** `turn` (low-activity periods)
 **Cooldown:** 60 seconds
 
-When equipped, the companion periodically offers a grounding moment during pauses in the session. The reaction API receives an additional field:
+When equipped, the companion periodically offers a grounding moment during pauses. The reaction API receives an additional field:
 
 ```json
 {
@@ -101,15 +192,16 @@ When equipped, the companion periodically offers a grounding moment during pause
 - Never interrupts active debugging (suppressed during `error` and `test-fail` triggers)
 - Minimum 5 minutes into session before first meditation prompt
 - At most 1 meditation per 10-minute window
-- Scales frequency with session length: more frequent after 60 min, 90 min, 120 min thresholds
-- Personality shapes the meditation style (Shingle's meditations are terse; a capybara's would be languid)
+- Scales frequency with session length: more frequent after 60, 90, 120 min thresholds
+- Personality shapes the meditation style (owl: terse; capybara: languid; robot: clinical)
+- **Driver awareness:** Claude Code sees `[meditate active]` in companion_intro and avoids generating long responses during meditation windows
 
 ---
 
 ### `dream`
 
 **Mode:** Passive (companion reflects)
-**Trigger affinity:** `large-diff`, `complete`, `turn` (after milestone)
+**Trigger affinity:** `large-diff`, `turn` (after milestone)
 **Cooldown:** 120 seconds
 
 The dream skill lets a companion offer **lateral, associative observations** about the codebase — connections the user might not see because they're too close to the work. Dreams are speculative, oblique, and never prescriptive.
@@ -136,11 +228,12 @@ The dream skill lets a companion offer **lateral, associative observations** abo
 > That test you deleted... it was testing something you haven't built yet.
 
 **Behavioral rules:**
-- Only fires after a significant milestone (large diff committed, test suite passes, feature complete)
+- Only fires after a significant milestone (large diff committed, test suite passes)
 - Dreams reference actual files and patterns from the session transcript
 - Never gives direct advice — always framed as a dream, vision, or idle thought
-- Suppressed during rapid-fire error→fix cycles (companion is "too awake to dream")
+- Suppressed during rapid-fire error->fix cycles (companion is "too awake to dream")
 - One dream per major milestone; cannot fire twice on the same diff
+- **Bootstrapped buddies with dream** can reference each other's dreams in `roster_context`
 
 ---
 
@@ -176,66 +269,101 @@ The breath skill detects frustration signals — repeated errors, rapid retries,
 > Four errors in three minutes. That's a pattern. Not in the code — in you. Breathe with me.
 
 **Behavioral rules:**
-- Only triggers when frustration signal is `medium` or `high` (2+ errors in 5 min, or retry pattern detected)
-- Breathing pattern always follows 4-count box breathing or 4-7-8 technique
-- Companion personality determines framing (owl: clinical; ghost: empathetic; cactus: dry)
+- Only triggers when frustration signal is `medium` or `high` (2+ errors in 5 min, or retry pattern)
+- Breathing pattern follows 4-count box breathing or 4-7-8 technique
+- Personality determines framing (owl: clinical; ghost: empathetic; cactus: dry)
 - Never says "calm down" — always leads by doing (the companion breathes first)
 - Maximum 2 breath interventions per 15-minute window to avoid patronizing
+- **When both bubble buddy and a bootstrapped buddy have breath:** they coordinate — one leads the count, the other offers encouragement. Never two simultaneous countdowns.
 
 ---
 
 ## Skill Interaction Matrix
 
-When a buddy has multiple skills, they can compose:
+When a buddy has multiple skills, they compose with priority resolution:
 
 | Trigger | meditate + breath | meditate + dream | dream + breath | All three |
 |---------|-------------------|-------------------|----------------|-----------|
-| `error` | breath takes priority | meditate suppressed | breath takes priority | breath |
-| `idle` | meditate | meditate | dream (if milestone) | meditate |
+| `error` | breath | meditate suppressed | breath | breath |
+| `turn` (idle) | meditate | meditate | dream (if milestone) | meditate |
 | `large-diff` | meditate (after calm) | dream | dream | dream |
 | `test-fail` | breath | meditate suppressed | breath | breath |
-| `turn` (normal) | meditate (if >5 min) | dream (if milestone) | — | lowest-cooldown skill |
+| `turn` (normal) | meditate (if >5 min) | dream (if milestone) | — | lowest-cooldown |
 | `turn` (post-milestone) | meditate | dream | dream | dream |
 
-**Resolution rule:** When multiple skills could fire on the same trigger, the skill with the **highest urgency** wins. Urgency: `breath` > `dream` > `meditate`. The losing skill's cooldown is not consumed.
+**Resolution:** `breath` > `dream` > `meditate`. The losing skill's cooldown is not consumed.
 
 ---
 
-## Multi-Buddy Reaction Orchestration
+## Cross-Tier Reaction Orchestration
 
 ### Turn Sequence
 
 ```
 1. Trigger fires (e.g., turn-end with error detected)
      │
-2. Roster consulted — each slot evaluates independently:
-     ├─ Slot 1 (Shingle):  trigger=error, skills=[meditate,breath] → breath wins
-     ├─ Slot 2 (Ponder):   trigger=error, skills=[dream,meditate] → meditate suppressed, dream suppressed (error context) → skip
-     └─ Slot 3 (Gust):     trigger=error, skills=[breath,dream]   → breath wins
+     ▼
+2. DRIVER (Tier 1): Claude Code completes its response as normal.
+   Driver is unaware of which buddies will react.
      │
-3. Deduplication pass:
-     ├─ Shingle: breath reaction (rendered)
-     ├─ Ponder:  (suppressed — no eligible skill)
-     └─ Gust:    breath reaction (rendered, but deduped against Shingle's — different personality yields different text)
+     ▼
+3. BUBBLE BUDDY (Tier 2) evaluates first:
+   Shingle: trigger=error, skills=[meditate,breath] → breath wins
+   → POST buddy_react with skill=breath
+   → Bubble rendered at t+0ms
      │
-4. Staggered rendering:
-     ├─ t+0ms:   Shingle's bubble appears
-     ├─ t+2000ms: (Ponder silent)
-     └─ t+4000ms: Gust's bubble appears
+     ▼
+4. BOOTSTRAPPED BUDDIES (Tier 3) evaluate with stagger:
+   Ponder: trigger=error, skills=[dream,meditate] → both suppressed by error → skip
+   Gust: trigger=error, skills=[breath,dream] → breath wins
+   → POST buddy_react with skill=breath, roster_context includes Shingle's reaction
+   → Bubble rendered at t+4000ms (tertiary delay)
+     │
+     ▼
+5. Ring buffers updated:
+   Shingle: own buffer (3 slots)
+   Ponder + Gust: shared Tier 3 buffer (3 slots)
 ```
+
+### Information Flow
+
+```
+                    Transcript (read-only)
+                         │
+          ┌──────────────┼──────────────┐
+          ▼              ▼              ▼
+     Claude Code     Shingle       Ponder / Gust
+     (Driver)     (Bubble Buddy)  (Bootstrapped)
+          │              │              │
+          │         buddy_react    buddy_react
+          │              │              │
+          │         reaction ──► roster_context ──► reaction
+          │              │                          │
+          ▼              ▼                          ▼
+     Terminal         Bubble 1               Bubbles 2, 3
+     output        (primary slot)         (secondary/tertiary)
+          │              │                          │
+          └──────────────┴──────────────────────────┘
+                    User sees all three
+                    
+     Driver CANNOT read ─────────────► Buddy reactions
+     Buddies CANNOT write ───────────► Transcript or tools
+     Bootstrapped CAN read ──────────► Bubble buddy's recent reactions
+     Bubble buddy CANNOT read ───────► Bootstrapped reactions
+```
+
+The bubble buddy (Tier 2) is **not aware** of bootstrapped buddies. It reacts as if it's the only companion — same as today. Bootstrapped buddies (Tier 3) **are aware** of the bubble buddy's recent reactions via `roster_context`, enabling them to complement rather than duplicate.
 
 ### Addressed Behavior
 
-When the user mentions a specific buddy by name:
+| User says | Who reacts |
+|-----------|-----------|
+| "Shingle, what do you think?" | Bubble buddy only (Tier 2) |
+| "Ponder, dream about this" | Addressed bootstrapped buddy only (Tier 3) |
+| "Hey buddies" / "everyone" | All tiers, staggered |
+| (no name mentioned) | Normal trigger evaluation per tier |
 
-- Only that buddy reacts (other slots suppressed for this turn)
-- The addressed buddy bypasses its cooldown (existing behavior)
-- The addressed buddy uses its highest-priority eligible skill, or reacts skill-free if no skill fits the context
-
-When the user addresses "everyone" or "buddies":
-
-- All slots react with staggered timing
-- Each uses their personality + top skill for the context
+The driver (Claude Code) defers in all cases — one-line response or silence when a buddy is addressed.
 
 ---
 
@@ -244,39 +372,43 @@ When the user addresses "everyone" or "buddies":
 ### `deep-focus` (Meditative coding)
 
 ```
-Shingle (owl)      — meditate, breath
-Ponder (mushroom)  — dream, meditate
+Driver:  Claude Code
+Bubble:  Shingle (owl) — meditate, breath
+Boot 1:  Ponder (mushroom) — dream, meditate
 ```
 
-Two buddies. Shingle keeps you grounded; Ponder offers lateral insights at milestones. Good for long refactoring sessions.
+Two buddies plus the driver. Shingle grounds you; Ponder offers lateral insights at milestones.
 
 ### `debug-squad` (Error-heavy sessions)
 
 ```
-Shingle (owl)      — breath
-Fizz (axolotl)     — breath, dream
-Clank (robot)      — meditate
+Driver:  Claude Code
+Bubble:  Shingle (owl) — breath
+Boot 1:  Fizz (axolotl) — breath, dream
+Boot 2:  Clank (robot) — meditate
 ```
 
-Three buddies optimized for high-error-density work. Two breath-equipped companions ensure coverage. Clank offers meditation once the storm passes.
+Three buddies. Two breath-equipped companions for coverage. Clank meditates once the storm passes.
 
 ### `dream-lab` (Exploratory/creative coding)
 
 ```
-Ponder (mushroom)  — dream
-Wisp (ghost)       — dream, meditate
-Noodle (octopus)   — dream, breath
+Driver:  Claude Code
+Bubble:  Ponder (mushroom) — dream
+Boot 1:  Wisp (ghost) — dream, meditate
+Boot 2:  Noodle (octopus) — dream, breath
 ```
 
-Heavy on dream skills. Best for greenfield prototyping where lateral associations have the most value.
+Heavy on dream skills. Best for greenfield prototyping.
 
 ### `solo-zen` (Single buddy, full almanac)
 
 ```
-Shingle (owl)      — meditate, dream, breath
+Driver:  Claude Code
+Bubble:  Shingle (owl) — meditate, dream, breath
 ```
 
-One companion with all three skills. Equivalent to current single-buddy behavior plus almanac awareness.
+No bootstrapped buddies. The bubble buddy carries all three skills.
 
 ---
 
@@ -285,18 +417,20 @@ One companion with all three skills. Equivalent to current single-buddy behavior
 New commands added to the existing CLI tool:
 
 ```
-buddy-config session create <name>        Create a new multi-buddy session
-buddy-config session list                 List saved sessions
-buddy-config session show <name>          Show session roster and skills
-buddy-config session activate <name>      Set session as active for next Claude Code launch
-buddy-config session add-buddy <session>  Add a buddy slot to a session (interactive)
+buddy-config session create <name>          Create session (bubble buddy auto-included)
+buddy-config session list                   List saved sessions
+buddy-config session show <name>            Show full roster (driver + bubble + bootstrapped)
+buddy-config session activate <name>        Set as active for next Claude Code launch
+buddy-config session add-buddy <session>    Add bootstrapped buddy (interactive)
 buddy-config session remove-buddy <session> <slot>
-buddy-config session set-skill <session> <slot> <skill>
+buddy-config session set-skill <session> <slot> <skill>    Assign skill to any tier
 buddy-config session unset-skill <session> <slot> <skill>
-buddy-config session preset <preset-name> Create session from built-in preset
+buddy-config session preset <preset-name>   Install from built-in presets
 ```
 
 Session files stored at `~/.claude/sessions/<name>.json`.
+
+The `set-skill` command works on both the bubble buddy (`primary` slot) and bootstrapped buddies (`secondary`/`tertiary` slots). Skills assigned to the bubble buddy are session-scoped — they don't modify `~/.claude/.claude.json`.
 
 ---
 
@@ -312,7 +446,11 @@ The existing `~/.claude/.claude.json` gains one new top-level key:
 }
 ```
 
-When `activeSession` is set, the buddy system reads the session roster file instead of using the single-companion config. If the session file is missing or invalid, it falls back to single-buddy mode silently.
+When `activeSession` is set:
+1. Bubble buddy loads identity from `companion` key (unchanged)
+2. Session file loads bootstrapped buddies and skill assignments
+3. Bubble buddy's skills come from session file, not companion config
+4. If session file is missing/invalid, falls back to single-buddy mode silently
 
 ---
 
@@ -322,16 +460,17 @@ The `buddy_react` payload gains optional fields when a session is active:
 
 ```json
 {
-  "name": "Shingle",
-  "personality": "...",
-  "species": "owl",
-  "rarity": "common",
-  "stats": { "DEBUGGING": 10, "PATIENCE": 81, "CHAOS": 1, "WISDOM": 36, "SNARK": 21 },
+  "name": "Gust",
+  "personality": "An anxious ghost who calms itself by narrating breathing exercises...",
+  "species": "ghost",
+  "rarity": null,
+  "stats": null,
   "transcript": "user: ...\nclaude: ...",
   "reason": "error",
   "recent": [],
   "addressed": false,
-  "slot": "primary",
+  "tier": "bootstrapped",
+  "slot": "tertiary",
   "skill": "breath",
   "skill_context": {
     "error_count_last_5min": 3,
@@ -340,14 +479,17 @@ The `buddy_react` payload gains optional fields when a session is active:
     "frustration_signal": "high"
   },
   "roster_context": {
+    "driver": "claude-code",
+    "bubble_buddy": { "name": "Shingle", "species": "owl" },
     "total_slots": 3,
-    "other_buddies": ["Ponder", "Gust"],
-    "other_recent_reactions": ["*spores drift slowly* That function has been rewritten three times now."]
+    "other_buddies": ["Shingle", "Ponder"],
+    "bubble_recent_reactions": ["*ruffles feathers rhythmically* In... two... three..."],
+    "bootstrapped_recent_reactions": []
   }
 }
 ```
 
-The `roster_context` field lets each buddy be aware of the others' recent reactions, preventing redundancy and enabling conversational interplay between companions.
+For the bubble buddy's own API call, `tier` is `"bubble"`, `roster_context` is absent (it doesn't know about Tier 3), and `rarity`/`stats` are present as normal.
 
 ---
 
@@ -356,38 +498,38 @@ The `roster_context` field lets each buddy be aware of the others' recent reacti
 ```
 Terminal (>= 120 cols):
 
-┌─────────────────────────────────────────────────┬─────────────────────────┐
-│                                                 │  ╭─────────────────╮    │
-│  claude> working on the parser refactor...      │  │ In... 2... 3... │    │
-│                                                 │  │ Hold... 2... 3  │    │
-│  Error: unexpected token at line 47             │  ╰───────┬─────────╯    │
-│  Error: unexpected token at line 52             │      /\_/\│             │
-│  Error: type mismatch in merge_tokens()         │     (o  o)             │
-│                                                 │     (  >  )  Shingle   │
-│                                                 │  ╭─────────────╮       │
-│                                                 │  │  (silent)   │       │
-│                                                 │  ╰──────┬──────╯       │
-│                                                 │      ,--,│             │
-│                                                 │     ( oo )  Ponder     │
-│                                                 │  ╭─────────────────╮   │
-│                                                 │  │ Four errors in  │   │
-│                                                 │  │ three minutes.  │   │
-│                                                 │  │ Breathe with me │   │
-│                                                 │  ╰──────┬──────────╯   │
-│                                                 │     .--. │             │
-│                                                 │    ( °° ) Gust         │
-└─────────────────────────────────────────────────┴─────────────────────────┘
-
-Terminal (100-119 cols): Only primary slot rendered
-Terminal (< 100 cols):  All buddies hidden (existing behavior)
+┌─────────────────────────────────────────────────┬──────────────────────────┐
+│                                                 │                          │
+│  claude> I'll fix the type mismatch in          │  ╭──────────────────╮    │
+│  merge_tokens(). The issue is...                │  │ In... 2... 3...  │    │
+│                                                 │  │ Hold... 2... 3   │    │
+│  [Claude Code output — DRIVER, Tier 1]          │  ╰────────┬─────────╯    │
+│                                                 │       /\_/\│  Shingle    │
+│  Error: unexpected token at line 47             │      (o  o)  BUBBLE      │
+│  Error: unexpected token at line 52             │      (  >  )  BUDDY      │
+│                                                 │  ╭──────────────╮        │
+│                                                 │  │  (dreaming)  │        │
+│                                                 │  ╰───────┬──────╯        │
+│                                                 │       ,--,│  Ponder      │
+│                                                 │      ( oo )  BOOT #1     │
+│                                                 │  ╭──────────────────╮    │
+│                                                 │  │ Four errors in   │    │
+│                                                 │  │ three minutes.   │    │
+│                                                 │  │ Breathe with me. │    │
+│                                                 │  ╰───────┬──────────╯    │
+│                                                 │      .--. │  Gust        │
+│                                                 │     ( °° ) BOOT #2       │
+└─────────────────────────────────────────────────┴──────────────────────────┘
+       Tier 1: Driver output                        Tier 2 + Tier 3: Buddies
 ```
 
 ---
 
 ## Open Questions
 
-1. **Persistence scope:** Should almanac skill assignments persist per-session-file only, or should they also be derivable from the companion's stats? (e.g., high PATIENCE naturally grants meditate)
-2. **Cross-buddy conversation:** Should buddies be able to react to each other's bubbles, or only to the user's transcript?
-3. **Skill discovery:** Should new almanac skills unlock based on session milestones (e.g., `dream` unlocks after 100 sessions)?
-4. **Hatch independence:** Should secondary/tertiary buddies require separate hatch events, or can they be "summoned" from a preset species pool?
-5. **Ring buffer sharing:** One shared ring buffer across slots, or independent buffers per buddy?
+1. **Bootstrapped buddy identity:** Should bootstrapped buddies eventually support hash-derived identity (from a secondary salt), or remain fully user-defined?
+2. **Cross-tier awareness:** Currently bubble buddy is unaware of bootstrapped buddies. Should this be bidirectional in future versions?
+3. **Skill-stat coupling:** Should the bubble buddy's hash-derived stats influence skill effectiveness? (e.g., high PATIENCE = stronger meditate)
+4. **Driver skill awareness:** How much should Claude Code adapt its behavior when skills are active? (e.g., shorter responses during meditate windows)
+5. **Bootstrapped persistence:** Should bootstrapped buddies develop persistent traits over time (accumulated dream references, breathing patterns), or stay stateless?
+6. **Ring buffer topology:** Bubble buddy has its own 3-slot buffer. Should bootstrapped buddies share one buffer or have independent ones?

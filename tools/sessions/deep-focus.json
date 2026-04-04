@@ -1,16 +1,16 @@
 {
   "session": "deep-focus",
   "description": "Meditative coding — grounding and lateral insights for long refactoring sessions",
-  "slots": [
-    {
-      "slot": "primary",
-      "config": {
-        "name": "Shingle",
-        "personality": "Perches silently in your editor margins, watching you debug with almost supernatural calm before gently suggesting you'd actually left a semicolon off three lines ago.",
-        "species": "owl",
-        "skills": ["meditate", "breath"]
-      }
-    },
+  "driver": {
+    "role": "claude-code",
+    "awareness": ["roster", "skills", "addressed-names"]
+  },
+  "bubbleBuddy": {
+    "slot": "primary",
+    "note": "Identity inherited from ~/.claude/.claude.json — name, species, personality not overridden",
+    "skills": ["meditate", "breath"]
+  },
+  "bootstrapped": [
     {
       "slot": "secondary",
       "config": {
@@ -43,8 +43,7 @@
       "description": "Paced breathing exercises during frustration — the companion breathes first",
       "cooldownMs": 45000,
       "frustrationThreshold": { "errorsIn5Min": 2, "retryPattern": true },
-      "maxPerWindow": { "count": 2, "windowMinutes": 15 },
-      "neverSays": ["calm down", "relax", "don't worry"]
+      "maxPerWindow": { "count": 2, "windowMinutes": 15 }
     }
   }
 }

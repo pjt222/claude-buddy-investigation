@@ -508,6 +508,42 @@ function defaultAlmanac() {
   };
 }
 
+// --- Session helpers for three-tier schema ---
+
+function getSessionBuddies(session) {
+  // Returns a unified list of { slot, config, tier } entries for display/mutation
+  const result = [];
+  if (session.bubbleBuddy) {
+    result.push({
+      slot: session.bubbleBuddy.slot || 'primary',
+      config: { skills: session.bubbleBuddy.skills || [], ...(session.bubbleBuddy.config || {}) },
+      tier: 'bubble',
+    });
+  }
+  for (const b of (session.bootstrapped || [])) {
+    result.push({ slot: b.slot, config: b.config, tier: 'bootstrapped' });
+  }
+  return result;
+}
+
+function findSlotEntry(session, slot) {
+  if (slot === 'primary') {
+    return session.bubbleBuddy ? { ref: session.bubbleBuddy, tier: 'bubble' } : null;
+  }
+  const entry = (session.bootstrapped || []).find(b => b.slot === slot);
+  return entry ? { ref: entry, tier: 'bootstrapped' } : null;
+}
+
+function getSkillsArray(entry, tier) {
+  if (tier === 'bubble') return entry.skills || [];
+  return entry.config?.skills || [];
+}
+
+function setSkillsArray(entry, tier, skills) {
+  if (tier === 'bubble') entry.skills = skills;
+  else entry.config.skills = skills;
+}
+
 async function cmdSessionCreate(name, flags) {
   const error = validateSessionName(name);
   if (error) { console.error(`Error: ${error}`); exit(1); }
@@ -518,32 +554,37 @@ async function cmdSessionCreate(name, flags) {
     exit(1);
   }
 
-  // Seed primary slot from current companion config
-  let primaryConfig = { name: 'Buddy', personality: 'A quiet companion.', species: 'owl', skills: [] };
+  // Read current companion name for display
+  let bubbleName = '(your hatched companion)';
   try {
     const config = await readConfig();
-    if (config.companion) {
-      primaryConfig.name = config.companion.name;
-      primaryConfig.personality = config.companion.personality;
-    }
-  } catch { /* no existing config, use defaults */ }
+    if (config.companion?.name) bubbleName = config.companion.name;
+  } catch { /* no existing config */ }
 
   const session = {
     session: name,
     description: '',
-    slots: [{ slot: 'primary', config: primaryConfig }],
+    driver: { role: 'claude-code', awareness: ['roster', 'skills', 'addressed-names'] },
+    bubbleBuddy: { slot: 'primary', skills: [] },
+    bootstrapped: [],
     almanac: defaultAlmanac(),
   };
 
   await writeSession(name, session);
-  console.log(`  \x1b[32mSession "${name}" created\x1b[0m with ${primaryConfig.name} in primary slot.`);
-  console.log('  Add skills: node buddy-config.mjs session set-skill ' + name + ' primary meditate');
+  console.log(`  \x1b[32mSession "${name}" created.\x1b[0m`);
+  console.log(`  Tier 1 (Driver):  Claude Code`);
+  console.log(`  Tier 2 (Bubble):  ${bubbleName} in primary slot (identity from config)`);
+  console.log(`  Tier 3:           (none — add with 'session add-buddy')`);
+  console.log('');
+  console.log('  Add bubble skills: node buddy-config.mjs session set-skill ' + name + ' primary meditate');
+  console.log('  Add bootstrapped:  node buddy-config.mjs session add-buddy ' + name);
 }
 
 async function cmdSessionList(flags) {
   const sessions = await listSessionFiles();
   const config = await readConfig().catch(() => ({}));
   const active = config.activeSession || null;
+  const bubbleName = config.companion?.name || '(bubble)';
 
   if (sessions.length === 0) {
     console.log('  No sessions found. Create one: node buddy-config.mjs session create <name>');
@@ -555,11 +596,11 @@ async function cmdSessionList(flags) {
     for (const name of sessions) {
       try {
         const s = await readSession(name);
+        const buddies = getSessionBuddies(s);
         entries.push({
           name,
           active: name === active,
-          slots: s.slots.length,
-          buddies: s.slots.map(sl => sl.config.name),
+          tiers: { driver: 'claude-code', bubble: bubbleName, bootstrapped: (s.bootstrapped || []).map(b => b.config.name) },
           description: s.description || '',
         });
       } catch { entries.push({ name, error: 'unreadable' }); }
@@ -573,11 +614,13 @@ async function cmdSessionList(flags) {
     try {
       const s = await readSession(name);
       const marker = name === active ? ' \x1b[32m(active)\x1b[0m' : '';
-      const buddies = s.slots.map(sl => {
-        const skills = sl.config.skills?.length ? ` [${sl.config.skills.join(',')}]` : '';
-        return `${sl.config.name}${skills}`;
-      }).join(' + ');
-      console.log(`  ${name}${marker} — ${buddies}`);
+      const bubbleSkills = s.bubbleBuddy?.skills?.length ? ` [${s.bubbleBuddy.skills.join(',')}]` : '';
+      const bootNames = (s.bootstrapped || []).map(b => {
+        const skills = b.config.skills?.length ? ` [${b.config.skills.join(',')}]` : '';
+        return `${b.config.name}${skills}`;
+      });
+      const roster = [`${bubbleName}${bubbleSkills}`, ...bootNames].join(' + ');
+      console.log(`  ${name}${marker} — ${roster}`);
       if (s.description) console.log(`    ${s.description}`);
     } catch {
       console.log(`  ${name} (unreadable)`);
@@ -589,9 +632,10 @@ async function cmdSessionShow(name, flags) {
   const session = await readSession(name);
   const config = await readConfig().catch(() => ({}));
   const isActive = config.activeSession === name;
+  const bubbleName = config.companion?.name || '(hatched companion)';
 
   if (flags.json) {
-    console.log(JSON.stringify({ ...session, active: isActive }, null, 2));
+    console.log(JSON.stringify({ ...session, active: isActive, resolvedBubbleName: bubbleName }, null, 2));
     return;
   }
 
@@ -599,21 +643,36 @@ async function cmdSessionShow(name, flags) {
   if (session.description) console.log(`  \x1b[1mDescription:\x1b[0m ${session.description}`);
   console.log('');
 
-  for (const slot of session.slots) {
-    const skills = slot.config.skills?.length
-      ? slot.config.skills.map(s => {
-          const def = session.almanac?.[s];
-          const mode = def?.mode || '?';
-          return `${s} (${mode})`;
-        }).join(', ')
-      : '(none)';
-    console.log(`  \x1b[1m[${slot.slot}]\x1b[0m ${slot.config.name} — ${slot.config.species}`);
-    console.log(`    Personality: ${slot.config.personality.slice(0, 80)}${slot.config.personality.length > 80 ? '...' : ''}`);
-    console.log(`    Skills: ${skills}`);
-    console.log('');
+  // Tier 1 — Driver
+  console.log('  \x1b[1m[Tier 1 — Driver]\x1b[0m Claude Code');
+  console.log(`    Awareness: ${(session.driver?.awareness || []).join(', ')}`);
+  console.log('');
+
+  // Tier 2 — Bubble Buddy
+  const bubbleSkills = (session.bubbleBuddy?.skills || [])
+    .map(s => { const def = session.almanac?.[s]; return `${s} (${def?.mode || '?'})`; })
+    .join(', ') || '(none)';
+  console.log(`  \x1b[1m[Tier 2 — Bubble Buddy]\x1b[0m ${bubbleName} (${session.bubbleBuddy?.slot || 'primary'})`);
+  console.log('    Identity: from ~/.claude/.claude.json (hash-derived)');
+  console.log(`    Skills: ${bubbleSkills}`);
+  console.log('');
+
+  // Tier 3 — Bootstrapped
+  if ((session.bootstrapped || []).length === 0) {
+    console.log('  \x1b[1m[Tier 3 — Bootstrapped]\x1b[0m (none)');
+  } else {
+    for (const b of session.bootstrapped) {
+      const skills = (b.config.skills || [])
+        .map(s => { const def = session.almanac?.[s]; return `${s} (${def?.mode || '?'})`; })
+        .join(', ') || '(none)';
+      console.log(`  \x1b[1m[Tier 3 — ${b.slot}]\x1b[0m ${b.config.name} — ${b.config.species}`);
+      console.log(`    Personality: ${b.config.personality.slice(0, 80)}${b.config.personality.length > 80 ? '...' : ''}`);
+      console.log(`    Skills: ${skills}`);
+      console.log('');
+    }
   }
 
-  console.log('  \x1b[2mAlmanac skills available: meditate, dream, breath\x1b[0m');
+  console.log('  \x1b[2mAlmanac skills: meditate (active), dream (passive), breath (active)\x1b[0m');
 }
 
 async function cmdSessionActivate(name, flags) {
@@ -642,13 +701,15 @@ async function cmdSessionActivate(name, flags) {
 
 async function cmdSessionAddBuddy(sessionName, flags) {
   const session = await readSession(sessionName);
+  const bootstrapped = session.bootstrapped || [];
 
-  if (session.slots.length >= 3) {
-    console.error('Maximum 3 buddy slots per session.');
+  if (bootstrapped.length >= 2) {
+    console.error('Maximum 2 bootstrapped buddies per session (secondary + tertiary).');
     exit(1);
   }
 
-  const nextSlot = VALID_SLOTS.find(s => !session.slots.some(sl => sl.slot === s));
+  const usedSlots = bootstrapped.map(b => b.slot);
+  const nextSlot = ['secondary', 'tertiary'].find(s => !usedSlots.includes(s));
 
   const rl = createInterface({ input: stdin, output: stdout });
   try {
@@ -668,44 +729,47 @@ async function cmdSessionAddBuddy(sessionName, flags) {
       if (err) { console.error(`Error: ${err}`); exit(1); }
     }
 
-    session.slots.push({
+    if (!session.bootstrapped) session.bootstrapped = [];
+    session.bootstrapped.push({
       slot: nextSlot,
       config: { name, personality, species: species || 'owl', skills },
     });
 
     await writeSession(sessionName, session);
-    console.log(`  \x1b[32mAdded ${name} to ${nextSlot} slot.\x1b[0m`);
+    console.log(`  \x1b[32mAdded ${name} to ${nextSlot} slot (Tier 3 — bootstrapped).\x1b[0m`);
   } finally {
     rl.close();
   }
 }
 
 async function cmdSessionRemoveBuddy(sessionName, slot, flags) {
+  if (slot === 'primary') {
+    console.error('Cannot remove the bubble buddy (primary slot). It is always present.');
+    console.error('Use "session set-skill" to change its skills, or "mute" to disable it.');
+    exit(1);
+  }
+
   const err = validateSlot(slot);
   if (err) { console.error(`Error: ${err}`); exit(1); }
 
   const session = await readSession(sessionName);
-  const idx = session.slots.findIndex(s => s.slot === slot);
+  const bootstrapped = session.bootstrapped || [];
+  const idx = bootstrapped.findIndex(b => b.slot === slot);
   if (idx === -1) {
-    console.error(`No buddy in slot "${slot}".`);
+    console.error(`No bootstrapped buddy in slot "${slot}".`);
     exit(1);
   }
 
-  if (slot === 'primary' && session.slots.length === 1) {
-    console.error('Cannot remove the only buddy. Delete the session instead.');
-    exit(1);
-  }
-
-  const removed = session.slots[idx].config.name;
+  const removed = bootstrapped[idx].config.name;
 
   if (!(await confirm(`Remove ${removed} from ${slot}?`, flags))) {
     console.log('Cancelled.');
     return;
   }
 
-  session.slots.splice(idx, 1);
+  session.bootstrapped.splice(idx, 1);
   await writeSession(sessionName, session);
-  console.log(`  \x1b[32mRemoved ${removed} from ${slot}.\x1b[0m`);
+  console.log(`  \x1b[32mRemoved ${removed} from ${slot} (Tier 3).\x1b[0m`);
 }
 
 async function cmdSessionSetSkill(sessionName, slot, skill) {
@@ -715,18 +779,21 @@ async function cmdSessionSetSkill(sessionName, slot, skill) {
   if (skillErr) { console.error(`Error: ${skillErr}`); exit(1); }
 
   const session = await readSession(sessionName);
-  const entry = session.slots.find(s => s.slot === slot);
-  if (!entry) { console.error(`No buddy in slot "${slot}".`); exit(1); }
+  const found = findSlotEntry(session, slot);
+  if (!found) { console.error(`No buddy in slot "${slot}".`); exit(1); }
 
-  if (!entry.config.skills) entry.config.skills = [];
-  if (entry.config.skills.includes(skill)) {
-    console.log(`  ${entry.config.name} already has ${skill}.`);
+  const skills = getSkillsArray(found.ref, found.tier);
+  if (skills.includes(skill)) {
+    const label = found.tier === 'bubble' ? '(bubble buddy)' : found.ref.config.name;
+    console.log(`  ${label} already has ${skill}.`);
     return;
   }
 
-  entry.config.skills.push(skill);
+  skills.push(skill);
+  setSkillsArray(found.ref, found.tier, skills);
   await writeSession(sessionName, session);
-  console.log(`  \x1b[32m${entry.config.name} learned ${skill}.\x1b[0m`);
+  const label = found.tier === 'bubble' ? 'Bubble buddy' : found.ref.config.name;
+  console.log(`  \x1b[32m${label} learned ${skill}.\x1b[0m`);
 }
 
 async function cmdSessionUnsetSkill(sessionName, slot, skill) {
@@ -736,17 +803,21 @@ async function cmdSessionUnsetSkill(sessionName, slot, skill) {
   if (skillErr) { console.error(`Error: ${skillErr}`); exit(1); }
 
   const session = await readSession(sessionName);
-  const entry = session.slots.find(s => s.slot === slot);
-  if (!entry) { console.error(`No buddy in slot "${slot}".`); exit(1); }
+  const found = findSlotEntry(session, slot);
+  if (!found) { console.error(`No buddy in slot "${slot}".`); exit(1); }
 
-  if (!entry.config.skills?.includes(skill)) {
-    console.log(`  ${entry.config.name} doesn't have ${skill}.`);
+  const skills = getSkillsArray(found.ref, found.tier);
+  if (!skills.includes(skill)) {
+    const label = found.tier === 'bubble' ? '(bubble buddy)' : found.ref.config.name;
+    console.log(`  ${label} doesn't have ${skill}.`);
     return;
   }
 
-  entry.config.skills = entry.config.skills.filter(s => s !== skill);
+  const filtered = skills.filter(s => s !== skill);
+  setSkillsArray(found.ref, found.tier, filtered);
   await writeSession(sessionName, session);
-  console.log(`  \x1b[32m${entry.config.name} forgot ${skill}.\x1b[0m`);
+  const label = found.tier === 'bubble' ? 'Bubble buddy' : found.ref.config.name;
+  console.log(`  \x1b[32m${label} forgot ${skill}.\x1b[0m`);
 }
 
 async function cmdSessionPreset(presetName, flags) {

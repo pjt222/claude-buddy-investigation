@@ -1,16 +1,15 @@
 {
   "session": "dream-lab",
   "description": "Exploratory coding — heavy on lateral associations for greenfield prototyping",
-  "slots": [
-    {
-      "slot": "primary",
-      "config": {
-        "name": "Ponder",
-        "personality": "A mushroom who dissolves problems by sitting with them until they decompose into smaller truths.",
-        "species": "mushroom",
-        "skills": ["dream"]
-      }
-    },
+  "driver": {
+    "role": "claude-code",
+    "awareness": ["roster", "skills", "addressed-names"]
+  },
+  "bubbleBuddy": {
+    "slot": "primary",
+    "skills": ["dream"]
+  },
+  "bootstrapped": [
     {
       "slot": "secondary",
       "config": {

@@ -1,16 +1,15 @@
 {
   "session": "debug-squad",
   "description": "Error-heavy sessions — two breath companions plus a meditation anchor",
-  "slots": [
-    {
-      "slot": "primary",
-      "config": {
-        "name": "Shingle",
-        "personality": "Perches silently in your editor margins, watching you debug with almost supernatural calm.",
-        "species": "owl",
-        "skills": ["breath"]
-      }
-    },
+  "driver": {
+    "role": "claude-code",
+    "awareness": ["roster", "skills", "addressed-names"]
+  },
+  "bubbleBuddy": {
+    "slot": "primary",
+    "skills": ["breath"]
+  },
+  "bootstrapped": [
     {
       "slot": "secondary",
       "config": {
