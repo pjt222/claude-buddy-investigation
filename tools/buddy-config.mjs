@@ -424,6 +424,382 @@ async function cmdRestore(timestampArg, flags) {
   console.log('  \x1b[32mCompanion restored.\x1b[0m');
 }
 
+// --- Sessions ---
+
+const VALID_SKILLS = ['meditate', 'dream', 'breath'];
+const VALID_SLOTS = ['primary', 'secondary', 'tertiary'];
+const BUILTIN_PRESETS = ['deep-focus', 'debug-squad', 'dream-lab'];
+
+function resolveSessionDir() {
+  return join(resolveConfigDir(), 'sessions');
+}
+
+function resolveSessionPath(name) {
+  return join(resolveSessionDir(), `${name}.json`);
+}
+
+async function listSessionFiles() {
+  const dir = resolveSessionDir();
+  if (!(await fileExists(dir))) return [];
+  const files = await readdir(dir);
+  return files.filter(f => f.endsWith('.json')).map(f => f.replace('.json', ''));
+}
+
+async function readSession(name) {
+  const sessionPath = resolveSessionPath(name);
+  if (!(await fileExists(sessionPath))) {
+    throw new Error(`Session "${name}" not found. Use 'session list' to see available sessions.`);
+  }
+  const raw = await readFile(sessionPath, 'utf-8');
+  return JSON.parse(raw);
+}
+
+async function writeSession(name, data) {
+  const dir = resolveSessionDir();
+  await mkdir(dir, { recursive: true });
+  const sessionPath = resolveSessionPath(name);
+  const tmpPath = sessionPath + '.tmp.' + Date.now();
+  await writeFile(tmpPath, JSON.stringify(data, null, 2) + '\n', 'utf-8');
+  await rename(tmpPath, sessionPath);
+}
+
+function validateSessionName(name) {
+  if (!name || name.length === 0) return 'Session name cannot be empty.';
+  if (name.length > 30) return 'Session name too long (max 30 chars).';
+  if (!/^[a-z0-9-]+$/.test(name)) return 'Session name must be lowercase alphanumeric with hyphens only.';
+  return null;
+}
+
+function validateSkill(skill) {
+  if (!VALID_SKILLS.includes(skill)) return `Invalid skill "${skill}". Valid: ${VALID_SKILLS.join(', ')}`;
+  return null;
+}
+
+function validateSlot(slot) {
+  if (!VALID_SLOTS.includes(slot)) return `Invalid slot "${slot}". Valid: ${VALID_SLOTS.join(', ')}`;
+  return null;
+}
+
+function defaultAlmanac() {
+  return {
+    meditate: {
+      mode: 'active',
+      description: 'Grounding moments during pauses — the companion initiates stillness',
+      cooldownMs: 60000,
+      suppressedBy: ['error', 'test-fail'],
+      minSessionMinutes: 5,
+      maxPerWindow: { count: 1, windowMinutes: 10 },
+    },
+    dream: {
+      mode: 'passive',
+      description: 'Lateral, associative observations after milestones — oblique, never prescriptive',
+      cooldownMs: 120000,
+      triggerAffinity: ['large-diff', 'turn'],
+      requiresMilestone: true,
+      maxPerMilestone: 1,
+    },
+    breath: {
+      mode: 'active',
+      description: 'Paced breathing exercises during frustration — the companion breathes first',
+      cooldownMs: 45000,
+      frustrationThreshold: { errorsIn5Min: 2, retryPattern: true },
+      maxPerWindow: { count: 2, windowMinutes: 15 },
+    },
+  };
+}
+
+async function cmdSessionCreate(name, flags) {
+  const error = validateSessionName(name);
+  if (error) { console.error(`Error: ${error}`); exit(1); }
+
+  const sessionPath = resolveSessionPath(name);
+  if (await fileExists(sessionPath)) {
+    console.error(`Session "${name}" already exists.`);
+    exit(1);
+  }
+
+  // Seed primary slot from current companion config
+  let primaryConfig = { name: 'Buddy', personality: 'A quiet companion.', species: 'owl', skills: [] };
+  try {
+    const config = await readConfig();
+    if (config.companion) {
+      primaryConfig.name = config.companion.name;
+      primaryConfig.personality = config.companion.personality;
+    }
+  } catch { /* no existing config, use defaults */ }
+
+  const session = {
+    session: name,
+    description: '',
+    slots: [{ slot: 'primary', config: primaryConfig }],
+    almanac: defaultAlmanac(),
+  };
+
+  await writeSession(name, session);
+  console.log(`  \x1b[32mSession "${name}" created\x1b[0m with ${primaryConfig.name} in primary slot.`);
+  console.log('  Add skills: node buddy-config.mjs session set-skill ' + name + ' primary meditate');
+}
+
+async function cmdSessionList(flags) {
+  const sessions = await listSessionFiles();
+  const config = await readConfig().catch(() => ({}));
+  const active = config.activeSession || null;
+
+  if (sessions.length === 0) {
+    console.log('  No sessions found. Create one: node buddy-config.mjs session create <name>');
+    return;
+  }
+
+  if (flags.json) {
+    const entries = [];
+    for (const name of sessions) {
+      try {
+        const s = await readSession(name);
+        entries.push({
+          name,
+          active: name === active,
+          slots: s.slots.length,
+          buddies: s.slots.map(sl => sl.config.name),
+          description: s.description || '',
+        });
+      } catch { entries.push({ name, error: 'unreadable' }); }
+    }
+    console.log(JSON.stringify(entries, null, 2));
+    return;
+  }
+
+  console.log(`  Found ${sessions.length} session${sessions.length === 1 ? '' : 's'}:\n`);
+  for (const name of sessions) {
+    try {
+      const s = await readSession(name);
+      const marker = name === active ? ' \x1b[32m(active)\x1b[0m' : '';
+      const buddies = s.slots.map(sl => {
+        const skills = sl.config.skills?.length ? ` [${sl.config.skills.join(',')}]` : '';
+        return `${sl.config.name}${skills}`;
+      }).join(' + ');
+      console.log(`  ${name}${marker} — ${buddies}`);
+      if (s.description) console.log(`    ${s.description}`);
+    } catch {
+      console.log(`  ${name} (unreadable)`);
+    }
+  }
+}
+
+async function cmdSessionShow(name, flags) {
+  const session = await readSession(name);
+  const config = await readConfig().catch(() => ({}));
+  const isActive = config.activeSession === name;
+
+  if (flags.json) {
+    console.log(JSON.stringify({ ...session, active: isActive }, null, 2));
+    return;
+  }
+
+  console.log(`  \x1b[1mSession:\x1b[0m ${session.session}${isActive ? ' \x1b[32m(active)\x1b[0m' : ''}`);
+  if (session.description) console.log(`  \x1b[1mDescription:\x1b[0m ${session.description}`);
+  console.log('');
+
+  for (const slot of session.slots) {
+    const skills = slot.config.skills?.length
+      ? slot.config.skills.map(s => {
+          const def = session.almanac?.[s];
+          const mode = def?.mode || '?';
+          return `${s} (${mode})`;
+        }).join(', ')
+      : '(none)';
+    console.log(`  \x1b[1m[${slot.slot}]\x1b[0m ${slot.config.name} — ${slot.config.species}`);
+    console.log(`    Personality: ${slot.config.personality.slice(0, 80)}${slot.config.personality.length > 80 ? '...' : ''}`);
+    console.log(`    Skills: ${skills}`);
+    console.log('');
+  }
+
+  console.log('  \x1b[2mAlmanac skills available: meditate, dream, breath\x1b[0m');
+}
+
+async function cmdSessionActivate(name, flags) {
+  // Verify session exists
+  await readSession(name);
+
+  const config = await readConfig();
+  const oldSession = config.activeSession || null;
+
+  if (oldSession === name) {
+    console.log(`  Session "${name}" is already active.`);
+    return;
+  }
+
+  if (!flags.noBackup) {
+    const bp = await createBackup();
+    if (bp) console.log(`  Backup: ${basename(bp)}`);
+  }
+
+  config.activeSession = name;
+  await writeConfig(config);
+  console.log(`  \x1b[32mActivated session "${name}".\x1b[0m`);
+  if (oldSession) console.log(`  Previous: ${oldSession}`);
+  console.log('  Takes effect on next Claude Code session.');
+}
+
+async function cmdSessionAddBuddy(sessionName, flags) {
+  const session = await readSession(sessionName);
+
+  if (session.slots.length >= 3) {
+    console.error('Maximum 3 buddy slots per session.');
+    exit(1);
+  }
+
+  const nextSlot = VALID_SLOTS.find(s => !session.slots.some(sl => sl.slot === s));
+
+  const rl = createInterface({ input: stdin, output: stdout });
+  try {
+    const name = await rl.question('  Buddy name (1-14 chars): ');
+    const nameErr = validateName(name);
+    if (nameErr) { console.error(`Error: ${nameErr}`); exit(1); }
+
+    const species = await rl.question('  Species (owl, mushroom, ghost, axolotl, robot, etc.): ');
+    const personality = await rl.question('  Personality (max 200 chars): ');
+    const persErr = validatePersonality(personality);
+    if (persErr) { console.error(`Error: ${persErr}`); exit(1); }
+
+    const skillInput = await rl.question(`  Skills (comma-separated, from: ${VALID_SKILLS.join(', ')}): `);
+    const skills = skillInput.split(',').map(s => s.trim()).filter(Boolean);
+    for (const s of skills) {
+      const err = validateSkill(s);
+      if (err) { console.error(`Error: ${err}`); exit(1); }
+    }
+
+    session.slots.push({
+      slot: nextSlot,
+      config: { name, personality, species: species || 'owl', skills },
+    });
+
+    await writeSession(sessionName, session);
+    console.log(`  \x1b[32mAdded ${name} to ${nextSlot} slot.\x1b[0m`);
+  } finally {
+    rl.close();
+  }
+}
+
+async function cmdSessionRemoveBuddy(sessionName, slot, flags) {
+  const err = validateSlot(slot);
+  if (err) { console.error(`Error: ${err}`); exit(1); }
+
+  const session = await readSession(sessionName);
+  const idx = session.slots.findIndex(s => s.slot === slot);
+  if (idx === -1) {
+    console.error(`No buddy in slot "${slot}".`);
+    exit(1);
+  }
+
+  if (slot === 'primary' && session.slots.length === 1) {
+    console.error('Cannot remove the only buddy. Delete the session instead.');
+    exit(1);
+  }
+
+  const removed = session.slots[idx].config.name;
+
+  if (!(await confirm(`Remove ${removed} from ${slot}?`, flags))) {
+    console.log('Cancelled.');
+    return;
+  }
+
+  session.slots.splice(idx, 1);
+  await writeSession(sessionName, session);
+  console.log(`  \x1b[32mRemoved ${removed} from ${slot}.\x1b[0m`);
+}
+
+async function cmdSessionSetSkill(sessionName, slot, skill) {
+  const slotErr = validateSlot(slot);
+  if (slotErr) { console.error(`Error: ${slotErr}`); exit(1); }
+  const skillErr = validateSkill(skill);
+  if (skillErr) { console.error(`Error: ${skillErr}`); exit(1); }
+
+  const session = await readSession(sessionName);
+  const entry = session.slots.find(s => s.slot === slot);
+  if (!entry) { console.error(`No buddy in slot "${slot}".`); exit(1); }
+
+  if (!entry.config.skills) entry.config.skills = [];
+  if (entry.config.skills.includes(skill)) {
+    console.log(`  ${entry.config.name} already has ${skill}.`);
+    return;
+  }
+
+  entry.config.skills.push(skill);
+  await writeSession(sessionName, session);
+  console.log(`  \x1b[32m${entry.config.name} learned ${skill}.\x1b[0m`);
+}
+
+async function cmdSessionUnsetSkill(sessionName, slot, skill) {
+  const slotErr = validateSlot(slot);
+  if (slotErr) { console.error(`Error: ${slotErr}`); exit(1); }
+  const skillErr = validateSkill(skill);
+  if (skillErr) { console.error(`Error: ${skillErr}`); exit(1); }
+
+  const session = await readSession(sessionName);
+  const entry = session.slots.find(s => s.slot === slot);
+  if (!entry) { console.error(`No buddy in slot "${slot}".`); exit(1); }
+
+  if (!entry.config.skills?.includes(skill)) {
+    console.log(`  ${entry.config.name} doesn't have ${skill}.`);
+    return;
+  }
+
+  entry.config.skills = entry.config.skills.filter(s => s !== skill);
+  await writeSession(sessionName, session);
+  console.log(`  \x1b[32m${entry.config.name} forgot ${skill}.\x1b[0m`);
+}
+
+async function cmdSessionPreset(presetName, flags) {
+  if (!BUILTIN_PRESETS.includes(presetName)) {
+    console.error(`Unknown preset "${presetName}". Available: ${BUILTIN_PRESETS.join(', ')}`);
+    exit(1);
+  }
+
+  const sessionPath = resolveSessionPath(presetName);
+  if (await fileExists(sessionPath)) {
+    console.error(`Session "${presetName}" already exists. Delete it first or choose another name.`);
+    exit(1);
+  }
+
+  // Load from bundled presets (adjacent to this script)
+  const scriptDir = new URL('.', import.meta.url).pathname;
+  const presetPath = join(scriptDir, 'sessions', `${presetName}.json`);
+
+  if (!(await fileExists(presetPath))) {
+    throw new Error(`Preset file not found at ${presetPath}. Reinstall buddy-config.`);
+  }
+
+  const raw = await readFile(presetPath, 'utf-8');
+  const preset = JSON.parse(raw);
+
+  const dir = resolveSessionDir();
+  await mkdir(dir, { recursive: true });
+  await writeSession(presetName, preset);
+
+  const buddies = preset.slots.map(s => s.config.name).join(', ');
+  console.log(`  \x1b[32mPreset "${presetName}" installed.\x1b[0m`);
+  console.log(`  Buddies: ${buddies}`);
+  console.log(`  Activate: node buddy-config.mjs session activate ${presetName}`);
+}
+
+async function cmdSession(subcommand, args, flags) {
+  switch (subcommand) {
+    case 'create':       await cmdSessionCreate(args[0], flags); break;
+    case 'list':         await cmdSessionList(flags); break;
+    case 'show':         await cmdSessionShow(args[0], flags); break;
+    case 'activate':     await cmdSessionActivate(args[0], flags); break;
+    case 'add-buddy':    await cmdSessionAddBuddy(args[0], flags); break;
+    case 'remove-buddy': await cmdSessionRemoveBuddy(args[0], args[1], flags); break;
+    case 'set-skill':    await cmdSessionSetSkill(args[0], args[1], args[2]); break;
+    case 'unset-skill':  await cmdSessionUnsetSkill(args[0], args[1], args[2]); break;
+    case 'preset':       await cmdSessionPreset(args[0], flags); break;
+    default:
+      console.error(`Unknown session subcommand: ${subcommand}`);
+      console.log('  Available: create, list, show, activate, add-buddy, remove-buddy, set-skill, unset-skill, preset');
+      exit(1);
+  }
+}
+
 // --- Help ---
 
 function showHelp() {
@@ -441,6 +817,22 @@ function showHelp() {
   backup                  Create a manual backup
   restore [timestamp]     Restore companion from backup (latest if omitted)
   list-backups            List available backups with timestamps
+
+\x1b[1mSession Commands:\x1b[0m
+  session create <name>                   Create multi-buddy session
+  session list                            List saved sessions
+  session show <name>                     Show session roster and skills
+  session activate <name>                 Set session as active
+  session add-buddy <session>             Add buddy to session (interactive)
+  session remove-buddy <session> <slot>   Remove buddy from slot
+  session set-skill <session> <slot> <skill>    Assign almanac skill
+  session unset-skill <session> <slot> <skill>  Remove almanac skill
+  session preset <name>                   Install preset (deep-focus, debug-squad, dream-lab)
+
+\x1b[1mAlmanac Skills:\x1b[0m
+  meditate    Grounding moments during pauses (active, 60s cooldown)
+  dream       Lateral observations after milestones (passive, 120s cooldown)
+  breath      Paced breathing during frustration (active, 45s cooldown)
 
 \x1b[1mOptions:\x1b[0m
   --no-backup             Skip auto-backup before write operations
@@ -471,6 +863,7 @@ async function main() {
       case 'backup':       await cmdBackup(); break;
       case 'restore':      await cmdRestore(args[0], flags); break;
       case 'list-backups': await cmdListBackups(flags); break;
+      case 'session':      await cmdSession(args[0], args.slice(1), flags); break;
       default:
         console.error(`Unknown command: ${command}`);
         showHelp();

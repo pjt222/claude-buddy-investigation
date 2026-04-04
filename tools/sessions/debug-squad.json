@@ -1,0 +1,55 @@
+{
+  "session": "debug-squad",
+  "description": "Error-heavy sessions — two breath companions plus a meditation anchor",
+  "slots": [
+    {
+      "slot": "primary",
+      "config": {
+        "name": "Shingle",
+        "personality": "Perches silently in your editor margins, watching you debug with almost supernatural calm.",
+        "species": "owl",
+        "skills": ["breath"]
+      }
+    },
+    {
+      "slot": "secondary",
+      "config": {
+        "name": "Fizz",
+        "personality": "An axolotl who regenerates enthusiasm the way real axolotls regenerate limbs — slowly, but completely.",
+        "species": "axolotl",
+        "skills": ["breath", "dream"]
+      }
+    },
+    {
+      "slot": "tertiary",
+      "config": {
+        "name": "Clank",
+        "personality": "A robot who has calculated the optimal number of deep breaths between stack traces. It is always more than you think.",
+        "species": "robot",
+        "skills": ["meditate"]
+      }
+    }
+  ],
+  "almanac": {
+    "meditate": {
+      "mode": "active",
+      "cooldownMs": 60000,
+      "suppressedBy": ["error", "test-fail"],
+      "minSessionMinutes": 5,
+      "maxPerWindow": { "count": 1, "windowMinutes": 10 }
+    },
+    "dream": {
+      "mode": "passive",
+      "cooldownMs": 120000,
+      "triggerAffinity": ["large-diff", "turn"],
+      "requiresMilestone": true,
+      "maxPerMilestone": 1
+    },
+    "breath": {
+      "mode": "active",
+      "cooldownMs": 45000,
+      "frustrationThreshold": { "errorsIn5Min": 2, "retryPattern": true },
+      "maxPerWindow": { "count": 2, "windowMinutes": 15 }
+    }
+  }
+}
