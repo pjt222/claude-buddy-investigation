@@ -1,0 +1,54 @@
+{
+  "session": "dream-lab",
+  "description": "Exploratory coding — heavy on lateral associations for greenfield prototyping",
+  "driver": {
+    "role": "claude-code",
+    "awareness": ["roster", "skills", "addressed-names"]
+  },
+  "bubbleBuddy": {
+    "slot": "primary",
+    "skills": ["dream"]
+  },
+  "bootstrapped": [
+    {
+      "slot": "secondary",
+      "config": {
+        "name": "Wisp",
+        "personality": "A ghost who remembers code that was deleted and sometimes mourns it, sometimes celebrates its release.",
+        "species": "ghost",
+        "skills": ["dream", "meditate"]
+      }
+    },
+    {
+      "slot": "tertiary",
+      "config": {
+        "name": "Noodle",
+        "personality": "An octopus who reads eight files at once and sees patterns between them that you haven't noticed yet.",
+        "species": "octopus",
+        "skills": ["dream", "breath"]
+      }
+    }
+  ],
+  "almanac": {
+    "meditate": {
+      "mode": "active",
+      "cooldownMs": 60000,
+      "suppressedBy": ["error", "test-fail"],
+      "minSessionMinutes": 5,
+      "maxPerWindow": { "count": 1, "windowMinutes": 10 }
+    },
+    "dream": {
+      "mode": "passive",
+      "cooldownMs": 120000,
+      "triggerAffinity": ["large-diff", "turn"],
+      "requiresMilestone": true,
+      "maxPerMilestone": 1
+    },
+    "breath": {
+      "mode": "active",
+      "cooldownMs": 45000,
+      "frustrationThreshold": { "errorsIn5Min": 2, "retryPattern": true },
+      "maxPerWindow": { "count": 2, "windowMinutes": 15 }
+    }
+  }
+}

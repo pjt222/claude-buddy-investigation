@@ -424,6 +424,453 @@ async function cmdRestore(timestampArg, flags) {
   console.log('  \x1b[32mCompanion restored.\x1b[0m');
 }
 
+// --- Sessions ---
+
+const VALID_SKILLS = ['meditate', 'dream', 'breath'];
+const VALID_SLOTS = ['primary', 'secondary', 'tertiary'];
+const BUILTIN_PRESETS = ['deep-focus', 'debug-squad', 'dream-lab'];
+
+function resolveSessionDir() {
+  return join(resolveConfigDir(), 'sessions');
+}
+
+function resolveSessionPath(name) {
+  return join(resolveSessionDir(), `${name}.json`);
+}
+
+async function listSessionFiles() {
+  const dir = resolveSessionDir();
+  if (!(await fileExists(dir))) return [];
+  const files = await readdir(dir);
+  return files.filter(f => f.endsWith('.json')).map(f => f.replace('.json', ''));
+}
+
+async function readSession(name) {
+  const sessionPath = resolveSessionPath(name);
+  if (!(await fileExists(sessionPath))) {
+    throw new Error(`Session "${name}" not found. Use 'session list' to see available sessions.`);
+  }
+  const raw = await readFile(sessionPath, 'utf-8');
+  return JSON.parse(raw);
+}
+
+async function writeSession(name, data) {
+  const dir = resolveSessionDir();
+  await mkdir(dir, { recursive: true });
+  const sessionPath = resolveSessionPath(name);
+  const tmpPath = sessionPath + '.tmp.' + Date.now();
+  await writeFile(tmpPath, JSON.stringify(data, null, 2) + '\n', 'utf-8');
+  await rename(tmpPath, sessionPath);
+}
+
+function validateSessionName(name) {
+  if (!name || name.length === 0) return 'Session name cannot be empty.';
+  if (name.length > 30) return 'Session name too long (max 30 chars).';
+  if (!/^[a-z0-9-]+$/.test(name)) return 'Session name must be lowercase alphanumeric with hyphens only.';
+  return null;
+}
+
+function validateSkill(skill) {
+  if (!VALID_SKILLS.includes(skill)) return `Invalid skill "${skill}". Valid: ${VALID_SKILLS.join(', ')}`;
+  return null;
+}
+
+function validateSlot(slot) {
+  if (!VALID_SLOTS.includes(slot)) return `Invalid slot "${slot}". Valid: ${VALID_SLOTS.join(', ')}`;
+  return null;
+}
+
+function defaultAlmanac() {
+  return {
+    meditate: {
+      mode: 'active',
+      description: 'Grounding moments during pauses — the companion initiates stillness',
+      cooldownMs: 60000,
+      suppressedBy: ['error', 'test-fail'],
+      minSessionMinutes: 5,
+      maxPerWindow: { count: 1, windowMinutes: 10 },
+    },
+    dream: {
+      mode: 'passive',
+      description: 'Lateral, associative observations after milestones — oblique, never prescriptive',
+      cooldownMs: 120000,
+      triggerAffinity: ['large-diff', 'turn'],
+      requiresMilestone: true,
+      maxPerMilestone: 1,
+    },
+    breath: {
+      mode: 'active',
+      description: 'Paced breathing exercises during frustration — the companion breathes first',
+      cooldownMs: 45000,
+      frustrationThreshold: { errorsIn5Min: 2, retryPattern: true },
+      maxPerWindow: { count: 2, windowMinutes: 15 },
+    },
+  };
+}
+
+// --- Session helpers for three-tier schema ---
+
+function getSessionBuddies(session) {
+  // Returns a unified list of { slot, config, tier } entries for display/mutation
+  const result = [];
+  if (session.bubbleBuddy) {
+    result.push({
+      slot: session.bubbleBuddy.slot || 'primary',
+      config: { skills: session.bubbleBuddy.skills || [], ...(session.bubbleBuddy.config || {}) },
+      tier: 'bubble',
+    });
+  }
+  for (const b of (session.bootstrapped || [])) {
+    result.push({ slot: b.slot, config: b.config, tier: 'bootstrapped' });
+  }
+  return result;
+}
+
+function findSlotEntry(session, slot) {
+  if (slot === 'primary') {
+    return session.bubbleBuddy ? { ref: session.bubbleBuddy, tier: 'bubble' } : null;
+  }
+  const entry = (session.bootstrapped || []).find(b => b.slot === slot);
+  return entry ? { ref: entry, tier: 'bootstrapped' } : null;
+}
+
+function getSkillsArray(entry, tier) {
+  if (tier === 'bubble') return entry.skills || [];
+  return entry.config?.skills || [];
+}
+
+function setSkillsArray(entry, tier, skills) {
+  if (tier === 'bubble') entry.skills = skills;
+  else entry.config.skills = skills;
+}
+
+async function cmdSessionCreate(name, flags) {
+  const error = validateSessionName(name);
+  if (error) { console.error(`Error: ${error}`); exit(1); }
+
+  const sessionPath = resolveSessionPath(name);
+  if (await fileExists(sessionPath)) {
+    console.error(`Session "${name}" already exists.`);
+    exit(1);
+  }
+
+  // Read current companion name for display
+  let bubbleName = '(your hatched companion)';
+  try {
+    const config = await readConfig();
+    if (config.companion?.name) bubbleName = config.companion.name;
+  } catch { /* no existing config */ }
+
+  const session = {
+    session: name,
+    description: '',
+    driver: { role: 'claude-code', awareness: ['roster', 'skills', 'addressed-names'] },
+    bubbleBuddy: { slot: 'primary', skills: [] },
+    bootstrapped: [],
+    almanac: defaultAlmanac(),
+  };
+
+  await writeSession(name, session);
+  console.log(`  \x1b[32mSession "${name}" created.\x1b[0m`);
+  console.log(`  Tier 1 (Driver):  Claude Code`);
+  console.log(`  Tier 2 (Bubble):  ${bubbleName} in primary slot (identity from config)`);
+  console.log(`  Tier 3:           (none — add with 'session add-buddy')`);
+  console.log('');
+  console.log('  Add bubble skills: node buddy-config.mjs session set-skill ' + name + ' primary meditate');
+  console.log('  Add bootstrapped:  node buddy-config.mjs session add-buddy ' + name);
+}
+
+async function cmdSessionList(flags) {
+  const sessions = await listSessionFiles();
+  const config = await readConfig().catch(() => ({}));
+  const active = config.activeSession || null;
+  const bubbleName = config.companion?.name || '(bubble)';
+
+  if (sessions.length === 0) {
+    console.log('  No sessions found. Create one: node buddy-config.mjs session create <name>');
+    return;
+  }
+
+  if (flags.json) {
+    const entries = [];
+    for (const name of sessions) {
+      try {
+        const s = await readSession(name);
+        const buddies = getSessionBuddies(s);
+        entries.push({
+          name,
+          active: name === active,
+          tiers: { driver: 'claude-code', bubble: bubbleName, bootstrapped: (s.bootstrapped || []).map(b => b.config.name) },
+          description: s.description || '',
+        });
+      } catch { entries.push({ name, error: 'unreadable' }); }
+    }
+    console.log(JSON.stringify(entries, null, 2));
+    return;
+  }
+
+  console.log(`  Found ${sessions.length} session${sessions.length === 1 ? '' : 's'}:\n`);
+  for (const name of sessions) {
+    try {
+      const s = await readSession(name);
+      const marker = name === active ? ' \x1b[32m(active)\x1b[0m' : '';
+      const bubbleSkills = s.bubbleBuddy?.skills?.length ? ` [${s.bubbleBuddy.skills.join(',')}]` : '';
+      const bootNames = (s.bootstrapped || []).map(b => {
+        const skills = b.config.skills?.length ? ` [${b.config.skills.join(',')}]` : '';
+        return `${b.config.name}${skills}`;
+      });
+      const roster = [`${bubbleName}${bubbleSkills}`, ...bootNames].join(' + ');
+      console.log(`  ${name}${marker} — ${roster}`);
+      if (s.description) console.log(`    ${s.description}`);
+    } catch {
+      console.log(`  ${name} (unreadable)`);
+    }
+  }
+}
+
+async function cmdSessionShow(name, flags) {
+  const session = await readSession(name);
+  const config = await readConfig().catch(() => ({}));
+  const isActive = config.activeSession === name;
+  const bubbleName = config.companion?.name || '(hatched companion)';
+
+  if (flags.json) {
+    console.log(JSON.stringify({ ...session, active: isActive, resolvedBubbleName: bubbleName }, null, 2));
+    return;
+  }
+
+  console.log(`  \x1b[1mSession:\x1b[0m ${session.session}${isActive ? ' \x1b[32m(active)\x1b[0m' : ''}`);
+  if (session.description) console.log(`  \x1b[1mDescription:\x1b[0m ${session.description}`);
+  console.log('');
+
+  // Tier 1 — Driver
+  console.log('  \x1b[1m[Tier 1 — Driver]\x1b[0m Claude Code');
+  console.log(`    Awareness: ${(session.driver?.awareness || []).join(', ')}`);
+  console.log('');
+
+  // Tier 2 — Bubble Buddy
+  const bubbleSkills = (session.bubbleBuddy?.skills || [])
+    .map(s => { const def = session.almanac?.[s]; return `${s} (${def?.mode || '?'})`; })
+    .join(', ') || '(none)';
+  console.log(`  \x1b[1m[Tier 2 — Bubble Buddy]\x1b[0m ${bubbleName} (${session.bubbleBuddy?.slot || 'primary'})`);
+  console.log('    Identity: from ~/.claude/.claude.json (hash-derived)');
+  console.log(`    Skills: ${bubbleSkills}`);
+  console.log('');
+
+  // Tier 3 — Bootstrapped
+  if ((session.bootstrapped || []).length === 0) {
+    console.log('  \x1b[1m[Tier 3 — Bootstrapped]\x1b[0m (none)');
+  } else {
+    for (const b of session.bootstrapped) {
+      const skills = (b.config.skills || [])
+        .map(s => { const def = session.almanac?.[s]; return `${s} (${def?.mode || '?'})`; })
+        .join(', ') || '(none)';
+      console.log(`  \x1b[1m[Tier 3 — ${b.slot}]\x1b[0m ${b.config.name} — ${b.config.species}`);
+      console.log(`    Personality: ${b.config.personality.slice(0, 80)}${b.config.personality.length > 80 ? '...' : ''}`);
+      console.log(`    Skills: ${skills}`);
+      console.log('');
+    }
+  }
+
+  console.log('  \x1b[2mAlmanac skills: meditate (active), dream (passive), breath (active)\x1b[0m');
+}
+
+async function cmdSessionActivate(name, flags) {
+  // Verify session exists
+  await readSession(name);
+
+  const config = await readConfig();
+  const oldSession = config.activeSession || null;
+
+  if (oldSession === name) {
+    console.log(`  Session "${name}" is already active.`);
+    return;
+  }
+
+  if (!flags.noBackup) {
+    const bp = await createBackup();
+    if (bp) console.log(`  Backup: ${basename(bp)}`);
+  }
+
+  config.activeSession = name;
+  await writeConfig(config);
+  console.log(`  \x1b[32mActivated session "${name}".\x1b[0m`);
+  if (oldSession) console.log(`  Previous: ${oldSession}`);
+  console.log('  Takes effect on next Claude Code session.');
+}
+
+async function cmdSessionAddBuddy(sessionName, flags) {
+  const session = await readSession(sessionName);
+  const bootstrapped = session.bootstrapped || [];
+
+  if (bootstrapped.length >= 2) {
+    console.error('Maximum 2 bootstrapped buddies per session (secondary + tertiary).');
+    exit(1);
+  }
+
+  const usedSlots = bootstrapped.map(b => b.slot);
+  const nextSlot = ['secondary', 'tertiary'].find(s => !usedSlots.includes(s));
+
+  const rl = createInterface({ input: stdin, output: stdout });
+  try {
+    const name = await rl.question('  Buddy name (1-14 chars): ');
+    const nameErr = validateName(name);
+    if (nameErr) { console.error(`Error: ${nameErr}`); exit(1); }
+
+    const species = await rl.question('  Species (owl, mushroom, ghost, axolotl, robot, etc.): ');
+    const personality = await rl.question('  Personality (max 200 chars): ');
+    const persErr = validatePersonality(personality);
+    if (persErr) { console.error(`Error: ${persErr}`); exit(1); }
+
+    const skillInput = await rl.question(`  Skills (comma-separated, from: ${VALID_SKILLS.join(', ')}): `);
+    const skills = skillInput.split(',').map(s => s.trim()).filter(Boolean);
+    for (const s of skills) {
+      const err = validateSkill(s);
+      if (err) { console.error(`Error: ${err}`); exit(1); }
+    }
+
+    if (!session.bootstrapped) session.bootstrapped = [];
+    session.bootstrapped.push({
+      slot: nextSlot,
+      config: { name, personality, species: species || 'owl', skills },
+    });
+
+    await writeSession(sessionName, session);
+    console.log(`  \x1b[32mAdded ${name} to ${nextSlot} slot (Tier 3 — bootstrapped).\x1b[0m`);
+  } finally {
+    rl.close();
+  }
+}
+
+async function cmdSessionRemoveBuddy(sessionName, slot, flags) {
+  if (slot === 'primary') {
+    console.error('Cannot remove the bubble buddy (primary slot). It is always present.');
+    console.error('Use "session set-skill" to change its skills, or "mute" to disable it.');
+    exit(1);
+  }
+
+  const err = validateSlot(slot);
+  if (err) { console.error(`Error: ${err}`); exit(1); }
+
+  const session = await readSession(sessionName);
+  const bootstrapped = session.bootstrapped || [];
+  const idx = bootstrapped.findIndex(b => b.slot === slot);
+  if (idx === -1) {
+    console.error(`No bootstrapped buddy in slot "${slot}".`);
+    exit(1);
+  }
+
+  const removed = bootstrapped[idx].config.name;
+
+  if (!(await confirm(`Remove ${removed} from ${slot}?`, flags))) {
+    console.log('Cancelled.');
+    return;
+  }
+
+  session.bootstrapped.splice(idx, 1);
+  await writeSession(sessionName, session);
+  console.log(`  \x1b[32mRemoved ${removed} from ${slot} (Tier 3).\x1b[0m`);
+}
+
+async function cmdSessionSetSkill(sessionName, slot, skill) {
+  const slotErr = validateSlot(slot);
+  if (slotErr) { console.error(`Error: ${slotErr}`); exit(1); }
+  const skillErr = validateSkill(skill);
+  if (skillErr) { console.error(`Error: ${skillErr}`); exit(1); }
+
+  const session = await readSession(sessionName);
+  const found = findSlotEntry(session, slot);
+  if (!found) { console.error(`No buddy in slot "${slot}".`); exit(1); }
+
+  const skills = getSkillsArray(found.ref, found.tier);
+  if (skills.includes(skill)) {
+    const label = found.tier === 'bubble' ? '(bubble buddy)' : found.ref.config.name;
+    console.log(`  ${label} already has ${skill}.`);
+    return;
+  }
+
+  skills.push(skill);
+  setSkillsArray(found.ref, found.tier, skills);
+  await writeSession(sessionName, session);
+  const label = found.tier === 'bubble' ? 'Bubble buddy' : found.ref.config.name;
+  console.log(`  \x1b[32m${label} learned ${skill}.\x1b[0m`);
+}
+
+async function cmdSessionUnsetSkill(sessionName, slot, skill) {
+  const slotErr = validateSlot(slot);
+  if (slotErr) { console.error(`Error: ${slotErr}`); exit(1); }
+  const skillErr = validateSkill(skill);
+  if (skillErr) { console.error(`Error: ${skillErr}`); exit(1); }
+
+  const session = await readSession(sessionName);
+  const found = findSlotEntry(session, slot);
+  if (!found) { console.error(`No buddy in slot "${slot}".`); exit(1); }
+
+  const skills = getSkillsArray(found.ref, found.tier);
+  if (!skills.includes(skill)) {
+    const label = found.tier === 'bubble' ? '(bubble buddy)' : found.ref.config.name;
+    console.log(`  ${label} doesn't have ${skill}.`);
+    return;
+  }
+
+  const filtered = skills.filter(s => s !== skill);
+  setSkillsArray(found.ref, found.tier, filtered);
+  await writeSession(sessionName, session);
+  const label = found.tier === 'bubble' ? 'Bubble buddy' : found.ref.config.name;
+  console.log(`  \x1b[32m${label} forgot ${skill}.\x1b[0m`);
+}
+
+async function cmdSessionPreset(presetName, flags) {
+  if (!BUILTIN_PRESETS.includes(presetName)) {
+    console.error(`Unknown preset "${presetName}". Available: ${BUILTIN_PRESETS.join(', ')}`);
+    exit(1);
+  }
+
+  const sessionPath = resolveSessionPath(presetName);
+  if (await fileExists(sessionPath)) {
+    console.error(`Session "${presetName}" already exists. Delete it first or choose another name.`);
+    exit(1);
+  }
+
+  // Load from bundled presets (adjacent to this script)
+  const scriptDir = new URL('.', import.meta.url).pathname;
+  const presetPath = join(scriptDir, 'sessions', `${presetName}.json`);
+
+  if (!(await fileExists(presetPath))) {
+    throw new Error(`Preset file not found at ${presetPath}. Reinstall buddy-config.`);
+  }
+
+  const raw = await readFile(presetPath, 'utf-8');
+  const preset = JSON.parse(raw);
+
+  const dir = resolveSessionDir();
+  await mkdir(dir, { recursive: true });
+  await writeSession(presetName, preset);
+
+  const buddies = preset.slots.map(s => s.config.name).join(', ');
+  console.log(`  \x1b[32mPreset "${presetName}" installed.\x1b[0m`);
+  console.log(`  Buddies: ${buddies}`);
+  console.log(`  Activate: node buddy-config.mjs session activate ${presetName}`);
+}
+
+async function cmdSession(subcommand, args, flags) {
+  switch (subcommand) {
+    case 'create':       await cmdSessionCreate(args[0], flags); break;
+    case 'list':         await cmdSessionList(flags); break;
+    case 'show':         await cmdSessionShow(args[0], flags); break;
+    case 'activate':     await cmdSessionActivate(args[0], flags); break;
+    case 'add-buddy':    await cmdSessionAddBuddy(args[0], flags); break;
+    case 'remove-buddy': await cmdSessionRemoveBuddy(args[0], args[1], flags); break;
+    case 'set-skill':    await cmdSessionSetSkill(args[0], args[1], args[2]); break;
+    case 'unset-skill':  await cmdSessionUnsetSkill(args[0], args[1], args[2]); break;
+    case 'preset':       await cmdSessionPreset(args[0], flags); break;
+    default:
+      console.error(`Unknown session subcommand: ${subcommand}`);
+      console.log('  Available: create, list, show, activate, add-buddy, remove-buddy, set-skill, unset-skill, preset');
+      exit(1);
+  }
+}
+
 // --- Help ---
 
 function showHelp() {
@@ -441,6 +888,22 @@ function showHelp() {
   backup                  Create a manual backup
   restore [timestamp]     Restore companion from backup (latest if omitted)
   list-backups            List available backups with timestamps
+
+\x1b[1mSession Commands:\x1b[0m
+  session create <name>                   Create multi-buddy session
+  session list                            List saved sessions
+  session show <name>                     Show session roster and skills
+  session activate <name>                 Set session as active
+  session add-buddy <session>             Add buddy to session (interactive)
+  session remove-buddy <session> <slot>   Remove buddy from slot
+  session set-skill <session> <slot> <skill>    Assign almanac skill
+  session unset-skill <session> <slot> <skill>  Remove almanac skill
+  session preset <name>                   Install preset (deep-focus, debug-squad, dream-lab)
+
+\x1b[1mAlmanac Skills:\x1b[0m
+  meditate    Grounding moments during pauses (active, 60s cooldown)
+  dream       Lateral observations after milestones (passive, 120s cooldown)
+  breath      Paced breathing during frustration (active, 45s cooldown)
 
 \x1b[1mOptions:\x1b[0m
   --no-backup             Skip auto-backup before write operations
@@ -471,6 +934,7 @@ async function main() {
       case 'backup':       await cmdBackup(); break;
       case 'restore':      await cmdRestore(args[0], flags); break;
       case 'list-backups': await cmdListBackups(flags); break;
+      case 'session':      await cmdSession(args[0], args.slice(1), flags); break;
       default:
         console.error(`Unknown command: ${command}`);
         showHelp();

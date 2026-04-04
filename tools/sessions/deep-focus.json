@@ -1,0 +1,49 @@
+{
+  "session": "deep-focus",
+  "description": "Meditative coding — grounding and lateral insights for long refactoring sessions",
+  "driver": {
+    "role": "claude-code",
+    "awareness": ["roster", "skills", "addressed-names"]
+  },
+  "bubbleBuddy": {
+    "slot": "primary",
+    "note": "Identity inherited from ~/.claude/.claude.json — name, species, personality not overridden",
+    "skills": ["meditate", "breath"]
+  },
+  "bootstrapped": [
+    {
+      "slot": "secondary",
+      "config": {
+        "name": "Ponder",
+        "personality": "A mushroom who dissolves problems by sitting with them until they decompose into smaller truths.",
+        "species": "mushroom",
+        "skills": ["dream", "meditate"]
+      }
+    }
+  ],
+  "almanac": {
+    "meditate": {
+      "mode": "active",
+      "description": "Grounding moments during pauses — the companion initiates stillness",
+      "cooldownMs": 60000,
+      "suppressedBy": ["error", "test-fail"],
+      "minSessionMinutes": 5,
+      "maxPerWindow": { "count": 1, "windowMinutes": 10 }
+    },
+    "dream": {
+      "mode": "passive",
+      "description": "Lateral, associative observations after milestones — oblique, never prescriptive",
+      "cooldownMs": 120000,
+      "triggerAffinity": ["large-diff", "turn"],
+      "requiresMilestone": true,
+      "maxPerMilestone": 1
+    },
+    "breath": {
+      "mode": "active",
+      "description": "Paced breathing exercises during frustration — the companion breathes first",
+      "cooldownMs": 45000,
+      "frustrationThreshold": { "errorsIn5Min": 2, "retryPattern": true },
+      "maxPerWindow": { "count": 2, "windowMinutes": 15 }
+    }
+  }
+}
