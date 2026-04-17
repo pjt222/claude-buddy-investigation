@@ -62,7 +62,7 @@ window.VIZ_COUNTS = Object.freeze({
 
   // ---- Skills / hooks / flags ----
   skills: { bundled: 41 },
-  hooks: { event_types: 9 },
+  hooks: { event_types: 27 },  // v2.1.112 binary: full array has 27 types (was 9 documented)
   // 7-layer resolution (v2.1.110 binary decode):
   //   1. CLAUDE_CODE_DISABLE_* env kill switches (caller-side)
   //   2. Session override map sTH() — env-var injected (CLAUDE_CODE_FEATURE_FLAGS)
@@ -134,13 +134,13 @@ window.VIZ_COUNTS = Object.freeze({
   // ---- Investigation metadata ----
   investigation: {
     agents_deployed: "21+",
-    waves: 4
+    waves: 5
   },
 
   // ---- Version coverage ----
   version: {
     start: "v2.1.89",
-    end: "v2.1.110",
-    range: "v2.1.89 \u2192 v2.1.110"  // unicode rightwards arrow
+    end: "v2.1.112",
+    range: "v2.1.89 \u2192 v2.1.112"  // unicode rightwards arrow
   }
 });

@@ -106,6 +106,16 @@ Shingle's stats are explainable: PATIENCE is the primary stat (boosted +50), CHA
 - **PowerShell gate**: Windows-only PowerShell tool controlled by feature flag (default OFF)
 - **GrowthBook system-prompt override**: Remote-mode env var specifies a GrowthBook flag whose string value replaces the system prompt
 
+### v2.1.112 Binary Probe Results (2026-04-17, non-interactive exhaust)
+
+- **Hook system: 27 types** (was 9 documented) — 18 undocumented types decoded including `TeammateIdle`, `TaskCreated/Completed`, `Elicitation/ElicitationResult`, `ConfigChange`, `WorktreeCreate/Remove`, `InstructionsLoaded`, `CwdChanged`, `FileChanged`
+- **Datadog 3rd-party sink**: ~55 events routed to Datadog (separate from Anthropic's own telemetry); subscription tier and user type included in every entry; 1-in-30 user sampling via device ID hash
+- **Agent teams** (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`): experimental gate; GrowthBook kill-switch; custom agents appear as "user-defined" in telemetry regardless of their actual name
+- **/fast (Penguin Mode)**: opus-4-6 only; org-level check at startup; cooldown system; `fastModePerSessionOptIn` setting prevents persistence across sessions
+- **/passes referral system**: Max plan + org required; 3 guest passes; eligibility + redemptions endpoints
+- **File-history (Rewind)**: plaintext file snapshots at `~/.claude/file-history/`; no cleanup mechanism; 216+ sessions accumulate on disk
+- **GrowthBook startup PII**: 14 user attributes including email sent to Anthropic-hosted GrowthBook on every startup for remote flag evaluation
+
 ### Why This Research Matters
 
 The companion UI was live for only 7 days (April 1–8), but the API survives and our tools work independently of the binary:
@@ -117,7 +127,7 @@ The companion UI was live for only 7 days (April 1–8), but the API survives an
 
 ## Security Findings
 
-14 findings across the companion system, MCP server, capture tooling, and data handling. Full details in `SECURITY-AUDIT.md`.
+15 findings across the companion system, MCP server, capture tooling, and data handling. Full details in `SECURITY-AUDIT.md`.
 
 Highlights:
 - **1 CRITICAL** — attribution laundering via ghost-inbox SendMessage in managed agent teams
