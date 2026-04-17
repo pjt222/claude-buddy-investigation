@@ -1,0 +1,88 @@
+{
+  "session": "full-crew",
+  "description": "All hands on deck — six diverse companions for maximum perspective density",
+  "prompt": "tools/sessions/full-crew.prompt.md",
+  "testPrompt": "tools/sessions/full-crew.test-prompt.md",
+  "driver": {
+    "role": "claude-code",
+    "awareness": ["roster", "skills", "addressed-names"]
+  },
+  "bubbleBuddy": {
+    "slot": "primary",
+    "skills": ["breath", "dream"]
+  },
+  "bootstrapped": [
+    {
+      "slot": "secondary",
+      "config": {
+        "name": "Ponder",
+        "personality": "A mushroom who dissolves problems by sitting with them until they decompose into smaller truths.",
+        "species": "mushroom",
+        "stats": { "DEBUGGING": 15, "PATIENCE": 62, "CHAOS": 8, "WISDOM": 88, "SNARK": 15 },
+        "skills": ["dream", "meditate"]
+      }
+    },
+    {
+      "slot": "tertiary",
+      "config": {
+        "name": "Fizz",
+        "personality": "An axolotl who regenerates enthusiasm the way real axolotls regenerate limbs — slowly, but completely.",
+        "species": "axolotl",
+        "stats": { "DEBUGGING": 45, "PATIENCE": 38, "CHAOS": 42, "WISDOM": 32, "SNARK": 65 },
+        "skills": ["breath", "dream"]
+      }
+    },
+    {
+      "slot": "quaternary",
+      "config": {
+        "name": "Coral",
+        "personality": "A snail who carries old shells of solved bugs and taps them rhythmically when she spots a pattern you missed.",
+        "species": "snail",
+        "stats": { "DEBUGGING": 89, "PATIENCE": 35, "CHAOS": 10, "WISDOM": 48, "SNARK": 72 },
+        "skills": ["meditate", "breath"]
+      }
+    },
+    {
+      "slot": "quinary",
+      "config": {
+        "name": "Flicker",
+        "personality": "A dragon whose eyes glow brighter when two distant parts of the codebase rhyme — she sees connections before they become bugs.",
+        "species": "dragon",
+        "stats": { "DEBUGGING": 25, "PATIENCE": 18, "CHAOS": 82, "WISDOM": 74, "SNARK": 42 },
+        "skills": ["dream"]
+      }
+    },
+    {
+      "slot": "senary",
+      "config": {
+        "name": "Glob",
+        "personality": "A blob who absorbs failed approaches without judgment and slowly extrudes them as simpler, working alternatives.",
+        "species": "blob",
+        "stats": { "DEBUGGING": 28, "PATIENCE": 80, "CHAOS": 58, "WISDOM": 62, "SNARK": 6 },
+        "skills": ["breath", "meditate"]
+      }
+    }
+  ],
+  "almanac": {
+    "meditate": {
+      "mode": "active",
+      "cooldownMs": 90000,
+      "suppressedBy": ["error", "test-fail"],
+      "minSessionMinutes": 5,
+      "maxPerWindow": { "count": 2, "windowMinutes": 15 }
+    },
+    "dream": {
+      "mode": "passive",
+      "cooldownMs": 120000,
+      "triggerAffinity": ["large-diff", "turn"],
+      "requiresMilestone": true,
+      "maxPerMilestone": 2
+    },
+    "breath": {
+      "mode": "active",
+      "cooldownMs": 60000,
+      "frustrationThreshold": { "errorsIn5Min": 3, "retryPattern": true },
+      "maxPerWindow": { "count": 3, "windowMinutes": 15 }
+    }
+  }
+}

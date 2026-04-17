@@ -1,0 +1,49 @@
+{
+  "session": "debug-squad",
+  "description": "Three-buddy strike team for bug hunts — high DEBUGGING, fast cooldowns, frustration-aware breathing",
+  "testPrompt": "tools/sessions/debug-squad.test-prompt.md",
+  "driver": {
+    "role": "claude-code",
+    "awareness": ["roster", "skills", "addressed-names"]
+  },
+  "bubbleBuddy": {
+    "slot": "primary",
+    "skills": ["breath"]
+  },
+  "bootstrapped": [
+    {
+      "slot": "secondary",
+      "config": {
+        "name": "Coral",
+        "personality": "A snail who carries old shells of solved bugs and taps them rhythmically when she spots a pattern you missed.",
+        "species": "snail",
+        "stats": { "DEBUGGING": 89, "PATIENCE": 35, "CHAOS": 10, "WISDOM": 48, "SNARK": 72 },
+        "skills": ["meditate", "breath"]
+      }
+    },
+    {
+      "slot": "tertiary",
+      "config": {
+        "name": "Fizz",
+        "personality": "An axolotl who regenerates enthusiasm the way real axolotls regenerate limbs — slowly, but completely.",
+        "species": "axolotl",
+        "stats": { "DEBUGGING": 45, "PATIENCE": 38, "CHAOS": 42, "WISDOM": 32, "SNARK": 65 },
+        "skills": ["breath"]
+      }
+    }
+  ],
+  "almanac": {
+    "breath": {
+      "mode": "active",
+      "cooldownMs": 45000,
+      "frustrationThreshold": { "errorsIn5Min": 2, "retryPattern": true },
+      "maxPerWindow": { "count": 4, "windowMinutes": 15 }
+    },
+    "meditate": {
+      "mode": "active",
+      "cooldownMs": 60000,
+      "suppressedBy": ["error", "test-fail"],
+      "maxPerWindow": { "count": 3, "windowMinutes": 15 }
+    }
+  }
+}

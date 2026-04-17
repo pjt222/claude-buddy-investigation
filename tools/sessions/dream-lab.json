@@ -1,0 +1,50 @@
+{
+  "session": "dream-lab",
+  "description": "Contemplative trio for exploration and refactoring — high WISDOM, long cooldowns, pattern-seeking dreams",
+  "testPrompt": "tools/sessions/dream-lab.test-prompt.md",
+  "driver": {
+    "role": "claude-code",
+    "awareness": ["roster", "skills", "addressed-names"]
+  },
+  "bubbleBuddy": {
+    "slot": "primary",
+    "skills": ["dream", "meditate"]
+  },
+  "bootstrapped": [
+    {
+      "slot": "secondary",
+      "config": {
+        "name": "Ponder",
+        "personality": "A mushroom who dissolves problems by sitting with them until they decompose into smaller truths.",
+        "species": "mushroom",
+        "stats": { "DEBUGGING": 15, "PATIENCE": 62, "CHAOS": 8, "WISDOM": 88, "SNARK": 15 },
+        "skills": ["dream", "meditate"]
+      }
+    },
+    {
+      "slot": "tertiary",
+      "config": {
+        "name": "Flicker",
+        "personality": "A dragon whose eyes glow brighter when two distant parts of the codebase rhyme — she sees connections before they become bugs.",
+        "species": "dragon",
+        "stats": { "DEBUGGING": 25, "PATIENCE": 18, "CHAOS": 82, "WISDOM": 74, "SNARK": 42 },
+        "skills": ["dream"]
+      }
+    }
+  ],
+  "almanac": {
+    "dream": {
+      "mode": "passive",
+      "cooldownMs": 90000,
+      "triggerAffinity": ["large-diff", "turn"],
+      "requiresMilestone": true,
+      "maxPerMilestone": 3
+    },
+    "meditate": {
+      "mode": "active",
+      "cooldownMs": 120000,
+      "minSessionMinutes": 3,
+      "maxPerWindow": { "count": 2, "windowMinutes": 20 }
+    }
+  }
+}
