@@ -57,7 +57,7 @@ window.VIZ_COUNTS = Object.freeze({
 
   // ---- Kairos loop system ----
   kairos: {
-    binary_markers: 15  // tengu_loop_* + tengu_kairos_* + ScheduleWakeup refs
+    binary_markers: 15  // loop + kairos + ScheduleWakeup refs
   },
 
   // ---- Skills / hooks / flags ----
@@ -68,9 +68,9 @@ window.VIZ_COUNTS = Object.freeze({
   //   2. Session override map sTH() — env-var injected (CLAUDE_CODE_FEATURE_FLAGS)
   //   3. Project-local flag overrides tTH()
   //   4. GrowthBook feature cache (cachedGrowthBookFeatures in ~/.claude.json)
-  //   5. Statsig supplemental gates D3() (cachedStatsigGates)
-  //   6. Grove policy (GET /api/claude_code_grove)
-  //   7. Embedded default ($ parameter fallback)
+  //   5. Statsig supplemental gates (cachedStatsigGates)
+  //   6. Grove policy
+  //   7. Embedded default (fallback)
   flags: { resolution_layers: 7 },
 
   // ---- Local agents subsystem ----
@@ -82,14 +82,14 @@ window.VIZ_COUNTS = Object.freeze({
   // ---- CCR cloud-runner ----
   // Core CCR verified against v2.1.109 binary in ccr-subsystem-2026-04-15.md.
   // total_events = teleport(17) + bridge(30) + ccr_umbrella(7) = 54.
-  // Sub-surfaces probed on v2.1.110: ultrareview (tengu_review_*) + autofix-pr (tengu_autofix_*).
+  // Sub-surfaces probed on v2.1.110: ultrareview + autofix-pr.
   ccr: {
     teleport_events: 17,
     bridge_events: 30,
     ccr_umbrella_events: 7,
     total_events: 54,
-    ultrareview_events: 5,         // tengu_review_* namespace (preflight, launched, overage, bughunter)
-    autofix_events: 2,             // tengu_autofix_pr_* namespace (started, result)
+    ultrareview_events: 5,         // ultrareview namespace (preflight, launched, overage, bughunter)
+    autofix_events: 2,             // autofix-pr namespace (started, result)
     env_vars: 12,                  // full CCR_* + CLAUDE_CODE_REMOTE* family
     sessions_api_paths: 11,        // /v1/sessions/* templates
     environments_api_paths: 8,     // /v1/environments/* templates
@@ -124,7 +124,7 @@ window.VIZ_COUNTS = Object.freeze({
   },
 
   // ---- Provider registry ----
-  // Probed on v2.1.110. Detection order in dq(); firstParty-equivalence gate xY().
+  // Probed on v2.1.110. Detection order via provider registry; firstParty-equivalence gate applied.
   // foundry = scaffolded (env vars + client class, no telemetry events);
   // anthropicAws = firstParty-peer (reuses firstParty event infrastructure, zero dedicated events).
   providers: {

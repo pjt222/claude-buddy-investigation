@@ -161,12 +161,12 @@ turn, hatch, pet, test-fail, error, large-diff, complete, idle, silence
 - `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1` is a full kill switch
 - No secret/PII filtering on transmitted transcript (5000 chars)
 
-### Open Question: v2.1.101 Codename Flags
+### v2.1.101 Cloud Runner (CCR) Flags
 
-Three codenamed server-side flags landed in v2.1.101 with no visible tool or UI surface yet:
+Three server-side flags landed in v2.1.101 related to the CCR (Claude Code Remote) cloud-runner subsystem:
 
-- **`tengu_cinder_almanac`** — **RESOLVED 2026-04-13** in `results/cinder-almanac-dig-2026-04-13.md`: rollout switch for the `/loop` skill's cloud-scheduling preamble that upsells users toward `/schedule` via the `RemoteTrigger` tool. **Extended 2026-04-15** in `results/ccr-subsystem-2026-04-15.md` with full CCR (Claude Code Remote) architecture: teleport module (`$$6`), bridge module (`BY6`, aka "Remote Control"), `/v1/sessions/*` API, `/v1/environments/*` API, adaptive heartbeat, `anthropic-beta: ccr-byoc-2025-07-29`. Pure lexical collision with `agent-almanac`.
-- **`tengu_sedge_lantern`** — no discernible theme. "Sedge" is a grass-like plant; "lantern" may refer to a UI lighting/highlight element. Speculative.
-- **`tengu_ultraplan_dialog_choice`** — extends the existing `ultraplan_*` flag family (per `digest.md` §v2.1.98). Likely a UI dialog-choice affordance within plan-mode.
+- **`cinder_almanac`** — gates the CCR subsystem. **RESOLVED 2026-04-13**: rollout switch for the `/loop` skill's cloud-scheduling preamble that upsells users toward `/schedule` via the `RemoteTrigger` tool. **Extended 2026-04-15**: full CCR architecture: teleport module, bridge module (aka "Remote Control"), `/v1/sessions/*` API, `/v1/environments/*` API, adaptive heartbeat, `anthropic-beta: ccr-byoc-2025-07-29`.
+- **`surreal_dali`** — secondary gate for CCR. Resolved as companion gate to `cinder_almanac` in CCR subsystem deep-dive.
+- **`ultraplan_dialog_choice`** — extends the existing `ultraplan_*` flag family. Likely a UI dialog-choice affordance within plan-mode.
 
-None of these have observable behaviour in the current Claude Code surface. Empirical probe deferred until server-side flag enables on our test account.
+None of these have observable behaviour in the current Claude Code surface without server-side flag enablement.
