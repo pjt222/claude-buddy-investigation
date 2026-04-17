@@ -5,10 +5,10 @@ flowchart LR
         oauth["OAuth token<br/>~/.claude/.credentials.json"]:::core
         firstparty["firstParty check"]:::core
         orguuid["organizationUuid"]:::core
-        providers["Provider registry dq()<br/>firstParty / bedrock / vertex / anthropicAws<br/>mantle / foundry(scaffolded)<br/>xY() firstParty-equivalence gate"]:::core
+        providers["Provider registry<br/>firstParty / bedrock / vertex / anthropicAws<br/>mantle / foundry(scaffolded)<br/>firstParty-equivalence gate"]:::core
         mtls["mTLS envs (v2.1.101)<br/>CERT_STORE / CLIENT_CERT/KEY"]:::gap
         sdkrefresh["SDK OAuth refresh callback"]:::gap
-        flags["tengu_* feature flags — 7-layer resolution<br/>GrowthBook R$()/u2()/t0() + Statsig D3()<br/>grove /api/claude_code_grove<br/>session/project/env overrides"]:::core
+        flags["feature flags — 7-layer resolution<br/>GrowthBook + Statsig + grove<br/>session/project/env overrides"]:::core
         envkill["CLAUDE_CODE_DISABLE_* env kill switches"]:::core
         settings["~/.claude/settings.json<br/>~/.claude/.claude.json"]:::core
     end
@@ -16,7 +16,7 @@ flowchart LR
     subgraph CORE["A — Core Runtime (per-turn loop)"]
         direction TB
         startup["Startup bootstrap<br/>getStartupInfo family"]:::core
-        model_router["Model router uw()<br/>opus-4-7 / opus-4-6 / sonnet-4-6 / haiku<br/>xhigh_effort→4-7 / max_effort→4-6"]:::core
+        model_router["Model router<br/>opus-4-7 / opus-4-6 / sonnet-4-6 / haiku<br/>xhigh_effort→4-7 / max_effort→4-6"]:::core
         msgs_api["Messages API<br/>POST /v1/messages"]:::core
         turn_loop["Per-turn loop<br/>(ordering unverified)"]:::gap
         stream_handler["Streaming handler<br/>tool_use / tool_result"]:::core
@@ -58,8 +58,8 @@ flowchart LR
     subgraph MCP["G — MCP (42 events)"]
         direction TB
         mcp_config["mcpServers key<br/>in .claude.json"]:::core
-        mcp_client["MCP client mm8()<br/>8 transports: stdio/sse/sse-ide<br/>ws/ws-ide/http/claudeai-proxy/sdk"]:::core
-        mcp_sandbox["mm8() allowlist<br/>CLAUDE_CODE_SANDBOXED + MCP_ALLOWLIST_ENV"]:::core
+        mcp_client["MCP client<br/>8 transports: stdio/sse/sse-ide<br/>ws/ws-ide/http/claudeai-proxy/sdk"]:::core
+        mcp_sandbox["MCP allowlist<br/>CLAUDE_CODE_SANDBOXED + MCP_ALLOWLIST_ENV"]:::core
         mcp_bff["Registry BFF<br/>/mcp-registry/v0/servers"]:::core
         mcp_oauth["per-server OAuth (6 events)<br/>browser redirect → token → refresh"]:::core
         mcp_tools["MCP tools → tools array"]:::core
@@ -84,16 +84,16 @@ flowchart LR
     %% ===== J — Telemetry =====
     subgraph TEL["J — Telemetry (fan-in)"]
         direction TB
-        tel_main["advisor_{5}<br/>tengu_loop_{3}<br/>tengu_oauth_{41}<br/>tengu_mcp_{42}"]:::core
-        tel_ccr["tengu_teleport_{17}+bridge_{30}+ccr_{7}<br/>tengu_review_{5}+autofix_{2}"]:::core
-        tel_ext["tengu_plugin_{22}<br/>tengu_auto_dream_{5}<br/>tengu_tool_{25}+file_{21}<br/>tengu_api_{15}+streaming_{7}+post_{9}"]:::core
-        tel_v111["tengu_opus47_launch_shown<br/>tengu_ptl_surfaced_to_user<br/>tengu_velvet_moth<br/>tengu_unknown_command_suggestion"]:::core
+        tel_main["advisor (5 events)<br/>loop (3) / oauth (41) / mcp (42)"]:::core
+        tel_ccr["teleport (17)+bridge (30)+ccr (7)<br/>review (5)+autofix (2)"]:::core
+        tel_ext["plugin (22) / auto_dream (5)<br/>tool (25)+file (21)<br/>api (15)+streaming (7)+post (9)"]:::core
+        tel_v111["opus47_launch<br/>ptl_surfaced / velvet_moth<br/>unknown_cmd_suggestion"]:::core
         tel_transport["Ingest: /api/event_logging/v2/batch<br/>+ Datadog /api/v2/logs"]:::core
     end
     %% ===== L — CCR =====
     subgraph CCR["L — CCR Cloud-Runner"]
         direction TB
-        ccr_gate["Gate: tengu_cinder_almanac<br/>+ tengu_surreal_dali<br/>+ allow_remote_sessions"]:::core
+        ccr_gate["Gate: cinder_almanac<br/>+ surreal_dali<br/>+ allow_remote_sessions"]:::core
         teleport["Teleport (17 events)<br/>POST /v1/sessions"]:::core
         bridge["Bridge (30 events)<br/>POST /v1/environments/bridge"]:::core
         ultrareview["Ultrareview (5 events)<br/>GET /v1/ultrareview/preflight<br/>SDK: {subtype:ultrareview_launch}"]:::core
@@ -102,8 +102,8 @@ flowchart LR
     %% ===== M — Auto-Dream =====
     subgraph DREAM["M — Auto-Dream (5 events)"]
         direction TB
-        dream_gate["aH1() gate:<br/>non-interactive / no autoMemory"]:::core
-        dream_time["Time 24h + Session 5 gate<br/>PID lock Q47()"]:::core
+        dream_gate["gate:<br/>non-interactive / no autoMemory"]:::core
+        dream_time["Time 24h + Session 5 gate<br/>PID lock"]:::core
         dream_agent["Dream agent<br/>forkLabel:auto_dream skipTranscript:true"]:::core
         dream_files["~/.claude/CLAUDE.md<br/>+ project memory tree"]:::core
     end
@@ -118,10 +118,10 @@ flowchart LR
     %% ===== P — v2.1.111+ New Systems =====
     subgraph NEW111["P — v2.1.111+ Systems"]
         direction TB
-        opus47_launch["Opus 4.7 launch modal<br/>tengu_opus47_launch_shown<br/>opus47LaunchSeenCount"]:::core
+        opus47_launch["Opus 4.7 launch modal<br/>opus47LaunchSeenCount"]:::core
         relay_chain["relay_chain_v1 flag<br/>strips parallel-Bash instructions<br/>from Bash tool description"]:::core
         cobalt_ridge["cobalt_ridge flag<br/>PowerShell tool on Windows<br/>CLAUDE_CODE_USE_POWERSHELL_TOOL"]:::core
-        velvet_moth["velvet_moth / memory survey<br/>trigger: /memor(y|ies)/ regex<br/>co-event: tengu_dunwich_bell"]:::core
+        velvet_moth["velvet_moth / memory survey<br/>trigger: /memor(y|ies)/ regex"]:::core
         proxy_auth["Corporate proxy auth<br/>PROXY_URL / PROXY_HOST<br/>PROXY_AUTH_HELPER + TTL<br/>trustAccepted / timed out"]:::core
         gb_sys_prompt["GrowthBook system prompt<br/>SYSTEM_PROMPT_GB_FEATURE<br/>remote-mode only: CLAUDE_CODE_REMOTE"]:::core
     end
@@ -152,12 +152,12 @@ flowchart LR
     turn_loop -. "unverified" .-> hook_checkpoints
     flags -. "date gate + firstParty" .-> identity
     flags -. "sage_compass2_flag" .-> advisor_gate
-    flags -. "tengu_kairos_loop_dynamic" .-> sched_tool
-    flags -. "tengu_mcp_*" .-> mcp_client
+    flags -. "kairos_loop_dynamic flag" .-> sched_tool
+    flags -. "mcp_* flags" .-> mcp_client
     flags --> hook_pipeline
-    flags -. "tengu_relay_chain_v1" .-> relay_chain
-    flags -. "tengu_cobalt_ridge" .-> cobalt_ridge
-    flags -. "tengu_loud_sugary_rock" .-> opus47_launch
+    flags -. "relay_chain_v1 flag" .-> relay_chain
+    flags -. "cobalt_ridge flag" .-> cobalt_ridge
+    flags -. "loud_sugary_rock flag" .-> opus47_launch
     identity --> soul
     soul --> companion_cfg
     companion_cfg --> claudejson
@@ -191,14 +191,14 @@ flowchart LR
     state_atomicity -. "write" .-> claudejson
     sdkrefresh -. "writeback?" .-> credsjson
     transcript_mem -- "hook payload" --> hook_pipeline
-    flags -. "tengu_cinder_almanac + surreal_dali" .-> ccr_gate
+    flags -. "cinder_almanac + surreal_dali flags" .-> ccr_gate
     ccr_gate --> teleport
     ccr_gate --> bridge
     ccr_gate --> ultrareview
     ccr_gate --> autofix_pr
     teleport -. "workspace bundle" .-> msgs_api
     bridge -- "remote session events" --> stream_handler
-    flags -. "tengu_onyx_plover" .-> dream_gate
+    flags -. "onyx_plover flag" .-> dream_gate
     dream_gate --> dream_time
     dream_time -- "gates met" --> dream_agent
     dream_agent -- "write" --> dream_files
