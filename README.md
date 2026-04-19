@@ -2,7 +2,7 @@
 
 Investigation into Shingle — the companion owl in Claude Code's built-in "Buddy" pet system, and the wider hidden systems discovered alongside it.
 
-> **Status (2026-04-17):** The companion UI was **removed from the binary in v2.1.97** (built April 8), but the **`buddy_react` API is still alive** server-side (200 OK, ~1.3s latency). A new **advisor system** (`advisor_20260301`) was discovered — code-complete since v2.1.96, dark-launched behind a feature flag. v2.1.111/v2.1.112 (2026-04-16/17) add Opus 4.7 launch system, proxy-auth helper, memory survey, relay chain, PowerShell tool gate, and GrowthBook remote system-prompt override. See visualization for full architecture.
+> **Status (2026-04-19):** The companion UI was **removed from the binary in v2.1.97** (built April 8), but the **`buddy_react` API is still alive** server-side (200 OK, ~1.3s latency). A new **advisor system** (`advisor_20260301`) was discovered — code-complete since v2.1.96, dark-launched behind a feature flag. v2.1.111/v2.1.112 (2026-04-16/17) add Opus 4.7 launch system, proxy-auth helper, memory survey, relay chain, PowerShell tool gate, and GrowthBook remote system-prompt override. **v2.1.114 Mithril Probe complete** (2026-04-19): exhaustive feature-flag surface audit — 148 unique gate reads documented across 16 waves, 15 DEFAULT-TRUE flags, 6 harness-level security findings filed. See visualization for full architecture.
 
 ## Quick Start
 

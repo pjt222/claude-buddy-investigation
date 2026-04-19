@@ -18,26 +18,28 @@
 
 window.VIZ_COUNTS = Object.freeze({
   // ---- Subsystem taxonomy ----
-  // Total = 2 primary (buddy + advisor) + 12 inside the Wider Harness tab.
+  // Total = 2 primary (buddy + advisor) + 13 inside the Wider Harness tab.
   // +4 since prior build: MCP client (gap→core), Plugins (new), Auto-Dream (new), Provider Registry (new)
+  // +1 wave 7: TUI Renderer (three-tier: Ink Flexbox, DECSTBM, minimal Fragment)
   subsystems: {
-    total: 14,
-    wider_harness: 12
+    total: 15,
+    wider_harness: 13
   },
 
   // ---- Security findings ----
   // SECURITY-AUDIT.md enumerates 13 vulnerabilities + 1 observation = 14.
   // Plus #31 AC3 (ghost-inbox forgery, empirical 2026-04-14) = 15 total.
-  // by_severity sums to 15 (2+3+6+3+1).
+  // Plus 6 mithril-probe harness findings (#73/#76 HIGH, #78/#80/#81/#85 MEDIUM) = 21 total.
+  // by_severity sums to 21 (2+5+10+3+1).
   security: {
-    total: 15,
+    total: 21,
     audit_vulnerabilities: 13,
     audit_observations: 1,
-    post_audit: 1,
+    post_audit: 7,   // #31 AC3 + 6 mithril harness-level findings
     by_severity: {
       critical: 2,   // C1 + #31 AC3
-      high: 3,       // H1, H2 (resolved), H4
-      medium: 6,     // M0-M5
+      high: 5,       // H1, H2 (resolved), H4, #73 off-switch, #76 paper_halyard
+      medium: 10,    // M0-M5, #78 datadog, #80 moth_copse, #81 passport_quail, #85 malort_pedway
       low: 3,        // L1-L3
       observation: 1 // OBS1
     }
@@ -57,21 +59,21 @@ window.VIZ_COUNTS = Object.freeze({
 
   // ---- Kairos loop system ----
   kairos: {
-    binary_markers: 15  // loop + kairos + ScheduleWakeup refs
+    binary_markers: 15  // loop/kairos namespace + ScheduleWakeup refs
   },
 
   // ---- Skills / hooks / flags ----
   skills: { bundled: 41 },
-  hooks: { event_types: 27 },  // v2.1.112 binary: full array has 27 types (was 9 documented)
+  hooks: { event_types: 27 },  // v2.1.112 binary: full tT[] array has 27 types (was 9 documented)
   // 7-layer resolution (v2.1.110 binary decode):
   //   1. CLAUDE_CODE_DISABLE_* env kill switches (caller-side)
-  //   2. Session override map sTH() — env-var injected (CLAUDE_CODE_FEATURE_FLAGS)
-  //   3. Project-local flag overrides tTH()
+  //   2. Session override map — env-var injected (CLAUDE_CODE_FEATURE_FLAGS)
+  //   3. Project-local flag overrides
   //   4. GrowthBook feature cache (cachedGrowthBookFeatures in ~/.claude.json)
   //   5. Statsig supplemental gates (cachedStatsigGates)
-  //   6. Grove policy
-  //   7. Embedded default (fallback)
-  flags: { resolution_layers: 7 },
+  //   6. Grove policy (GET /api/<internal-endpoint>)
+  //   7. Embedded default (parameter fallback)
+  flags: { resolution_layers: 7, gate_reads: 148, default_true: 15 },
 
   // ---- Local agents subsystem ----
   agents: {
@@ -82,7 +84,7 @@ window.VIZ_COUNTS = Object.freeze({
   // ---- CCR cloud-runner ----
   // Core CCR verified against v2.1.109 binary in ccr-subsystem-2026-04-15.md.
   // total_events = teleport(17) + bridge(30) + ccr_umbrella(7) = 54.
-  // Sub-surfaces probed on v2.1.110: ultrareview + autofix-pr.
+  // Sub-surfaces probed on v2.1.110: ultrareview and autofix-pr sub-namespaces.
   ccr: {
     teleport_events: 17,
     bridge_events: 30,
@@ -124,23 +126,46 @@ window.VIZ_COUNTS = Object.freeze({
   },
 
   // ---- Provider registry ----
-  // Probed on v2.1.110. Detection order via provider registry; firstParty-equivalence gate applied.
+  // Probed on v2.1.110.
   // foundry = scaffolded (env vars + client class, no telemetry events);
   // anthropicAws = firstParty-peer (reuses firstParty event infrastructure, zero dedicated events).
   providers: {
     total: 6  // firstParty, bedrock, vertex, foundry (scaffolded), anthropicAws (firstParty-peer), mantle
   },
 
+  // ---- CCR wave 6 additions ----
+  // remote_trigger: server-side gate, ccr-triggers-2026-01-30
+  // cobalt_lantern: GitHub token-sync CCR access
+  remote_trigger: {
+    actions: 5  // list, get, create, update, run
+  },
+
+  // ---- MCP Official Marketplace auto-installer (wave 6, v2.1.112) ----
+  official_marketplace: {
+    blocked_states: 3  // policy_blocked, already_installed, git_unavailable
+  },
+
+  // ---- TUI Renderer (wave 7, v2.1.114) ----
+  tui: {
+    tiers: 3,  // Ink Flexbox (fullscreen), DECSTBM a36 (scroll-region), minimal Fragment (fallback)
+    decstbm_native_history: 10000  // nativeHistory buffer size
+  },
+
+  // ---- Team telemetry (wave 6, v2.1.112) ----
+  team_telemetry: {
+    total_events: 16  // was 0 prior to v2.1.112
+  },
+
   // ---- Investigation metadata ----
   investigation: {
     agents_deployed: "21+",
-    waves: 5
+    waves: 16
   },
 
   // ---- Version coverage ----
   version: {
     start: "v2.1.89",
-    end: "v2.1.112",
-    range: "v2.1.89 \u2192 v2.1.112"  // unicode rightwards arrow
+    end: "v2.1.114",
+    range: "v2.1.89 \u2192 v2.1.114"  // unicode rightwards arrow
   }
 });
