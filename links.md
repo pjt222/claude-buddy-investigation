@@ -158,7 +158,7 @@ turn, hatch, pet, test-fail, error, large-diff, complete, idle, silence
 ### Security Boundary
 - Companion observes but cannot write back to main agent
 - muted flag stops all network calls
-- `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1` is a full kill switch
+- A documented telemetry-opt-out env var acts as a full kill switch for companion traffic
 - No secret/PII filtering on transmitted transcript (5000 chars)
 
 ### v2.1.101 Cloud Runner (CCR) Flags

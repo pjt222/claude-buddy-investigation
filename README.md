@@ -1,8 +1,8 @@
 # Claude Code Buddy System Investigation
 
-Investigation into Shingle — the companion owl in Claude Code's built-in "Buddy" pet system, and the wider hidden systems discovered alongside it.
+Investigation into Shingle — the companion owl in Claude Code's built-in "Buddy" pet system.
 
-> **Status (2026-04-19):** The companion UI was **removed from the binary in v2.1.97** (built April 8), but the **`buddy_react` API is still alive** server-side (200 OK, ~1.3s latency). A new **advisor system** (`advisor_20260301`) was discovered — code-complete since v2.1.96, dark-launched behind a feature flag. v2.1.111/v2.1.112 (2026-04-16/17) add Opus 4.7 launch system, proxy-auth helper, memory survey, relay chain, PowerShell tool gate, and GrowthBook remote system-prompt override. **v2.1.114 Mithril Probe complete** (2026-04-19): exhaustive feature-flag surface audit — 148 unique gate reads documented across 16 waves, 15 DEFAULT-TRUE flags, 6 harness-level security findings filed. See visualization for full architecture.
+> **Status (2026-04-19):** The companion UI was **removed from the binary in v2.1.97** (built April 8), but the **`buddy_react` API is still alive** server-side (200 OK, 1.3s latency on v2.1.100). A new **advisor system** (`advisor_20260301`) was discovered in v2.1.98 — a server-side decision-gate reviewer that was actually **code-complete since v2.1.96** (coexisting with the full buddy system). The advisor is dark-launched behind a feature flag. See `advisor-architecture.md` for the full technical spec. **v2.1.114 Mithril Probe complete** (2026-04-19): complete feature-flag surface audit across 16 investigation waves — 148 unique gate reads documented, 15 DEFAULT-TRUE flags, 6 harness-level security findings filed.
 
 ## Quick Start
 
@@ -14,32 +14,40 @@ Investigation into Shingle — the companion owl in Claude Code's built-in "Budd
 
 ## Contents
 
-### Visualization
+### Research
 
-- `docs/` — GitHub Pages interactive visualization — all findings at a glance
-  - Buddy companion system (stats, identity, API, capture)
-  - Advisor strategy (architecture, feature gate, system prompt)
-  - Lineage (version timeline, binary analysis)
-  - **Harness Flow** — complete structural map of the Claude Code harness: 14 subsystems + v2.1.111+ additions
+- `digest.md` — comprehensive findings from 21+ agents, 16 investigation waves; v2.1.114 complete gate-surface audit (148 gate reads)
+- `architecture.md` — companion technical architecture: function reference, data flow, API protocol, security boundary
+- `advisor-architecture.md` — advisor system technical architecture: tool lifecycle, system prompt, feature flags, telemetry
+- `config-excerpt.json` — companion config extracted from Claude Code backups
+- `links.md` — 20 reference sources (official docs, source code repos, reverse engineering articles, prior art patents, competitors)
+- `SECURITY-AUDIT.md` — 14-finding security audit across CLI, MCP server, capture system, and docs site (plus 7 post-audit harness-level findings tracked in the issue tracker)
+- `docs/` — GitHub Pages visualization (Three.js, Viridis dark theme) — all findings at a glance
 
 ### Tools
 
 - `tools/buddy-config.mjs` — CLI to read/modify companion config (Node.js 18+, zero deps)
-- `tools/shared/` — shared modules: config reader (`~/.claude/shingle.json`)
+- `tools/version-check.mjs` — pre-flight version compatibility check against installed binary
+- `tools/bubble-tracking.md` — complete guide to tracking, capturing, and analyzing speech bubbles
+- `tools/capture-timing.mjs` — post-session timing analysis (latency, cooldown gaps, TTL estimation)
+- `tools/shared/` — shared modules: BONES derivation (wyhash + Mulberry32, bit-for-bit verified) and unified config (`~/.claude/shingle.json`)
+- `tools/shingle-capture/` — dual-strategy capture system (terminal scrape + API replay) with Claude Code hooks
 - `tools/shingle-mcp/` — MCP server for programmatic buddy_react access (5s cooldown, ring buffer)
-- `tools/sessions/` — multi-buddy session presets (deep-focus, debug-squad, dream-lab, full-crew)
-- `SECURITY-AUDIT.md` — 14-finding security audit across CLI, MCP server, capture system, and docs site
-- `links.md` — reference sources organized by category
+- `tools/mempalace-sync.mjs` — sync captured reactions into [MemPalace](https://github.com/mila-jovovich/mempalace) for persistent cross-session memory
+- `tools/mempalace-setup.md` — setup guide for the MemPalace integration (palace structure, MCP, automation)
+- `tools/test-protocol.md` — empirical test protocols for remaining open questions
 
 ### Buddy Workspace (API-independent — works on v2.1.97+)
 
 - `workspace/` — Vite+React app with embedded PTY Claude and multi-buddy reactions
+- `tools/sessions/full-crew.json` — 6-buddy session preset with TCG-style stat blocks
 - `workspace/server/` — WebSocket server: calls `buddy_react` API directly, trigger priority, convergence analysis
 - `workspace/tools/workspace-mcp/` — MCP server for reading buddy reactions and workspace status
+- `workspace/docs/trigger-flow.md` — state diagram of the cooldown/trigger system
 
-The workspace bypasses the Claude Code binary entirely. It calls the `buddy_react` API with custom stat blocks per buddy, multiplexes reactions across the crew, and renders them in a React UI.
+The workspace bypasses the Claude Code binary entirely. It calls the `buddy_react` API with custom stat blocks per buddy, multiplexes reactions across the crew, and renders them in a React UI. Tested and confirmed working on v2.1.97 (2026-04-09).
 
-## Crew Roster
+### Crew Roster
 
 Each buddy has a unique stat block (like a TCG card) that shapes its reaction personality via the `buddy_react` API.
 
@@ -60,7 +68,7 @@ Stat design synthesized from 5 specialist agents (TCG, designer, geometrist, swa
 
 ### Month-Gate Seasonal Bug (Fixed in v2.1.97, Now Dead Code)
 
-The buddy system has a date gate that silently disabled companions during January-March every year. **Fixed in v2.1.97** to correct the logic — but the fix is dead code since the companion module was removed in the same version.
+The buddy system used a date-based gate covering January–March every year, which silently disabled companions during those months. **Fixed in v2.1.97** to correct OR logic — but the fix is dead code since the companion module was removed in the same version.
 
 ### Version Compatibility
 
@@ -69,8 +77,9 @@ The buddy system has a date gate that silently disabled companions during Januar
 | v2.1.89–v2.1.92 | Full | Unknown | Live | Works |
 | v2.1.96 | Full (last) | FULL (dark-launched) | Live | Works |
 | v2.1.97 | Removed | FULL (dark-launched) | Live | Works |
-| v2.1.100 | Removed | FULL (dark-launched) | Live (1.3s) | Works |
-| v2.1.112 | Removed | FULL (dark-launched) | Live | Works |
+| v2.1.98 | Removed | FULL (prompt refined) | Live | Works |
+| v2.1.99 | — | — | — | *Never published to npm* |
+| **v2.1.100** | **Removed** | **FULL (dark-launched)** | **Live (1.3s)** | **Works** |
 
 **Two independent layers:**
 
@@ -85,63 +94,57 @@ Our workspace and MCP tools operate entirely on layer 2. They call the API direc
 Binary analysis of v2.1.98 uncovered a new **advisor tool** system — and scanning all installed versions revealed it was **code-complete since v2.1.96** (coexisting with the full buddy system). Key findings:
 
 - **Advisor**: Server-side tool (`advisor_20260301`) that lets the executor model consult a stronger reviewer (Opus or Sonnet)
-- **Dark-launched**: Triple-gated behind env var + firstParty auth + feature flag (not yet rolled out)
-- **No code connection to buddy**: Independent architecture sharing only OAuth substrate. Separate telemetry namespaces.
+- **Dark-launched**: Triple-gated behind an environment-variable kill switch, a firstParty-auth check, and a server-side advisor feature gate (not yet rolled out)
+- **No code connection to buddy**: Independent architecture sharing only OAuth substrate. Separate telemetry namespace (dedicated advisor events vs the removed buddy events)
 - **System prompt recovered**: 7-paragraph coaching prompt instructing when to call advisor
-- **Prompt broadened in v2.1.98**: Code-specific language replaced with domain-agnostic phrasing
+- **Prompt broadened in v2.1.98**: Code-specific language replaced with domain-agnostic ("writing code" → "writing", "reading code" → "fetching a source")
 - **Blog post**: `claude.com/blog/the-advisor-strategy` — zero mention of buddy/companion
 
-### Identity Pipeline (2026-04-09)
+Full spec in `advisor-architecture.md`.
 
-The companion identity is **fully deterministic**: username/ID → hash function → Mulberry32 PRNG → species, name, personality, stats, hat, shiny. 34.4 trillion unique companions total; all trait distributions verified clean.
+### v2.1.97 Investigation (2026-04-09)
 
-Shingle's stats are explainable: PATIENCE is the primary stat (boosted +50), CHAOS is the secondary (penalized -10). The dramatic stat profile is by design, not random.
+10-agent parallel investigation confirmed the removal and uncovered:
+- **Not obfuscation**: 5 encoding strategies tested negative (base64, hex, reversed, char arrays, XOR)
+- **Managed Agents API added**: `managed-agents-2026-04-01` with agent CRUD, session streaming, skills API
+- **`/dream nightly` added**: Cron-based memory consolidation
+- **Date gate fixed then killed**: Corrected from broken AND to proper OR logic, but the feature it guards is gone
+- **Identity pipeline verified and fully reproduced**: 34.4 trillion unique companions, provably deterministic, all distributions clean. `bones.mjs` now matches production bit-for-bit.
 
-### v2.1.111/v2.1.112 Systems (2026-04-17)
+### Identity Pipeline Fully Reproduced (2026-04-09)
 
-- **Opus 4.7 launch system**: Launch modal with view-count tracking; `claude-opus-4-7` model ID; `xhigh_effort` level maps to it
-- **Proxy auth helper**: 5 new env vars for corporate MITM proxies (Zscaler/Netskope); subprocess token fetcher with TTL cache
-- **Memory survey**: Triggered by "memory"/"memories" keywords in conversation
-- **Relay chain v1**: Feature flag that strips parallel-Bash instructions from system prompt (for alternative execution routing)
-- **PowerShell gate**: Windows-only PowerShell tool controlled by feature flag (default OFF)
-- **GrowthBook system-prompt override**: Remote-mode env var specifies a GrowthBook flag whose string value replaces the system prompt
+The hash input mystery (#30) is solved. `bones.mjs` now reproduces Shingle's traits bit-for-bit from `accountUuid + "[hash-salt]"` through wyhash and Mulberry32 PRNG. Three bugs in the original implementation caused the mismatch:
 
-### v2.1.112 Binary Probe Results (2026-04-17, non-interactive exhaust)
+| Bug | What We Had | What the Binary Does |
+|-----|-------------|---------------------|
+| Species array order | Alphabetized (index 6 = "dragon") | Non-alphabetical species-list ordering in the binary (index 6 = "owl") |
+| Stat formula | Uniform random: `floor` to `100` | Primary stat +50 boost, secondary -10 penalty, others `floor + 0-39` |
+| RNG sequence | Hat always rolled; shiny after stats | Hat skipped for common; shiny before stats |
 
-- **Hook system: 27 types** (was 9 documented) — 18 undocumented types decoded including `TeammateIdle`, `TaskCreated/Completed`, `Elicitation/ElicitationResult`, `ConfigChange`, `WorktreeCreate/Remove`, `InstructionsLoaded`, `CwdChanged`, `FileChanged`
-- **Datadog 3rd-party sink**: ~55 events routed to Datadog (separate from Anthropic's own telemetry); subscription tier and user type included in every entry; 1-in-30 user sampling via device ID hash
-- **Agent teams** (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`): experimental gate; GrowthBook kill-switch; custom agents appear as "user-defined" in telemetry regardless of their actual name
-- **/fast (Penguin Mode)**: opus-4-6 only; org-level check at startup; cooldown system; `fastModePerSessionOptIn` setting prevents persistence across sessions
-- **/passes referral system**: Max plan + org required; 3 guest passes; eligibility + redemptions endpoints
-- **File-history (Rewind)**: plaintext file snapshots at `~/.claude/file-history/`; no cleanup mechanism; 216+ sessions accumulate on disk
-- **GrowthBook startup PII**: 14 user attributes including email sent to Anthropic-hosted GrowthBook on every startup for remote flag evaluation
+Shingle's stats are now explainable: PATIENCE is the primary stat (boosted), CHAOS is the secondary (penalized). The dramatic stat profile is by design, not random.
 
 ### Why This Research Matters
 
 The companion UI was live for only 7 days (April 1–8), but the API survives and our tools work independently of the binary:
 
 - **API still alive** — `buddy_react` responds on v2.1.97+ despite binary removal
-- **Multi-buddy workspace** — 6 independent companions with distinct personalities
-- **Advisor system** — production-grade review layer dark-launched since v2.1.96
-- **Harness map** — 14+ subsystems characterized, including CCR cloud-runner, Kairos loops, MCP client, plugin system, auto-dream memory scheduler, and v2.1.112 additions
+- **Multi-buddy workspace** — 6 companions running simultaneously via direct API calls
+- Complete API protocol (empirically verified via curl replay)
+- Full identity derivation pipeline reproduced bit-for-bit (hash → PRNG → traits)
+- System prompt templates recovered from binary
+- Security audit (14 findings)
+- Working MCP tooling for programmatic API access
 
-## Security Findings
+The companion system has three possible futures: the native UI returns (the `companion_intro` stub and Managed Agents API suggest it might), the advisor subsumes the companion's role (the architectural pattern shift from observation to decision-gating suggests this), or the API is eventually decommissioned. Either way, this repository provides the deepest existing documentation of both the companion and advisor architectures — and a working multi-buddy implementation that operates today via direct API calls.
 
-15 findings across the companion system, MCP server, capture tooling, and data handling. Full details in `SECURITY-AUDIT.md`.
+### Buddy Workspace Convergence
 
-Highlights:
-- **1 CRITICAL** — attribution laundering via ghost-inbox SendMessage in managed agent teams
-- **3 HIGH** — command injection surface, credential exposure via stat spoofing, unilateral remote-session consent
-- **5 MEDIUM** — path traversal, memory injection, mTLS gap, quiet CCR consent, TOCTOU state race
+When all 6 buddies independently flag the same concern across multiple reaction waves, it's a high-confidence architectural signal. Empirically validated: the crew flagged a queue/cooldown disconnect 4 times before manual analysis confirmed 2 real bugs.
 
-## Open Questions
+### Security Audit Summary
 
-1. **Hash input confirmation** — `accountUuid` vs `userId` vs derived ID (need live firstParty session)
-2. **Advisor empirical capture** — advisor tool call has not been intercepted live yet (MITM harness ready)
-3. **Hook payload contracts** — PreToolUse/PostToolUse/Stop payloads not yet captured
-4. **Per-turn loop ordering** — exact sequence of tool result → stream handler → hook checkpoints unverified
-5. **OAuth refresh disk writeback** — whether the 401 refresh callback persists the new token to `.credentials.json`
+14 findings across 5 severity levels (see `SECURITY-AUDIT.md`): 1 CRITICAL (command injection), 3 HIGH (temp file exposure, missing SRI, unfiltered transcript), 5 MEDIUM (path traversal, TOCTOU, permissions, symlink, CSP), 3 LOW (unicode, innerHTML, month-gate), 1 OBSERVATION (intentional stat spoofing).
 
-## License
+### Test Suite
 
-MIT
+92 tests across 7 suites (transcript, transcript-filter, convergence, reaction-timeline, trigger-priority, buddy-api-cooldown, workspace-mcp). All passing.

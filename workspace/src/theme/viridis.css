@@ -1,0 +1,43 @@
+/* Viridis Dark Theme — extracted from docs/style.css */
+:root {
+  --v0: #440154;
+  --v1: #482878;
+  --v2: #3e4989;
+  --v3: #31688e;
+  --v4: #26828e;
+  --v5: #1f9e89;
+  --v6: #35b779;
+  --v7: #6ece58;
+  --v8: #b5de2b;
+  --v9: #fde725;
+
+  --bg: #08080f;
+  --bg-card: #0f1018;
+  --bg-card-hover: #151622;
+  --border: #1a1b2e;
+  --text: #c8c8d8;
+  --text-dim: #8f8fb0;
+  --text-bright: #eeeef8;
+
+  --critical: #ff4466;
+  --warning: #fde725;
+  --positive: #35b779;
+  --info: #31688e;
+
+  --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-mono);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+#root {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}

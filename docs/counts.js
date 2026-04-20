@@ -59,7 +59,7 @@ window.VIZ_COUNTS = Object.freeze({
 
   // ---- Kairos loop system ----
   kairos: {
-    binary_markers: 15  // loop/kairos namespace + ScheduleWakeup refs
+    binary_markers: 15  // &lt;flag-name&gt; + &lt;flag-name&gt; + ScheduleWakeup refs
   },
 
   // ---- Skills / hooks / flags ----
@@ -67,12 +67,12 @@ window.VIZ_COUNTS = Object.freeze({
   hooks: { event_types: 27 },  // v2.1.112 binary: full tT[] array has 27 types (was 9 documented)
   // 7-layer resolution (v2.1.110 binary decode):
   //   1. CLAUDE_CODE_DISABLE_* env kill switches (caller-side)
-  //   2. Session override map — env-var injected (CLAUDE_CODE_FEATURE_FLAGS)
-  //   3. Project-local flag overrides
+  //   2. Session override map sTH() — env-var injected (CLAUDE_CODE_FEATURE_FLAGS)
+  //   3. Project-local flag overrides tTH()
   //   4. GrowthBook feature cache (cachedGrowthBookFeatures in ~/.claude.json)
-  //   5. Statsig supplemental gates (cachedStatsigGates)
-  //   6. Grove policy (GET /api/<internal-endpoint>)
-  //   7. Embedded default (parameter fallback)
+  //   5. Statsig supplemental gates [statsig-gate-fn] (cachedStatsigGates)
+  //   6. Grove policy (GET /api/[internal-policy-endpoint])
+  //   7. Embedded default ($ parameter fallback)
   flags: { resolution_layers: 7, gate_reads: 148, default_true: 15 },
 
   // ---- Local agents subsystem ----
@@ -84,14 +84,14 @@ window.VIZ_COUNTS = Object.freeze({
   // ---- CCR cloud-runner ----
   // Core CCR verified against v2.1.109 binary in ccr-subsystem-2026-04-15.md.
   // total_events = teleport(17) + bridge(30) + ccr_umbrella(7) = 54.
-  // Sub-surfaces probed on v2.1.110: ultrareview and autofix-pr sub-namespaces.
+  // Sub-surfaces probed on v2.1.110: ultrareview (review-namespace) + autofix-pr (autofix-namespace).
   ccr: {
     teleport_events: 17,
     bridge_events: 30,
     ccr_umbrella_events: 7,
     total_events: 54,
-    ultrareview_events: 5,         // ultrareview namespace (preflight, launched, overage, bughunter)
-    autofix_events: 2,             // autofix-pr namespace (started, result)
+    ultrareview_events: 5,         // review-namespace namespace (preflight, launched, overage, bughunter)
+    autofix_events: 2,             // autofix-namespace namespace (started, result)
     env_vars: 12,                  // full CCR_* + CLAUDE_CODE_REMOTE* family
     sessions_api_paths: 11,        // /v1/sessions/* templates
     environments_api_paths: 8,     // /v1/environments/* templates
@@ -126,7 +126,7 @@ window.VIZ_COUNTS = Object.freeze({
   },
 
   // ---- Provider registry ----
-  // Probed on v2.1.110.
+  // Probed on v2.1.110. Detection order in [provider-detect-fn]; firstParty-equivalence gate [first-party-equiv-fn].
   // foundry = scaffolded (env vars + client class, no telemetry events);
   // anthropicAws = firstParty-peer (reuses firstParty event infrastructure, zero dedicated events).
   providers: {
@@ -134,7 +134,7 @@ window.VIZ_COUNTS = Object.freeze({
   },
 
   // ---- CCR wave 6 additions ----
-  // remote_trigger: server-side gate, ccr-triggers-2026-01-30
+  // remote_trigger: [remote-trigger-gate] gate, ccr-triggers-2026-01-30
   // cobalt_lantern: GitHub token-sync CCR access
   remote_trigger: {
     actions: 5  // list, get, create, update, run

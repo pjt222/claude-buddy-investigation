@@ -21,13 +21,13 @@
     `--'
         </pre>
         <h1>Claude Code: Hidden Systems</h1>
-        <p class="subtitle">A Multi-Agent Investigation into the Buddy Companion and Advisor Strategy systems &mdash; both discovered, documented, and decoded.</p>
+        <p class="subtitle">A multi-agent investigation into the Buddy Companion, Advisor Strategy, Kairos Loops, Teams, Skills, Local Agents, CCR Cloud-Runner, Reactive Compaction, and the wider harness &mdash; discovered, documented, decoded.</p>
         <div class="hero-meta">
-          <span class="tag">v2.1.89 &rarr; v2.1.112</span>
-          <span class="tag">2 Systems</span>
-          <span class="tag">21+ Agents</span>
-          <span class="tag">4 Waves</span>
-          <span class="tag">API Still Live</span>
+          <span class="tag"><span data-count="version.range">v2.1.89 &rarr; v2.1.112</span></span>
+          <span class="tag"><span data-count="subsystems.total">14</span> Subsystems</span>
+          <span class="tag"><span data-count="investigation.agents_deployed">21+</span> Agents</span>
+          <span class="tag">MITM + hook captures</span>
+          <span class="tag"><span data-count="security.total">15</span> Security Findings</span>
           <span class="tag">April 2026</span>
         </div>
 
@@ -44,7 +44,14 @@
             <div class="nav-card-icon">&#129504;</div>
             <div class="nav-card-body">
               <h3>Advisor Strategy</h3>
-              <p>Bidirectional decision gate in the Messages API. Dark-launched behind a server-side feature flag. Stronger model as reviewer.</p>
+              <p>Bidirectional decision gate in the Messages API. Dark-launched behind <code>[advisor-gate]</code>. Stronger model as reviewer.</p>
+            </div>
+          </a>
+          <a href="#subsystems" class="nav-card subsystems">
+            <div class="nav-card-icon">&#129520;</div>
+            <div class="nav-card-body">
+              <h3>Wider Harness</h3>
+              <p><span data-count="subsystems.wider_harness">12</span> subsystems: Kairos loops, teams &amp; ghost-inbox (Critical), <span data-count="skills.bundled">41</span> bundled skills, local agents, <span data-count="hooks.event_types">9</span>-type hook landscape, <span data-count="flags.resolution_layers">7</span>-layer flag matrix, CCR cloud-runner + sub-surfaces, reactive compaction, <span data-count="mcp.total_events">42</span>-event MCP client, <span data-count="plugins.total_events">22</span>-event plugin system, auto-dream memory scheduler, and <span data-count="providers.total">6</span>-provider registry. Plus the full <span data-count="security.total">15</span>-finding security catalogue.</p>
             </div>
           </a>
         </div>
@@ -57,35 +64,35 @@
     <section id="stats" class="section stats-ribbon">
       <div class="stats-grid">
         <div class="stat-card">
-          <span class="stat-number">18</span>
-          <span class="stat-label">Species</span>
+          <span class="stat-number" data-count="buddy.species">18</span>
+          <span class="stat-label">Buddy Species</span>
         </div>
         <div class="stat-card">
-          <span class="stat-number">6</span>
-          <span class="stat-label">Buddy Triggers</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-number">5</span>
-          <span class="stat-label">Companion Stats</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-number">34.4T</span>
+          <span class="stat-number" data-count="buddy.companions_possible">34.4T</span>
           <span class="stat-label">Companions Possible</span>
         </div>
         <div class="stat-card">
-          <span class="stat-number">1%</span>
-          <span class="stat-label">Shiny Chance</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-number">5</span>
+          <span class="stat-number" data-count="advisor.telemetry_events">5</span>
           <span class="stat-label">Advisor Events</span>
         </div>
         <div class="stat-card">
-          <span class="stat-number">6</span>
-          <span class="stat-label">Response Types</span>
+          <span class="stat-number" data-count="kairos.binary_markers">15</span>
+          <span class="stat-label">Kairos Loop Markers</span>
         </div>
         <div class="stat-card">
-          <span class="stat-number">14</span>
+          <span class="stat-number" data-count="skills.bundled">41</span>
+          <span class="stat-label">Bundled Skills</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number" data-count="hooks.event_types">9</span>
+          <span class="stat-label">Hook Event Types</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number" data-count="flags.resolution_layers">4</span>
+          <span class="stat-label">Flag Resolution Layers</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number" data-count="security.total">15</span>
           <span class="stat-label">Security Findings</span>
         </div>
       </div>
@@ -94,62 +101,62 @@
     <!-- Version Timeline -->
     <section id="timeline" class="section">
       <h2>Version Timeline</h2>
-      <p class="section-intro">Both systems coexisted in v2.1.96 &mdash; the advisor was already code-complete when the buddy was still a visible feature.</p>
+      <p class="section-intro">Both primary systems coexisted in v2.1.96 &mdash; the advisor was already code-complete when the buddy was still a visible feature. The Kairos loop system arrived in v2.1.101; empirical captures and the team/ghost-inbox finding landed in the v2.1.104&ndash;v2.1.107 window.</p>
       <div class="timeline-container">
         <div class="timeline">
           <div class="timeline-node buddy-era">
+            <div class="timeline-caption-top">
+              <div class="timeline-version">v2.1.89</div>
+              <div class="timeline-date">2026-04-01</div>
+            </div>
             <div class="timeline-dot"></div>
-            <div class="timeline-version">v2.1.89</div>
-            <div class="timeline-date">2026-04-01</div>
             <div class="timeline-label">Buddy launched</div>
             <span class="tl-badge buddy-badge">April Fools</span>
           </div>
-          <div class="timeline-connector"></div>
-          <div class="timeline-node buddy-era">
-            <div class="timeline-dot"></div>
-            <div class="timeline-version">v2.1.92</div>
-            <div class="timeline-date">2026-04-02</div>
-            <div class="timeline-label">Analyzed</div>
-            <span class="tl-badge">Binary</span>
-          </div>
-          <div class="timeline-connector"></div>
+          <div class="timeline-connector skipped"></div>
+          <div class="timeline-node skipped"><div class="timeline-caption-top"><div class="timeline-version">v2.1.90</div></div><div class="timeline-dot"></div></div>
+          <div class="timeline-connector skipped"></div>
+          <div class="timeline-node skipped"><div class="timeline-caption-top"><div class="timeline-version">v2.1.91</div></div><div class="timeline-dot"></div></div>
+          <div class="timeline-connector skipped"></div>
+          <div class="timeline-node skipped"><div class="timeline-caption-top"><div class="timeline-version">v2.1.92</div></div><div class="timeline-dot"></div></div>
+          <div class="timeline-connector skipped"></div>
+          <div class="timeline-node skipped"><div class="timeline-caption-top"><div class="timeline-version">v2.1.93</div></div><div class="timeline-dot"></div></div>
+          <div class="timeline-connector skipped"></div>
+          <div class="timeline-node skipped"><div class="timeline-caption-top"><div class="timeline-version">v2.1.94</div></div><div class="timeline-dot"></div></div>
+          <div class="timeline-connector skipped"></div>
+          <div class="timeline-node skipped"><div class="timeline-caption-top"><div class="timeline-version">v2.1.95</div></div><div class="timeline-dot"></div></div>
+          <div class="timeline-connector skipped"></div>
           <div class="timeline-node overlap">
+            <div class="timeline-caption-top">
+              <div class="timeline-version">v2.1.96</div>
+              <div class="timeline-date">2026-04-03</div>
+            </div>
             <div class="timeline-dot"></div>
-            <div class="timeline-version">v2.1.96</div>
-            <div class="timeline-date">2026-04-03</div>
             <div class="timeline-label">Both FULL</div>
             <span class="tl-badge overlap-badge">Coexistence</span>
           </div>
           <div class="timeline-connector"></div>
           <div class="timeline-node advisor-era">
+            <div class="timeline-caption-top">
+              <div class="timeline-version">v2.1.97</div>
+              <div class="timeline-date">2026-04-08</div>
+            </div>
             <div class="timeline-dot"></div>
-            <div class="timeline-version">v2.1.97</div>
-            <div class="timeline-date">2026-04-08</div>
             <div class="timeline-label">Buddy removed</div>
             <span class="tl-badge advisor-badge">API live</span>
           </div>
-          <div class="timeline-connector"></div>
+          <div class="timeline-connector skipped"></div>
+          <div class="timeline-node skipped"><div class="timeline-caption-top"><div class="timeline-version">v2.1.98</div></div><div class="timeline-dot"></div></div>
+          <div class="timeline-connector skipped"></div>
+          <div class="timeline-node skipped"><div class="timeline-caption-top"><div class="timeline-version">v2.1.99</div></div><div class="timeline-dot"></div></div>
+          <div class="timeline-connector skipped"></div>
           <div class="timeline-node advisor-era">
+            <div class="timeline-caption-top">
+              <div class="timeline-version">v2.1.100</div>
+              <div class="timeline-date">2026-04-10</div>
+            </div>
             <div class="timeline-dot"></div>
-            <div class="timeline-version">v2.1.98</div>
-            <div class="timeline-date">2026-04-10</div>
             <div class="timeline-label">Advisor refined</div>
-            <span class="tl-badge advisor-badge">Blog post</span>
-          </div>
-          <div class="timeline-connector"></div>
-          <div class="timeline-node skipped">
-            <div class="timeline-dot"></div>
-            <div class="timeline-version">v2.1.99</div>
-            <div class="timeline-date">—</div>
-            <div class="timeline-label">Never published</div>
-            <span class="tl-badge skip-badge">skipped</span>
-          </div>
-          <div class="timeline-connector"></div>
-          <div class="timeline-node advisor-era">
-            <div class="timeline-dot"></div>
-            <div class="timeline-version">v2.1.100</div>
-            <div class="timeline-date">2026-04-10</div>
-            <div class="timeline-label">Blog post</div>
             <span class="tl-badge advisor-badge">Blog post</span>
           </div>
           <div class="timeline-connector"></div>
@@ -237,6 +244,9 @@
         <button class="tab-btn" id="tab-advisor" role="tab" aria-selected="false" aria-controls="panel-advisor">
           <span class="tab-system-dot advisor-dot"></span>Advisor Strategy
         </button>
+        <button class="tab-btn" id="tab-subsystems" role="tab" aria-selected="false" aria-controls="panel-subsystems">
+          <span class="tab-system-dot subsystems-dot"></span>Wider Harness
+        </button>
         <button class="tab-btn" id="tab-lineage" role="tab" aria-selected="false" aria-controls="panel-lineage">
           <span class="tab-system-dot lineage-dot"></span>Lineage
         </button>
@@ -257,11 +267,11 @@
           <div class="flow-row">
             <div class="flow-node node-input">User Session</div>
             <div class="flow-arrow">&rarr;</div>
-            <div class="flow-node node-process">Turn-End Trigger</div>
+            <div class="flow-node node-process">[buddy-trigger-fn] Trigger</div>
             <div class="flow-arrow">&rarr;</div>
-            <div class="flow-node node-process">Transcript Builder<br><small>12 msgs &times; 300 chars (5K cap)</small></div>
+            <div class="flow-node node-process">[buddy-transcript-fn] Transcript<br><small>12 msgs &times; 300 chars (5K cap)</small></div>
             <div class="flow-arrow">&rarr;</div>
-            <div class="flow-node node-api">API Call<br><small>buddy_react</small></div>
+            <div class="flow-node node-api">[buddy-api-fn] API Call<br><small>buddy_react</small></div>
             <div class="flow-arrow">&rarr;</div>
             <div class="flow-node node-output">Speech Bubble</div>
           </div>
@@ -284,12 +294,12 @@
             <p><strong>Soul</strong> (name, personality) is generated once by LLM at hatch and persisted permanently.</p>
           </div>
           <div class="detail-card">
-            <h3>Hash Pipeline <span class="tag" style="font-size:0.7em; vertical-align:middle;">VERIFIED</span></h3>
-            <p>Production: <code>Bun.hash(wyhash)</code> on <code>accountUuid + salt</code></p>
+            <h3>Hash Pipeline <span class="tag tag-inline">VERIFIED</span></h3>
+            <p>Production: <code>Bun.hash(wyhash)</code> on <code>accountUuid + "[hash-salt]"</code></p>
             <p><code>bones.mjs</code> reproduces Shingle's traits bit-for-bit. Stats use a primary/secondary boost system, not uniform random.</p>
           </div>
           <div class="detail-card">
-            <h3>Reaction API <span class="tag" style="font-size:0.7em; vertical-align:middle;">LIVE</span></h3>
+            <h3>Reaction API <span class="tag tag-inline">LIVE</span></h3>
             <p><code>POST /api/organizations/[ORG]/claude_code/buddy_react</code></p>
             <p>Returns a single reaction string. 10-second timeout. In v2.1.89&ndash;v2.1.96 this rendered in the speech bubble; now our tools consume it directly.</p>
           </div>
@@ -302,7 +312,7 @@
         <p class="section-intro">Deterministic from your account hash. Same user, same companion, always.</p>
         <div class="species-grid" id="species-grid"></div>
         <div class="species-note">
-          Species names were <strong>obfuscated</strong> in v2.1.90&ndash;v2.1.96 via character-code encoding &mdash; one species name collides with an internal Anthropic identifier. In v2.1.97, all species strings were removed along with the entire companion module.
+          Species names were <strong>obfuscated</strong> in v2.1.90&ndash;v2.1.96 via <code>[obfuscation-fn]()</code> &mdash; "capybara" collides with an internal Anthropic model codename. In v2.1.97, all species strings were removed along with the entire companion module.
         </div>
       </section>
 
@@ -435,7 +445,7 @@
         <div class="security-card low">
           <div class="severity-badge">LOW</div>
           <h3>Month-Gate Seasonal Bug</h3>
-          <p>The date gate's month check fails January-March (JS month values 0-2), <strong>silently disabling companions for 3 months every year</strong>. A one-time launch gate incorrectly ANDed with a monthly condition.</p>
+          <p><code>[month-gate-condition]</code> &mdash; the month check fails January-March (values 0-2), <strong>silently disabling companions for 3 months every year</strong>. Likely a one-time launch gate incorrectly ANDed with a monthly condition.</p>
         </div>
 
         <div class="security-card positive">
@@ -447,7 +457,7 @@
         <div class="security-card info">
           <div class="severity-badge">INFO</div>
           <h3>Muting Stops All Traffic</h3>
-          <p><code>/buddy off</code> sets a mute flag which stops <strong>both</strong> UI display and network transmission. This is the correct behavior &mdash; muting is not cosmetic.</p>
+          <p><code>/buddy off</code> sets <code>[companion-muted-key]: true</code>, which stops <strong>both</strong> UI display and network transmission. This is the correct behavior &mdash; muting is not cosmetic.</p>
         </div>
 
         <div class="security-card info">
@@ -459,7 +469,7 @@
         <div class="security-card info">
           <div class="severity-badge">INFO</div>
           <h3>Security Audit Coverage</h3>
-          <p>6 selected highlights shown above. Full security audit (14 findings) is in the private architecture repository.</p>
+          <p>6 selected highlights shown above. See <a href="https://github.com/pjt222/claude-buddy-investigation/blob/main/SECURITY-AUDIT.md">SECURITY-AUDIT.md</a> for all 14 findings including credential exposure in temp files, path traversal, TOCTOU race, symlink attacks, and rate-limit bypass via addressed triggers.</p>
         </div>
       </section>
 
@@ -470,11 +480,11 @@
           <div class="finding-card">
             <div class="finding-number">01</div>
             <h3>April Fools &mdash; On Purpose</h3>
-            <p>Launched April 1, 2026 with a time gate in the feature availability check. The April Fools framing is an asymmetric hedge: downside absorbed by joke frame, upside survives it.</p>
+            <p>Launched April 1, 2026 with a time gate in <code>di$()</code>. The April Fools framing is an asymmetric hedge: downside absorbed by joke frame, upside survives it.</p>
           </div>
           <div class="finding-card">
-            <div class="finding-number">02</div>
             <h3>Hidden Command</h3>
+            <div class="finding-number">02</div>
             <p><code>/buddy on</code> exists but is not listed in the help text or argument hint <code>[pet|off]</code>. Discoverable only by guessing or reading source.</p>
           </div>
           <div class="finding-card">
@@ -489,8 +499,8 @@
           </div>
           <div class="finding-card">
             <div class="finding-number">05</div>
-            <h3>Species Name Collision</h3>
-            <p>Species names are obfuscated in the binary because one name collides with an internal Anthropic identifier.</p>
+            <h3>Capybara Collision</h3>
+            <p>Species names are obfuscated in the binary because "capybara" collides with an internal Anthropic model codename.</p>
           </div>
           <div class="finding-card">
             <div class="finding-number">06</div>
@@ -510,7 +520,7 @@
           <div class="finding-card">
             <div class="finding-number">09</div>
             <h3>Month-Gate Seasonal Bug</h3>
-            <p>The date gate silently disables companions <strong>January through March</strong> every year. The JS month check fails for values 0-2. A one-time launch gate coded as a recurring seasonal restriction.</p>
+            <p>The date gate <code>[month-gate-condition]</code> silently disables companions <strong>January through March</strong> every year. The month check fails for values 0-2. A one-time launch gate coded as a recurring seasonal restriction.</p>
           </div>
           <div class="finding-card">
             <div class="finding-number">10</div>
@@ -520,7 +530,7 @@
           <div class="finding-card">
             <div class="finding-number">11</div>
             <h3>Column Reservation Layout</h3>
-            <p>Companion sprite occupies a reserved column region via the layout function. The 5&times;12 character sprite hides below a width threshold. Input width is computed from terminal width minus reserved regions. Empirical threshold TBD.</p>
+            <p>Companion sprite occupies a reserved column region via <code>[buddy-layout-fn](terminalWidth, hasReaction)</code>. The 5&times;12 character sprite hides below a width threshold. Input width formula: <code>yj = LQ - LGf - _t</code>. Empirical threshold TBD.</p>
           </div>
           <div class="finding-card">
             <div class="finding-number">12</div>
@@ -530,12 +540,12 @@
           <div class="finding-card">
             <div class="finding-number">13</div>
             <h3>Primary/Secondary Stat System</h3>
-            <p>Stats are NOT uniform random. The stat generation function picks a <strong>primary stat</strong> (+50 boost) and <strong>secondary stat</strong> (&minus;10 penalty). Shingle's PATIENCE (81) is the primary; CHAOS (1) is the secondary. This creates TCG-like stat profiles by design.</p>
+            <p>Stats are NOT uniform random. The binary's <code>[buddy-stat-gen-fn]</code> picks a <strong>primary stat</strong> (+50 boost) and <strong>secondary stat</strong> (&minus;10 penalty). Shingle's PATIENCE (81) is the primary; CHAOS (1) is the secondary. This creates TCG-like stat profiles by design.</p>
           </div>
           <div class="finding-card">
             <div class="finding-number">14</div>
             <h3>Species Array Not Alphabetical</h3>
-            <p>The internal species array stores species in a specific non-alphabetical order. Index 6 = <strong>owl</strong> in the binary, but <strong>dragon</strong> if sorted alphabetically. Same hash, same PRNG, different species &mdash; array order is the entire difference.</p>
+            <p>The binary's <code>[buddy-species-array]</code> array stores species in a specific non-alphabetical order. Index 6 = <strong>owl</strong> in the binary, but <strong>dragon</strong> if sorted alphabetically. Same hash, same PRNG, different species &mdash; array order is the entire difference.</p>
           </div>
         </div>
       </section>
@@ -569,7 +579,7 @@
       <!-- Commands & Config (merged commands + cli) -->
       <section id="commands-config" class="section">
         <h2><span class="system-label buddy">Buddy</span> Commands &amp; Config</h2>
-        <h3 style="margin-bottom:0.8rem; margin-top:1.5rem;">Slash Commands</h3>
+        <h3 class="h3-subsection">Slash Commands</h3>
         <div class="command-table">
           <div class="command-row">
             <code>/buddy</code>
@@ -592,8 +602,8 @@
           <h3>Feature Gate (v2.1.89&ndash;v2.1.96 native UI)</h3>
           <p>Claude Code v2.1.89&ndash;v2.1.96 &bull; Pro/Max subscription &bull; First-party only &bull; Native UI removed in v2.1.97 &bull; API still live</p>
         </div>
-        <h3 style="margin-bottom:0.8rem; margin-top:2rem;">Config CLI Tool</h3>
-        <p class="section-intro" style="margin-bottom:1rem;">Reads and modifies companion config in <code>~/.claude/.claude.json</code>. The config persists on disk even after the native UI was removed in v2.1.97.</p>
+        <h3 class="h3-subsection">Config CLI Tool</h3>
+        <p class="section-intro tight">Reads and modifies companion config in <code>~/.claude/.claude.json</code>. The config persists on disk even after the native UI was removed in v2.1.97.</p>
         <div class="command-table">
           <div class="command-row">
             <code>show</code>
@@ -616,8 +626,11 @@
             <span>Backup config or restore from previous backup</span>
           </div>
         </div>
-        <div class="code-block" style="margin-top:1rem;">
+        <div class="code-block">
           <code>node tools/buddy-config.mjs show</code>
+        </div>
+        <div class="code-block">
+          <code>node tools/version-check.mjs</code>
         </div>
       </section>
 
@@ -628,37 +641,37 @@
         <div class="timing-grid">
           <div class="timing-card">
             <span class="timing-value">30s</span>
-            <span class="timing-name"><code>30000ms</code></span>
+            <span class="timing-name"><code>$Of = 30000</code></span>
             <span class="timing-desc">Cooldown between reactions</span>
           </div>
           <div class="timing-card">
             <span class="timing-value">10s</span>
-            <span class="timing-name"><code>20 ticks &times; 500ms</code></span>
+            <span class="timing-name"><code>v16 &times; yo$</code></span>
             <span class="timing-desc">Bubble TTL (20 ticks &times; 500ms)</span>
           </div>
           <div class="timing-card">
             <span class="timing-value">7s</span>
-            <span class="timing-name"><code>20 &minus; 6 ticks</code></span>
+            <span class="timing-name"><code>v16 - Eb7</code></span>
             <span class="timing-desc">Fade-out begins (tick 14)</span>
           </div>
           <div class="timing-card">
             <span class="timing-value">2.5s</span>
-            <span class="timing-name"><code>2500ms</code></span>
+            <span class="timing-name"><code>BXf = 2500</code></span>
             <span class="timing-desc">Pet heart animation duration</span>
           </div>
           <div class="timing-card">
             <span class="timing-value">100</span>
-            <span class="timing-name"><code>100 cols</code></span>
+            <span class="timing-name"><code>Eo$ = 100</code></span>
             <span class="timing-desc">Min columns (hide below)</span>
           </div>
           <div class="timing-card">
             <span class="timing-value">80</span>
-            <span class="timing-name"><code>80 lines</code></span>
+            <span class="timing-name"><code>KOf = 80</code></span>
             <span class="timing-desc">Large-diff line threshold</span>
           </div>
           <div class="timing-card">
             <span class="timing-value">36</span>
-            <span class="timing-name"><code>36 cols</code></span>
+            <span class="timing-name"><code>cXf = 36</code></span>
             <span class="timing-desc">Widget width (cols reserved)</span>
           </div>
           <div class="timing-card">
@@ -672,11 +685,15 @@
       <!-- Companion System Prompt -->
       <section id="prompt" class="section">
         <h2><span class="system-label buddy">Buddy</span> Companion System Prompt</h2>
-        <p class="section-intro">The companion system prompt template was injected into the main agent's context (v2.1.89&ndash;v2.1.96). Recovered from binary.</p>
+        <p class="section-intro">The full <code>[buddy-template-fn]</code> template that was injected into the main agent's context (v2.1.89&ndash;v2.1.96). Recovered from binary.</p>
         <div class="code-block prompt-block">
-          <code>The companion system prompt introduced the buddy to the main agent, instructing it
-to defer when the user addressed the companion by name and respond minimally &mdash;
-"Don't explain that you're not [name] &mdash; they know."</code>
+          <code><span class="prompt-header"># Companion (paraphrased)</span>
+
+Paraphrased summary: the prompt identifies the companion by name and
+species, establishes it as a separate watcher with its own speech bubble,
+and instructs the main agent to stay terse when the user addresses the
+companion directly, without meta-narration about what the companion might
+say. Verbatim wording omitted per redaction policy (Tier 1).</code>
         </div>
       </section>
 
@@ -717,7 +734,7 @@ to defer when the user addressed the companion by name and respond minimally &md
 
         <hr class="system-divider"><span class="system-divider-label">Full Crew Roster</span>
 
-        <p class="section-intro" style="margin-bottom:1.5rem;">Six companions with TCG-style stat blocks &mdash; each shaped by personality, designed for maximum perspective diversity across the crew.</p>
+        <p class="section-intro tight">Six companions with TCG-style stat blocks &mdash; each shaped by personality, designed for maximum perspective diversity across the crew.</p>
         <div class="two-owls-grid full-crew">
           <div class="owl-profile">
             <h3>Shingle <small>(owl)</small></h3>
@@ -751,12 +768,12 @@ to defer when the user addressed the companion by name and respond minimally &md
           </div>
         </div>
         <div class="species-note">
-          Stats designed by 5-agent synthesis (TCG specialist, designer, geometrist, swarm strategist, advocatus diaboli). Each buddy has a distinct radar chart silhouette. The stat generation formula picks one primary stat (+50 boost) and one secondary (&minus;10 penalty) per companion. Presets can share buddies across rosters &mdash; identity travels with the name.
+          Stats designed by 5-agent synthesis (TCG specialist, designer, geometrist, swarm strategist, advocatus diaboli). Each buddy has a distinct radar chart silhouette. The binary's <code>[buddy-stat-gen-fn]</code> formula picks one primary stat (+50 boost) and one secondary (&minus;10 penalty) per companion. Presets can share buddies across rosters &mdash; identity travels with the name.
         </div>
 
         <hr class="system-divider"><span class="system-divider-label">MCP Integration</span>
 
-        <p class="section-intro" style="margin-top:1.5rem; margin-bottom:1.5rem;">Direct API access &mdash; bypasses the binary entirely. Works on v2.1.97+ where the native UI no longer exists.</p>
+        <p class="section-intro tight">Direct API access &mdash; bypasses the binary entirely. Works on v2.1.97+ where the native UI no longer exists.</p>
         <div class="arch-details">
           <div class="detail-card">
             <h3>shingle-mcp Server</h3>
@@ -771,7 +788,7 @@ to defer when the user addressed the companion by name and respond minimally &md
             <p><code>wezterm cli get-text</code> captures the rendered terminal pane, regex extracts the bubble's box-drawing pattern. Races against the 10s TTL &mdash; captures the real bubble when timing aligns.</p>
           </div>
         </div>
-        <div class="flow-diagram" style="margin-top:2rem;">
+        <div class="flow-diagram">
           <div class="flow-row">
             <div class="flow-node node-input">User Prompt</div>
             <div class="flow-arrow">&rarr;</div>
@@ -799,7 +816,11 @@ to defer when the user addressed the companion by name and respond minimally &md
         <div class="questions-list">
           <div class="question-item resolved">
             <span class="q-num q-resolved">&#10003;</span>
-            <p><strong>Identity pipeline reproduced (#30)</strong> &mdash; <code>bones.mjs</code> now matches production bit-for-bit. The hash input was correct all along; three implementation bugs masked the match: non-alphabetical species array, primary/secondary stat formula, and conditional RNG consumption (hat skip for common, shiny before stats).</p>
+            <p><strong>Identity pipeline reproduced</strong> &mdash; <code>bones.mjs</code> now matches production bit-for-bit. The hash input was correct all along (<code>accountUuid + salt</code>); three implementation bugs masked the match: species array order, stat formula, and RNG sequence.</p>
+          </div>
+          <div class="question-item resolved">
+            <span class="q-num q-resolved">&#10003;</span>
+            <p><strong>Hash input mystery (#30)</strong> &mdash; Resolved. Input (<code>accountUuid + salt</code>) and hash (wyhash) were correct. Three <code>bones.mjs</code> bugs masked the match: non-alphabetical species array, primary/secondary stat formula, and conditional RNG consumption (hat skip for common, shiny before stats).</p>
           </div>
           <div class="question-item resolved">
             <span class="q-num q-resolved">&#10003;</span>
@@ -807,11 +828,11 @@ to defer when the user addressed the companion by name and respond minimally &md
           </div>
           <div class="question-item resolved">
             <span class="q-num q-resolved">&#10003;</span>
-            <p><strong>Companion system prompt</strong> &mdash; Full template recovered from binary. See above.</p>
+            <p><strong>[buddy-template-fn] system prompt</strong> &mdash; Full template recovered from binary. See above.</p>
           </div>
           <div class="question-item resolved">
             <span class="q-num q-resolved">&#10003;</span>
-            <p><strong>Narrow terminal handling</strong> &mdash; Companion hidden when terminal &lt; 100 columns. Widget reserves 36 cols when active.</p>
+            <p><strong>Narrow terminal handling</strong> &mdash; Companion hidden when terminal &lt; 100 columns (<code>Eo$ = 100</code>). Widget reserves 36 cols when active.</p>
           </div>
           <div class="question-item resolved">
             <span class="q-num q-resolved">&#10003;</span>
@@ -831,7 +852,7 @@ to defer when the user addressed the companion by name and respond minimally &md
           </div>
           <div class="question-item partial">
             <span class="q-num q-partial">?</span>
-            <p><strong>Version monitoring</strong> &mdash; Track v2.1.98+ binaries for re-appearance of companion API endpoints, hash salt, or PRNG constants.</p>
+            <p><strong>Version monitoring</strong> &mdash; Track v2.1.98+ binaries for re-appearance of <code>buddy_react</code>, <code>[hash-salt]</code>, or <code>[prng-constant]</code> (Mulberry32 constant).</p>
           </div>
           <div class="question-item unresolvable">
             <span class="q-num q-unresolvable">&#10007;</span>
@@ -864,7 +885,7 @@ to defer when the user addressed the companion by name and respond minimally &md
           </div>
           <div class="detail-card">
             <h3>Dark-Launched</h3>
-            <p>Hidden behind a server-side feature flag. Already code-complete in v2.1.96 while the buddy system was still fully visible. Infrastructure was built in parallel, not as a replacement.</p>
+            <p>Hidden behind <code>[advisor-gate]</code> feature flag. Already code-complete in v2.1.96 while the buddy system was still fully visible. Infrastructure was built in parallel, not as a replacement.</p>
           </div>
         </div>
       </section>
@@ -876,42 +897,97 @@ to defer when the user addressed the companion by name and respond minimally &md
           <div class="flow-row">
             <div class="flow-node node-input">User Query</div>
             <div class="flow-arrow">&rarr;</div>
-            <div class="flow-node node-process">Feature Gate<br><small>triple check</small></div>
+            <div class="flow-node node-process">[advisor-gate-fn] Gate<br><small>feature check</small></div>
             <div class="flow-arrow">&rarr;</div>
-            <div class="flow-node node-process">Model Validation<br><small>model check</small></div>
+            <div class="flow-node node-process">[advisor-prompt-var] Validation<br><small>model check</small></div>
             <div class="flow-arrow">&rarr;</div>
             <div class="flow-node node-process">Tool Schema Push<br><small>advisor_20260301</small></div>
           </div>
           <div class="flow-row secondary">
             <div class="flow-node node-input">Messages API Call</div>
             <div class="flow-arrow">&rarr;</div>
-            <div class="flow-node node-api">Advisor Call<br><small>server-side tool</small></div>
+            <div class="flow-node node-api">[advisor-response-type]<br><small>name="advisor"</small></div>
             <div class="flow-arrow">&rarr;</div>
-            <div class="flow-node node-output">Advisor Response</div>
+            <div class="flow-node node-output">advisor_tool_result</div>
             <div class="flow-arrow">&rarr;</div>
-            <div class="flow-node node-output">Cost Tracking<br><small>per-call accounting</small></div>
+            <div class="flow-node node-output">Cost Tracking<br><small>[cost-tracker-fn] / [cost-calc-fn] / [cost-tracker-symbol]</small></div>
           </div>
         </div>
         <div class="gate-checks">
-          <h3 style="margin-bottom:1rem; margin-top:2rem;">Feature Gate</h3>
-          <p>Triple-gated: environment variable kill switch, first-party authentication required, server-side feature flag must be enabled.</p>
+          <h3 class="h3-subsection">Feature Gate: <code>[advisor-gate-fn]</code></h3>
+          <div class="gate-check">
+            <span class="gate-check-icon gate-kill">&#10005;</span>
+            <div><strong><code>[advisor-kill-switch-env]</code></strong> not set &mdash; kill switch, first check</div>
+          </div>
+          <div class="gate-check">
+            <span class="gate-check-icon gate-req">&#10003;</span>
+            <div><strong>firstParty provider</strong> required &mdash; no Bedrock or Vertex</div>
+          </div>
+          <div class="gate-check">
+            <span class="gate-check-icon gate-req">&#10003;</span>
+            <div><strong>loggedIn()</strong> required &mdash; OAuth authenticated</div>
+          </div>
+          <div class="gate-check">
+            <span class="gate-check-icon gate-flag">&#9873;</span>
+            <div><strong><code>[advisor-gate]</code></strong> feature flag enabled &mdash; server-side rollout gate</div>
+          </div>
         </div>
       </section>
 
       <!-- System Prompt -->
       <section id="advisor-prompt" class="section">
         <h2><span class="system-label advisor">Advisor</span> System Prompt (v2.1.98)</h2>
-        <p class="section-intro">Appended to system messages when advisor is enabled. Extracted from binary analysis.</p>
+        <p class="section-intro">Appended to system messages when advisor is enabled. Variable name in binary: <code>[advisor-prompt-var]</code> (v2.1.97) / <code>[advisor-prompt-var]</code> (v2.1.100). Extracted verbatim.</p>
         <div class="code-block prompt-block">
-          <code>The advisor system prompt coaches the executor model on when to consult the advisor:
-before substantive work, when stuck, when changing approach, and before declaring done.
-It instructs the model to make deliverables durable before calling (in case the session
-ends during the advisor call), and to surface conflicts rather than silently switching
-when the advisor's guidance contradicts observed evidence.</code>
+          <code><span class="prompt-header"># Advisor Tool (paraphrased)</span>
+
+Paraphrased summary: the prompt describes a stronger-reviewer tool invoked
+with no parameters that receives the full conversation; it advises when to
+call the tool (before substantive commits, on task completion, when stuck,
+or when changing approach) and instructs the caller to weight the advice
+seriously while still adapting to empirical contradiction. Verbatim wording
+omitted per redaction policy (Tier 1).</code>
         </div>
 
-        <h3 style="margin-top:2rem; margin-bottom:1rem;">Prompt Evolution: v2.1.97 &rarr; v2.1.98</h3>
-        <div class="species-note">Between v2.1.97 and v2.1.98, the prompt was broadened from code-specific language to domain-agnostic language, signaling the advisor is being positioned for non-coding tasks like research and writing.</div>
+        <h3 class="h3-subsection">Prompt Evolution: v2.1.97 &rarr; v2.1.98</h3>
+        <div class="command-table">
+          <div class="command-row" style="grid-template-columns: 120px 1fr 1fr;">
+            <strong>Location</strong>
+            <span style="color:var(--text-dim);">v2.1.97</span>
+            <span style="color:var(--text-dim);">v2.1.98</span>
+          </div>
+          <div class="command-row" style="grid-template-columns: 120px 1fr 1fr;">
+            <span>Paragraph 1</span>
+            <span style="color:var(--text-dim);">"when you call it"</span>
+            <span>"when you call <code>advisor()</code>"</span>
+          </div>
+          <div class="command-row" style="grid-template-columns: 120px 1fr 1fr;">
+            <span>Paragraph 1</span>
+            <span style="color:var(--text-dim);">"The advisor sees"</span>
+            <span>"They see" (humanizing)</span>
+          </div>
+          <div class="command-row" style="grid-template-columns: 120px 1fr 1fr;">
+            <span>Paragraph 2</span>
+            <span style="color:var(--text-dim);">"before writing code"</span>
+            <span>"before writing" (broadened)</span>
+          </div>
+          <div class="command-row" style="grid-template-columns: 120px 1fr 1fr;">
+            <span>Paragraph 2</span>
+            <span style="color:var(--text-dim);">"reading code"</span>
+            <span>"fetching a source"</span>
+          </div>
+          <div class="command-row" style="grid-template-columns: 120px 1fr 1fr;">
+            <span>Bullet 1</span>
+            <span style="color:var(--text-dim);">"stage the change"</span>
+            <span>"commit the change"</span>
+          </div>
+          <div class="command-row" style="grid-template-columns: 120px 1fr 1fr;">
+            <span>Paragraph 6</span>
+            <span style="color:var(--text-dim);">"the code does Y"</span>
+            <span>"the paper states Y"</span>
+          </div>
+        </div>
+        <div class="species-note">The direction is clear: the advisor is being positioned for <strong>non-coding tasks</strong> (research, writing, analysis), not just software engineering.</div>
       </section>
 
       <!-- API Protocol -->
@@ -919,7 +995,7 @@ when the advisor's guidance contradicts observed evidence.</code>
         <h2><span class="system-label advisor">Advisor</span> API Protocol</h2>
         <p class="section-intro">The advisor tool is registered in the Messages API <code>tools</code> array with beta header <code>advisor-tool-2026-03-01</code>.</p>
 
-        <h3 style="margin-bottom:0.8rem;">Tool Schema</h3>
+        <h3 class="h3-tight">Tool Schema</h3>
         <div class="code-block">
           <code>{
   "type": "advisor_20260301",
@@ -928,16 +1004,47 @@ when the advisor's guidance contradicts observed evidence.</code>
 }</code>
         </div>
 
-        <h3 style="margin-bottom:0.8rem; margin-top:2rem;">Response Types</h3>
-        <p>6 content block types handle advisor communication: tool invocation, successful response, error response, iteration tracking, redacted display, and result content.</p>
+        <h3 class="h3-subsection">Response Types</h3>
+        <div class="trigger-grid">
+          <div class="trigger-card" data-category="advisor">
+            <div class="trigger-icon">&#9881;</div>
+            <h4>[advisor-response-type]</h4>
+            <p>Executor calling the advisor. Sets <code>[executor-flag]</code> flag, emits <code>advisor-tool-call</code>.</p>
+          </div>
+          <div class="trigger-card" data-category="advisor">
+            <div class="trigger-icon">&#128200;</div>
+            <h4>advisor_tool_result</h4>
+            <p>Successful advisor response container. Wraps result or redacted result.</p>
+          </div>
+          <div class="trigger-card" data-category="advisor">
+            <div class="trigger-icon">&#128172;</div>
+            <h4>advisor_result</h4>
+            <p>Advisor text content. Verbose: full text. Non-verbose: checkmark only.</p>
+          </div>
+          <div class="trigger-card" data-category="advisor">
+            <div class="trigger-icon">&#128065;</div>
+            <h4>advisor_redacted_result</h4>
+            <p>Always: "Advisor has reviewed the conversation and will apply the feedback"</p>
+          </div>
+          <div class="trigger-card" data-category="advisor">
+            <div class="trigger-icon">&#9888;</div>
+            <h4>advisor_tool_result_error</h4>
+            <p>"Advisor unavailable ({error_code})" &mdash; failed advisor call.</p>
+          </div>
+          <div class="trigger-card" data-category="advisor">
+            <div class="trigger-icon">&#128202;</div>
+            <h4>advisor_message</h4>
+            <p>Iteration-level tracking. Not rendered &mdash; used for token accounting only.</p>
+          </div>
+        </div>
 
-        <h3 style="margin-bottom:0.8rem; margin-top:2rem;">Error Messages</h3>
+        <h3 class="h3-subsection">Error Messages</h3>
         <div class="code-block">
-          <code>"${model} cannot be used as an advisor. Valid options: opus, sonnet, off"
-"${model} is not a valid advisor model"
-"${model} does not support the advisor tool."
-"Note: the current main model (${model}) does not support the advisor.
- It will activate when you switch to a supported main model."</code>
+          <code>Error paths (paraphrased):
+- invalid-advisor-model: raised when the supplied model is not on the allow-list.
+- unsupported-advisor-model: raised when the model passes validation but lacks tool support.
+- main-model-unsupported-notice: informational notice when the current main model does not support the advisor tool; activation is deferred until the user switches to a supported main model.
+- off-disables: passing "off" clears the advisor selection.</code>
         </div>
       </section>
 
@@ -945,37 +1052,72 @@ when the advisor's guidance contradicts observed evidence.</code>
       <section id="advisor-ui" class="section">
         <h2><span class="system-label advisor">Advisor</span> User Interface</h2>
 
-        <h3 style="margin-bottom:0.8rem;">CLI Flag</h3>
+        <h3 class="h3-tight">CLI Flag</h3>
         <div class="code-block">
           <code>--advisor &lt;model&gt;    Enable the server-side advisor tool with the specified model
                      (alias or full ID)</code>
         </div>
-        <p style="font-size:0.85rem; color:var(--text-dim); margin:0.5rem 0 1.5rem;">Hidden behind the feature gate &mdash; not visible in <code>--help</code> until feature flag is enabled.</p>
+        <p class="code-hint">Hidden behind <code>[advisor-gate-fn]</code> &mdash; not visible in <code>--help</code> until feature flag is enabled.</p>
 
-        <h3 style="margin-bottom:0.8rem;">Slash Command</h3>
+        <h3 class="h3-subsection">Slash Command</h3>
         <div class="code-block">
           <code>/advisor [opus|sonnet|off]    Configure the Advisor Tool to consult a stronger
                               model for guidance at key moments during a task</code>
         </div>
-        <p style="font-size:0.85rem; color:var(--text-dim); margin:0.5rem 0 1.5rem;">Registered as a local command. Both <code>isEnabled</code> and <code>isHidden</code> gate on the feature gate function.</p>
+        <p class="code-hint">Registered as <code>[slash-command-registrar-symbol]</code> local-jsx command. Both <code>isEnabled</code> and <code>isHidden</code> gate on <code>[advisor-gate-fn]</code>.</p>
 
-        <h3 style="margin-bottom:0.8rem;">Dialog UI</h3>
+        <h3 class="h3-subsection">Dialog UI</h3>
         <div class="detail-card" style="max-width:600px;">
           <h3>Advisor Tool</h3>
-          <p style="margin-top:0.5rem;">"When Claude needs stronger judgment &mdash; a complex decision, an ambiguous failure, a problem it's circling without progress &mdash; it escalates to the advisor model for guidance, then resumes. The advisor runs server-side and uses additional tokens."</p>
-          <p style="margin-top:0.5rem; color:var(--v8);">"For certain workloads, pairing Sonnet as the main model with Opus as the advisor gives you near-Opus performance with reduced token usage."</p>
-          <p style="margin-top:0.5rem; color:var(--text-dim); font-size:0.8rem;">Options: <code>opus</code> &bull; <code>sonnet</code> &bull; <code>No advisor (off)</code></p>
+          <p class="stack-tight">The advisor dialog presents a reviewer-escalation prompt when invoked: it describes escalation to a stronger model at moments of ambiguous failure or stalled progress, with the advisor running server-side and consuming additional tokens.</p>
+          <p class="stack-tight" style="color:var(--v8);">A secondary hint describes a mixed-model pairing (weaker main model + stronger advisor) as a token-efficient configuration for certain workloads.</p>
+          <p class="stack-tight" style="color:var(--text-dim); font-size:0.8rem;">Options: <code>opus</code> &bull; <code>sonnet</code> &bull; <code>No advisor (off)</code></p>
         </div>
       </section>
 
       <!-- Telemetry -->
       <section id="advisor-telemetry" class="section">
         <h2><span class="system-label advisor">Advisor</span> Telemetry</h2>
-        <p>5 telemetry events track advisor lifecycle: command invocation, dialog display, tool calls, interruptions, and token usage.</p>
+        <div class="trigger-grid">
+          <div class="trigger-card" data-category="advisor">
+            <div class="trigger-icon">&#128172;</div>
+            <h4>advisor-command</h4>
+            <p>User invokes <code>/advisor</code>. Payload: command context.</p>
+          </div>
+          <div class="trigger-card" data-category="advisor">
+            <div class="trigger-icon">&#128065;</div>
+            <h4>advisor-dialog-shown</h4>
+            <p>Advisor config dialog renders. Fires on mount.</p>
+          </div>
+          <div class="trigger-card" data-category="advisor">
+            <div class="trigger-icon">&#9881;</div>
+            <h4>advisor-tool-call</h4>
+            <p>Executor calls <code>advisor()</code>. Payload: tool call context.</p>
+          </div>
+          <div class="trigger-card" data-category="advisor">
+            <div class="trigger-icon">&#9940;</div>
+            <h4>advisor-tool-interrupted</h4>
+            <p>User aborts during advisor execution. Payload: interruption context.</p>
+          </div>
+          <div class="trigger-card" data-category="advisor">
+            <div class="trigger-icon">&#128202;</div>
+            <h4>advisor-token-usage</h4>
+            <p>Advisor response processed. Full token accounting payload (see below).</p>
+          </div>
+        </div>
 
-        <h3 style="margin-bottom:0.8rem; margin-top:2rem;">Token Usage</h3>
-        <p>Each advisor call is tracked separately with model identifier, input/output tokens, cache tokens, and cost in USD micros.</p>
-        <div class="species-note" style="margin-top:1rem;">Token accounting is recursive &mdash; nested advisor iterations are individually reported.</div>
+        <h3 class="h3-subsection">Token Usage Payload</h3>
+        <div class="code-block">
+          <code>{
+  advisor_model: string,                  // e.g. "claude-opus-4-6"
+  input_tokens: number,
+  output_tokens: number,
+  cache_read_input_tokens: number,        // ?? 0
+  cache_creation_input_tokens: number,    // ?? 0
+  [cost-field]: number                 // Math.round(cost * 1e6)
+}</code>
+        </div>
+        <div class="species-note">Token accounting is recursive &mdash; nested advisor iterations are individually reported.</div>
       </section>
 
       <!-- Kill Switches -->
@@ -988,14 +1130,14 @@ when the advisor's guidance contradicts observed evidence.</code>
             <span style="color:var(--text-dim);">Effect</span>
           </div>
           <div class="command-row" style="grid-template-columns: 280px 120px 1fr;">
-            <span>Environment variable kill switch</span>
+            <code>[advisor-kill-switch-env]</code>
             <span>Client env var</span>
-            <span style="color:var(--text-dim);">First check in the feature gate &mdash; disables entire feature</span>
+            <span style="color:var(--text-dim);">First check in <code>[advisor-gate-fn]</code> &mdash; disables entire feature</span>
           </div>
           <div class="command-row" style="grid-template-columns: 280px 120px 1fr;">
-            <span>Server-side feature flag</span>
+            <code>[advisor-gate]</code>
             <span>Server flag</span>
-            <span style="color:var(--text-dim);">Feature gate returns false if disabled</span>
+            <span style="color:var(--text-dim);"><code>[advisor-gate-fn]</code> returns false if disabled</span>
           </div>
           <div class="command-row" style="grid-template-columns: 280px 120px 1fr;">
             <code>/advisor off</code>
@@ -1006,6 +1148,614 @@ when the advisor's guidance contradicts observed evidence.</code>
       </section>
 
     </div><!-- /panel-advisor -->
+
+    <!-- ===== SUBSYSTEMS TAB ===== -->
+    <div id="panel-subsystems" class="tab-panel subsystems-section" role="tabpanel" aria-labelledby="tab-subsystems" tabindex="-1" hidden>
+
+      <!-- Overview -->
+      <section id="subsystems-overview" class="section">
+        <h2><span class="system-label subsystems">Harness</span> Overview</h2>
+        <p class="section-intro">Beyond the buddy and advisor, the Claude Code harness contains a set of quieter subsystems that shape every session. Twelve are covered in depth: <strong>Kairos loops</strong>, <strong>teams &amp; ghost-inbox</strong>, <strong>skills</strong>, <strong>local agents</strong>, the <strong>hook landscape</strong>, the <strong>7-layer flag resolution</strong> stack, the <strong>CCR cloud-runner</strong> (+ ultrareview &amp; autofix sub-surfaces), <strong>reactive compaction</strong>, the <strong>MCP client</strong>, the <strong>plugin system</strong>, the <strong>auto-dream</strong> memory scheduler, and the <strong>provider registry</strong>. <strong>v2.1.111&ndash;v2.1.112 (2026-04-17) adds:</strong> Opus 4.7 launch modal, <code>xhigh_effort</code> effort level, ultrareview SDK control request, proxy-auth helper system, <code>relay_chain_v1</code> Bash-prompt flag, PowerShell tool gate (<code>cobalt_ridge</code>), memory survey (<code>velvet_moth</code>), and GrowthBook remote system-prompt override. Statistical baseline: all known <code>&lt;flag-name&gt;</code> event families characterized across binary versions v2.1.104&ndash;v2.1.112. See <code>results/statistical-coverage-2026-04-15.md</code>, <code>results/version-probe-2026-04-17.md</code>.</p>
+        <div class="arch-details">
+          <div class="detail-card">
+            <h3>Empirical Methods</h3>
+            <p><strong>Binary probe:</strong> <code>tools/binary-probe.mjs</code> (scan / enum / window / methods / constructors / sdk-discover / post-patterns) against <code>~/.local/share/claude/versions/&lt;semver&gt;</code>.</p>
+            <p><strong>Wire capture:</strong> MITM proxy against upstream Anthropic + Datadog ingest endpoints; ~20&ndash;40&nbsp;MB per session.</p>
+            <p><strong>Hook capture:</strong> project-local <code>tools/hooks-capture/.claude/settings.json</code> wraps all 9 observed hook events.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Why This Matters</h3>
+            <p>The Claude Code harness has grown well beyond "just a CLI for the Messages API." Autonomous self-continuation (<em>Kairos</em>), cross-agent collaboration (<em>teams</em>), first-party skill distribution (<em>41 bundled</em>), and undocumented hook events shape user and agent behavior silently.</p>
+            <p>The first-party distribution surface is large, mostly undocumented, and in several places dark-launched. One finding (<em>#31 AC3</em>) is a Critical-severity attribution-laundering issue confirmed empirically on 2026-04-14.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Calibration Caveats</h3>
+            <p><strong>Minified SDK identifiers rotate</strong> between CLI versions. The Files API class symbol changes across recent CLI versions (<code>&lt;sdk-class-symbol&gt;</code> rotates per minifier build). Probes pinned to specific minified names break silently on the next update; use <code>binary-probe sdk-discover</code> to re-pin.</p>
+            <p><strong>Wire firings vs schema mentions</strong>: an event truly fired only if it appears on a telemetry-ingest path (<code>/api/event_logging/v2/batch</code> or Datadog <code>/api/v2/logs</code>). <code>&lt;flag-name&gt;</code> names appearing in <code>/v1/messages</code> bodies are schema metadata, not firings.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Subsystem nav -->
+      <section id="subsystem-nav" class="section">
+        <div class="strategy-grid">
+          <a href="#subsys-kairos" class="strategy-card" style="border-top:3px solid var(--v5); text-decoration:none;">
+            <h3>Kairos Loops</h3>
+            <p>Autonomous self-continuation via <code>ScheduleWakeup</code>. Dynamic and cron-based loops with four sentinel prompts. Active v2.1.101+.</p>
+          </a>
+          <a href="#subsys-teams" class="strategy-card" style="border-top:3px solid #c85a5a; text-decoration:none;">
+            <h3>Teams &amp; Ghost-Inbox <span class="tag sev-critical tag-inline">Critical</span></h3>
+            <p>Silent-creation of <code>~/.claude/teams/*/inboxes/</code> from skill-forked subagents via <code>SendMessage</code>. Attribution laundering via forged <code>from: "team-lead"</code>. #31 AC3 empirically confirmed.</p>
+          </a>
+          <a href="#subsys-skills" class="strategy-card" style="border-top:3px solid var(--v4); text-decoration:none;">
+            <h3>Skills</h3>
+            <p>41 bundled skills in the CLI binary. Skill dispatch forks a nested <code>claude -p</code> session that inherits trust. Docs region is ~15% of the binary.</p>
+          </a>
+          <a href="#subsys-hooks" class="strategy-card" style="border-top:3px solid var(--v6); text-decoration:none;">
+            <h3>Hook Landscape</h3>
+            <p>9 distinct hook event types observed in v2.1.107 &mdash; 5 documented, <strong>4 undocumented</strong> (UserPromptSubmit, Stop, PermissionRequest, PostToolUseFailure).</p>
+          </a>
+          <a href="#subsys-flags" class="strategy-card" style="border-top:3px solid var(--v3); text-decoration:none;">
+            <h3>Grove &amp; Flag Matrix</h3>
+            <p>Four configuration layers &mdash; env vars, local settings, Statsig, grove &mdash; with precedence rules and silent shadows. Kill-switch env vars always win.</p>
+          </a>
+          <a href="#subsys-agents" class="strategy-card" style="border-top:3px solid var(--v7); text-decoration:none;">
+            <h3>Local Agents</h3>
+            <p>Local subagent-definition layer behind the <code>Agent</code> tool &mdash; 15 <code>agent-namespace</code> events, React UI for edit/save/delete, <code>~/.claude/agents/</code> storage. Distinct from teams and skills.</p>
+          </a>
+          <a href="#subsys-ccr" class="strategy-card" style="border-top:3px solid var(--v2); text-decoration:none;">
+            <h3>CCR Cloud-Runner</h3>
+            <p>"Claude Code Remote" &mdash; teleport + bridge ("Remote Control"). <span data-count="ccr.total_events">54</span> events across <code>teleport-namespace</code> / <code>bridge-namespace</code> / <code>ccr-namespace</code>. <code>/v1/sessions/*</code> + <code>/v1/environments/*</code>. Dark-launched behind <code>[ccr-gate]</code>; beta header <code>ccr-byoc-2025-07-29</code>.</p>
+          </a>
+          <a href="#subsys-compact" class="strategy-card" style="border-top:3px solid var(--v4); text-decoration:none;">
+            <h3>Reactive Compaction</h3>
+            <p>Auto-triggers context compaction on token/memory thresholds without opt-in. Four new telemetry events added in v2.1.107. Replaces the manual <code>/compact</code> command.</p>
+          </a>
+          <a href="#subsys-mcp" class="strategy-card" style="border-top:3px solid var(--v5); text-decoration:none;">
+            <h3>MCP Client</h3>
+            <p><span data-count="mcp.total_events">42</span> <code>mcp-namespace</code> events. <span data-count="mcp.transport_types">8</span> transport types (stdio, sse, sse-ide, ws, ws-ide, http, claudeai-proxy, sdk). Per-server OAuth flow. BFF registry at <code>/mcp-registry/v0/servers</code>. Allowlist via <code>[mcp-allowlist-fn]</code>.</p>
+          </a>
+          <a href="#subsys-plugins" class="strategy-card" style="border-top:3px solid var(--v6); text-decoration:none;">
+            <h3>Plugin System</h3>
+            <p><span data-count="plugins.total_events">22</span> <code>plugin-namespace</code> events. Marketplaces (GCS + git fallback), <code>claude plugin install|enable|disable|list|update</code> CLI, <span data-count="plugins.extension_types">6</span> extension types. First-party marketplace: <code>claude-plugins-official</code>.</p>
+          </a>
+          <a href="#subsys-autodream" class="strategy-card" style="border-top:3px solid var(--v3); text-decoration:none;">
+            <h3>Auto-Dream</h3>
+            <p><span data-count="auto_dream.total_events">5</span> events. Background memory-consolidation scheduler: reviews recent sessions, writes to <code>~/.claude/CLAUDE.md</code>. Gate: <span data-count="auto_dream.min_sessions_default">5</span> sessions + <span data-count="auto_dream.min_hours_default">24</span>h since last run + PID lock. <code>/dream</code> manual trigger.</p>
+          </a>
+          <a href="#subsys-providers" class="strategy-card" style="border-top:3px solid var(--v2); text-decoration:none;">
+            <h3>Provider Registry</h3>
+            <p><span data-count="providers.total">6</span> providers: firstParty, bedrock (11 events), vertex (11 events), foundry (scaffolded &mdash; 0 events), anthropicAws (firstParty-peer), mantle. Detection order: <code>[provider-detect-fn]</code>. firstParty-equivalence gate: <code>[first-party-equiv-fn]</code>.</p>
+          </a>
+          <a href="#subsys-security" class="strategy-card" style="border-top:3px solid var(--critical); text-decoration:none;">
+            <h3>Security Catalogue</h3>
+            <p>All <span data-count="security.total">15</span> findings enumerated as cards: <span data-count="security.by_severity.critical">2</span> Critical (C1 command injection, #31 AC3 ghost-inbox forgery), <span data-count="security.by_severity.high">3</span> High, <span data-count="security.by_severity.observation">1</span> Observation, <span data-count="security.by_severity.medium">6</span> Medium, <span data-count="security.by_severity.low">3</span> Low. <span data-count="security.audit_vulnerabilities">13</span> vulnerabilities + <span data-count="security.audit_observations">1</span> observation from the audit + <span data-count="security.post_audit">1</span> post-audit empirical addition.</p>
+          </a>
+        </div>
+      </section>
+
+      <!-- Kairos -->
+      <section id="subsys-kairos" class="section">
+        <h2><span class="system-label subsystems">Kairos</span> Loop System</h2>
+        <p class="section-intro">The Kairos loop system provides autonomous self-continuation to agent sessions. A session can call <code>ScheduleWakeup(delaySeconds, prompt, reason)</code> to re-enter itself later, enabling the <code>/loop</code> slash-command pattern and dynamic self-pacing. Active from v2.1.101 onward.</p>
+        <div class="arch-details">
+          <div class="detail-card">
+            <h3>Tool Surface</h3>
+            <p><code>ScheduleWakeup</code> (binary function <code>[loop-schedule-fn]</code> in v2.1.101, <code>scheduleLoopWakeup</code>). Runtime clamps <code>delaySeconds</code> to <code>[60, 3600]</code> (constants <code>MIN_LOOP_DELAY_SECONDS=60</code>, <code>MAX_LOOP_DELAY_SECONDS=3600</code>).</p>
+            <p>Dynamic loops route internally through <code>CronCreate(kind:&nbsp;"loop")</code>. Loop age-out: 7 days (<code>recurringMaxAgeMs: 604800000</code>, configurable up to 30 days).</p>
+          </div>
+          <div class="detail-card">
+            <h3>Four Prompt Sentinels</h3>
+            <p><code>&lt;&lt;autonomous-loop&gt;&gt;</code> &mdash; cron-scheduled loop sentinel</p>
+            <p><code>&lt;&lt;autonomous-loop-dynamic&gt;&gt;</code> &mdash; dynamic-pacing sentinel</p>
+            <p><code>&lt;&lt;loop.md&gt;&gt;</code> &mdash; loop.md file-driven sentinel</p>
+            <p><code>&lt;&lt;loop.md-dynamic&gt;&gt;</code> &mdash; dynamic variant of the file-driven form</p>
+            <p>Sentinel values resolve at <em>fire time</em> through <code>resolveLoopDefaultFire</code> / <code>resolveLoopFileFire</code>; resolution is gated by <code>[loop-sentinel-gate]</code>.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Feature Gates</h3>
+            <p><code>[loop-tool-gate]</code> &mdash; gates the <code>ScheduleWakeup</code> tool (LIVE for pjt222 2026-04-12).</p>
+            <p><code>[loop-command-gate]</code> &mdash; gates the binary-native <code>/loop</code> slash command (DARK for pjt222; skill substitutes).</p>
+            <p><code>[loop-sentinel-gate]</code> &mdash; gates sentinel resolution at fire time (UNKNOWN; fires only on schedule).</p>
+          </div>
+          <div class="detail-card">
+            <h3>Telemetry</h3>
+            <p><code>loop-wakeup-scheduled</code> fires when a dynamic loop is scheduled.</p>
+            <p><code>loop-wakeup-aged-out</code> fires when a loop exceeds its age cap.</p>
+            <p><code>[loop-command-gate]</code> fires when <code>/loop</code> is invoked (independent of the binary-native gate).</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Teams & Ghost-Inbox -->
+      <section id="subsys-teams" class="section">
+        <h2><span class="system-label subsystems">Teams</span> &amp; Ghost-Inbox <span class="tag sev-critical">Critical</span></h2>
+        <p class="section-intro">The experimental agent-teams subsystem provides cross-agent messaging via <code>SendMessage</code> and <code>~/.claude/teams/</code> inbox files. Empirical testing on 2026-04-14 confirmed a silent-creation vulnerability: a skill-forked subagent routing to a <strong>novel inbox name</strong> auto-creates the entire directory structure with no validation, and messages can forge a <code>from</code> field despite no team context. Issue #31 AC3 and #25.</p>
+        <div class="flow-diagram">
+          <div class="flow-row">
+            <div class="flow-node node-input">Skill<br><small>user-invoked</small></div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-node node-process">Skill forks<br><small><code>claude -p</code></small></div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-node node-process">Subagent calls<br><small><code>SendMessage(to=…)</code></small></div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-node node-api">Runtime auto-creates<br><small><code>~/.claude/teams/default/inboxes/&lt;to&gt;.json</code></small></div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-node node-output">Ghost inbox<br><small>no team, no validation</small></div>
+          </div>
+        </div>
+        <div class="arch-details">
+          <div class="detail-card">
+            <h3>Empirical Probe (§3.5, 2026-04-14)</h3>
+            <p>Probe suffix <code>83af5507</code>. Filesystem before: <code>~/.claude/teams/</code> had <strong>zero entries</strong>. Probe action: skill-forked subagent called <code>SendMessage(to="ghost-probe-83af5507", message="probe")</code>. Result: runtime returned <code>{"success": true}</code> and created the full tree <code>teams/default/inboxes/ghost-probe-83af5507.json</code> on disk.</p>
+          </div>
+          <div class="detail-card" style="border-left:3px solid var(--critical);">
+            <h3>Attribution Laundering — the attack</h3>
+            <p><strong>Forged sender identity.</strong> <code>SendMessage(to, from, message)</code> writes the <code>from</code> value verbatim into the inbox file without verifying that the sending process has that identity. A skill-forked subagent running as the user can set <code>from: "team-lead"</code>, <code>from: "auditor"</code>, or any other string &mdash; and the receiving agent (or a later-running tool that reads the inbox) sees a well-formed message from a principal that the sender doesn't represent.</p>
+            <p><strong>Why it's Critical.</strong> Combined with the silent-creation path, this means an untrusted or compromised skill can plant messages in arbitrary inboxes attributed to any principal &mdash; including roles like "team-lead" that may have elevated downstream trust. There is no log trail differentiating the forgery from a legitimate message. Closed empirically as #31 AC3 on 2026-04-14.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Path Correction (§3.4, 2026-04-14)</h3>
+            <p>Earlier static-analysis inference suggested a separate <code>~/.claude/agent-teams/</code> storage domain. <strong>Empirically disconfirmed.</strong> All team state lives under <code>~/.claude/teams/</code>, materialized lazily on first write. No <code>memdir/</code> string observed on disk. See <code>results/memory-trio-2026-04-14.md</code> revision notice.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Env Var Gate</h3>
+            <p><code>CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1</code> unlocks the subsystem (value must be <code>=1</code>, not <code>=true</code>). No Statsig gate required beyond this.</p>
+            <p>Telemetry surface: 11 <code>team-namespace</code> events + 1 <code>team-namespace</code>.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Skills -->
+      <section id="subsys-skills" class="section">
+        <h2><span class="system-label subsystems">Skills</span> First-Party Distribution</h2>
+        <p class="section-intro">The CLI binary ships with <strong>41 bundled skills</strong> in v2.1.104 and v2.1.107. Each skill is a template literal embedded in the binary, marked by a <code>var X=`#&nbsp;</code> anchor. The skill loader discovers these on startup and exposes them via <code>Skill</code> tool invocation. Skill dispatch forks a nested <code>claude -p</code> session that inherits the parent's permission mode and OAuth identity.</p>
+        <div class="arch-details">
+          <div class="detail-card">
+            <h3>Enumeration Method</h3>
+            <p>Template-literal regex: <code>var\s+[A-Za-z0-9_$]+\s*=\s*[`"]#\s</code>. 41 anchors in v2.1.104 and v2.1.107 (86 in v2.1.109 &mdash; may indicate doubled bundling or rotated anchor pattern; needs verification).</p>
+            <p>Each skill body caps at <code>BUNDLED_SKILL_MAX_BODY = 500&nbsp;KB</code> for exclusion-range computation in <code>binary-probe methods</code>.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Skill Regions Are ~15% of Binary</h3>
+            <p>Skill body content introduces substantial doc-in-code false positives for binary probes. <code>binary-probe methods</code> and <code>constructors</code> exclude skill-body offset ranges by default; use <code>--include-doc-regions</code> to inspect them.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Skill-Forked Subagent Path</h3>
+            <p>When a skill runs a nested <code>claude -p</code>, the subagent appears in <code>SubagentStop</code> hooks with <code>agent_type: ""</code> (empty string &mdash; not <code>"skill"</code>, not omitted). It inherits the parent's <code>permission_mode</code>.</p>
+            <p>Combined with the ghost-inbox finding: a user-approved skill can fork a subagent that silently creates team-inbox files with forged sender identities.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Telemetry</h3>
+            <p><code>skill-namespace</code>, <code>skill-namespace</code>.</p>
+            <p>Empirical: 2 firings each observed in the 2026-04-14 MITM capture.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Hook Landscape -->
+      <section id="subsys-hooks" class="section">
+        <h2><span class="system-label subsystems">Hook</span> Landscape</h2>
+        <p class="section-intro">Claude Code invokes user-configured hook commands on session lifecycle events. Anthropic's public documentation lists 5 hook events; the 2026-04-14 interactive session captured <strong>9 distinct event types</strong> fired in production. Four are absent from the documented reference.</p>
+        <div class="command-table">
+          <div class="command-row" style="grid-template-columns: 200px 120px 1fr;">
+            <strong>Event</strong>
+            <span>Documented?</span>
+            <span style="color:var(--text-dim);">Trigger</span>
+          </div>
+          <div class="command-row" style="grid-template-columns: 200px 120px 1fr;">
+            <code>SessionStart</code>
+            <span style="color:var(--v6);">yes</span>
+            <span style="color:var(--text-dim);">Fires automatically on <code>claude</code> startup</span>
+          </div>
+          <div class="command-row" style="grid-template-columns: 200px 120px 1fr;">
+            <code>PreToolUse</code>
+            <span style="color:var(--v6);">yes</span>
+            <span style="color:var(--text-dim);">Before any tool invocation</span>
+          </div>
+          <div class="command-row" style="grid-template-columns: 200px 120px 1fr;">
+            <code>PostToolUse</code>
+            <span style="color:var(--v6);">yes</span>
+            <span style="color:var(--text-dim);">After any successful tool invocation</span>
+          </div>
+          <div class="command-row" style="grid-template-columns: 200px 120px 1fr;">
+            <code>SubagentStop</code>
+            <span style="color:var(--v6);">yes</span>
+            <span style="color:var(--text-dim);">When a subagent (Agent tool or skill-forked) completes</span>
+          </div>
+          <div class="command-row" style="grid-template-columns: 200px 120px 1fr;">
+            <code>Notification</code>
+            <span style="color:var(--v6);">yes</span>
+            <span style="color:var(--text-dim);">When the CLI surfaces an idle/notify cue</span>
+          </div>
+          <div class="command-row" style="grid-template-columns: 200px 120px 1fr;">
+            <code>UserPromptSubmit</code>
+            <span style="color:var(--v5);">partial</span>
+            <span style="color:var(--text-dim);">Every user prompt (before Claude receives it)</span>
+          </div>
+          <div class="command-row" style="grid-template-columns: 200px 120px 1fr;">
+            <code>Stop</code>
+            <span style="color:var(--v5);">partial</span>
+            <span style="color:var(--text-dim);">When Claude's turn ends (every response)</span>
+          </div>
+          <div class="command-row" style="grid-template-columns: 200px 120px 1fr;">
+            <code>PermissionRequest</code>
+            <span style="color:#e88;"><strong>no</strong></span>
+            <span style="color:var(--text-dim);">When a tool call needs approval</span>
+          </div>
+          <div class="command-row" style="grid-template-columns: 200px 120px 1fr;">
+            <code>PostToolUseFailure</code>
+            <span style="color:#e88;"><strong>no</strong></span>
+            <span style="color:var(--text-dim);">After a tool invocation that errored</span>
+          </div>
+        </div>
+        <div class="species-note">The 2026-04-14 project-local capture landed 63 hook payloads across the first 5 event types. Settings have since been extended to all 9 (2026-04-15) &mdash; a short re-capture session will produce complete contracts for #17.</div>
+      </section>
+
+      <!-- Grove + Flags -->
+      <section id="subsys-flags" class="section">
+        <h2><span class="system-label subsystems">Grove</span> &amp; Flag Resolution Matrix</h2>
+        <p class="section-intro">Four distinct configuration layers govern capability gating: <strong>env vars</strong>, <strong>local settings</strong>, <strong>Statsig</strong> (server-side feature flags), and <strong>grove</strong> (account policy surface). They have overlapping but distinct semantics, and the precedence rules produce silent shadows if not understood.</p>
+        <div class="command-table">
+          <div class="command-row" style="grid-template-columns: 180px 220px 1fr;">
+            <strong>Layer</strong>
+            <span>Mechanism</span>
+            <span style="color:var(--text-dim);">Behavior</span>
+          </div>
+          <div class="command-row" style="grid-template-columns: 180px 220px 1fr;">
+            <span>Env-var kill</span>
+            <code>CLAUDE_CODE_DISABLE_*</code>
+            <span style="color:var(--text-dim);">Hard veto &mdash; always wins</span>
+          </div>
+          <div class="command-row" style="grid-template-columns: 180px 220px 1fr;">
+            <span>Env-var enable</span>
+            <code>CLAUDE_CODE_EXPERIMENTAL_*</code>
+            <span style="color:var(--text-dim);">Necessary precondition where present (not a replacement for Statsig)</span>
+          </div>
+          <div class="command-row" style="grid-template-columns: 180px 220px 1fr;">
+            <span>Statsig</span>
+            <code>[statsig-resolver-fn](&lt;flag-name&gt;, default)</code>
+            <span style="color:var(--text-dim);">Server-side rule eval; result cached for session lifetime</span>
+          </div>
+          <div class="command-row" style="grid-template-columns: 180px 220px 1fr;">
+            <span>GrowthBook</span>
+            <code>[growthbook-resolver-fn](&lt;flag-name&gt;, default)</code>
+            <span style="color:var(--text-dim);">Distinct resolver — remoteEval POST to <code>api.anthropic.com</code>, 6h cache. Example: <code>[session-recap-gate]</code> (away-summary gate, default ON)</span>
+          </div>
+          <div class="command-row" style="grid-template-columns: 180px 220px 1fr;">
+            <span>Grove policy</span>
+            <code>/api/[internal-policy-endpoint]</code>
+            <span style="color:var(--text-dim);">Account-level preference; renders UI notice but does NOT gate <code>[statsig-resolver-fn]</code> calls</span>
+          </div>
+          <div class="command-row" style="grid-template-columns: 180px 220px 1fr;">
+            <span>Local settings</span>
+            <code>~/.claude/settings.json</code> + project
+            <span style="color:var(--text-dim);">Defaults and permissions; cannot override env-var veto or Statsig <code>DARK</code></span>
+          </div>
+        </div>
+        <div class="arch-details">
+          <div class="detail-card">
+            <h3>Silent Shadow</h3>
+            <p>Setting <code>autoMemoryEnabled: true</code> in <code>settings.json</code> does <strong>not</strong> enable memdir if the feature's disable env var is also exported (see <code>&lt;feature-disable-env-var&gt;</code>). No warning, no telemetry difference. <code>auto-memory-disabled</code> fires with <code>disabled_by_env_var: true</code>.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Grove &ne; Feature Flag</h3>
+            <p>Grove is an account <em>preference</em> surface, not a gate. A user who dismisses the notice does not thereby unlock any capability. A Statsig-DARK session still renders the grove notice if <code>grove_enabled === true</code>.</p>
+            <p>The codename <em>grove</em> is reused by an undocumented <strong>grove cohort</strong> label (unrelated to the policy surface). The two are orthogonal.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Project-Local &gt; Global</h3>
+            <p>Hook settings in a project's <code>.claude/settings.json</code> merge with global <code>~/.claude/settings.json</code>: both fire. For conflicting <em>scalar</em> values (e.g., theme), project-local wins in that project dir.</p>
+          </div>
+          <div class="detail-card">
+            <h3>GrowthBook vs Statsig</h3>
+            <p><strong>Two distinct flag resolvers coexist.</strong> Statsig uses <code>[statsig-resolver-fn]</code> (<code>getFeatureValue_CACHED</code>); GrowthBook uses <code>[growthbook-resolver-fn]</code> (<code>getFeatureValue_CACHED_MAY_BE_STALE</code>) with <code>remoteEval: true</code> — POSTs to <code>api.anthropic.com</code>, 6h refresh, result cached in <code>~/.claude.json</code>.</p>
+            <p><code>[session-recap-gate]</code> (GrowthBook, default ON) gates the <strong>away-summary</strong> / "Session recap" feature: 40-word LLM recap generated when user returns after stepping away. Resolution chain: env var <code>CLAUDE_CODE_ENABLE_AWAY_SUMMARY</code> &rarr; GrowthBook gate &rarr; SDK-mode guard &rarr; <code>userSettings.awaySummaryEnabled</code>. User-facing toggle in <code>/config</code>; also triggerable via <code>/recap</code> slash command. System prompt verbatim in binary: <em>"Recap in under 40 words, 1-2 plain sentences, no markdown."</em> See <code>results/sedge-lantern-2026-04-16.md</code>.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Reference</h3>
+            <p>Full 13-capability gate matrix and walk-through of the advisor resolution path in <code>results/flag-resolution-matrix-2026-04-15.md</code>.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Local Agents -->
+      <section id="subsys-agents" class="section">
+        <h2><span class="system-label subsystems">Local</span> Agents Subsystem</h2>
+        <p class="section-intro">The CLI-side counterpart to the <code>Agent</code> tool's <code>subagent_type</code> parameter. When a user invokes <code>Agent(subagent_type: "Explore", …)</code>, the runtime loads the agent definition from <code>~/.claude/agents/Explore.md</code> (or <code>.claude/agents/</code> project-local, or built-in shipped in the binary) and dispatches a nested session. Distinct from both <strong>experimental agent teams</strong> (filesystem + env-var gate) and <strong>skill-forked subagents</strong> (skill-driven nested <code>claude -p</code>).</p>
+        <div class="arch-details">
+          <div class="detail-card">
+            <h3>Storage &amp; Precedence</h3>
+            <p><code>built-in</code> (shipped in binary, cannot be deleted) &lt; <code>~/.claude/agents/</code> (user-defined) &lt; <code>.claude/agents/</code> (project-local).</p>
+            <p>Atomic writes via <code>writeFile({encoding:"utf-8"})</code> + <code>datasync()</code>. React UI for name/description/whenToUse/tools/model edits.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Telemetry (15 events)</h3>
+            <p>Lifecycle: <code>agent-namespace</code>, <code>agent-namespace</code>, <code>agent-namespace</code>, <code>agent-namespace</code></p>
+            <p>Definition: <code>agent-namespace</code>, <code>agent-namespace</code>, <code>agent-namespace</code>, <code>agent-namespace</code>, <code>agent-namespace</code></p>
+            <p>Stop-hook: <code>agent-namespace{success,error,max_turns}</code></p>
+            <p>Adjacent: <code>agent-namespace</code>, <code>agent-namespace</code></p>
+          </div>
+          <div class="detail-card">
+            <h3>Env Vars</h3>
+            <p><code>CLAUDE_CODE_AGENT_LIST_IN_MESSAGES</code> &mdash; include agent list in message context</p>
+            <p><code>CLAUDE_CODE_AGENT_COST_STEER</code> &mdash; cost-based selection</p>
+            <p><code>CLAUDE_CODE_AGENT_NAME</code> &mdash; identity override (potentially dangerous with ghost-inbox forgery path)</p>
+            <p><code>CLAUDE_CODE_AGENT_RULE_DISABLED</code> &mdash; disables routing rules</p>
+          </div>
+          <div class="detail-card">
+            <h3>Wire Surface (Managed Agents)</h3>
+            <p>14 occurrences of <code>/v1/agents/{id}</code> exist in the binary but all live inside <strong>bundled skill documentation</strong> (teaching SDK consumers how to use <code>agents.create()</code>). <strong>Zero live CLI call-sites</strong> per the 2026-04-13 probe (#16 stays closed).</p>
+            <p>The local agents subsystem uses filesystem storage, not the Managed Agents API. Those two are architecturally disjoint despite sharing the "agent" name.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- CCR Cloud-Runner -->
+      <section id="subsys-ccr" class="section">
+        <h2><span class="system-label subsystems">CCR</span> Cloud-Runner</h2>
+        <p class="section-intro">"Claude Code Remote" (CCR) is a multi-surface subsystem: a <strong>teleport</strong> module ships the current workspace into the cloud, a persistent local <strong>bridge</strong> server ("Remote Control") lets claude.ai/code drive sessions in the current directory, an <strong>ultrareview</strong> surface runs a full code review inside a fixed CCR environment, and an <strong>autofix-pr</strong> surface subscribes to GitHub PRs for automated fix suggestions. Dark-launched behind <code>[ccr-gate]</code> + <code>[remote-trigger-gate]</code> + enterprise policy <code>allow_remote_sessions</code>. Core: <span data-count="ccr.total_events">54</span> events; sub-surfaces: <span data-count="ccr.ultrareview_events">5</span> <code>review-namespace</code> + <span data-count="ccr.autofix_events">2</span> <code>autofix-namespace</code>. See <code>results/ccr-subsystem-2026-04-15.md</code> + <code>results/ultrareview-autofix-2026-04-16.md</code>.</p>
+        <div class="arch-details">
+          <div class="detail-card">
+            <h3>Wire Paths (decoded on v2.1.109)</h3>
+            <p><code>POST /v1/sessions</code> &mdash; teleport session create (<span data-count="ccr.sessions_api_paths">11</span> path templates total)</p>
+            <p><code>GET /v1/sessions/{id}/events</code> + <code>/events/stream</code> &mdash; poll or SSE</p>
+            <p><code>/v1/sessions/{id}/archive</code>, <code>/resources/{id}</code>, <code>/ws/</code></p>
+            <p><code>POST /v1/environments/bridge</code> &mdash; bridge-environment create (<span data-count="ccr.environments_api_paths">8</span> templates)</p>
+            <p><code>/v1/code/triggers*</code> &mdash; RemoteTrigger tool (cinder-dig)</p>
+            <p><code>/v1/code/upstreamproxy/{ws, ca-cert}</code> &mdash; MITM egress tunnel</p>
+            <p>Headers: <code>Authorization: Bearer &lt;oauth&gt;</code> + <code data-count="ccr.beta_header">anthropic-beta: ccr-byoc-2025-07-29</code> (resolved from <code>b81</code>)</p>
+          </div>
+          <div class="detail-card">
+            <h3>Telemetry &mdash; Teleport family (<span data-count="ccr.teleport_events">17</span> events)</h3>
+            <p>Six-branch source-decision ladder emitted via <code>teleport-namespace.reason</code>: <code>github_preflight_ok</code> | <code>github_preflight_failed</code> | <code>ghes_optimistic</code> | <code>forced_bundle</code> | <code>no_github_remote</code> | <code>no_git_at_all</code>.</p>
+            <p>Errors: <code>git_not_clean</code>, <code>branch_checkout_failed</code>, <code>repo_mismatch_sessions_api</code>, <code>repo_not_in_git_dir_sessions_api</code>, <code>session_not_found_404</code>. Bundle-mode fallback uploads a 3-tier git bundle (all &rarr; HEAD &rarr; squashed-root, 100 MB default cap).</p>
+          </div>
+          <div class="detail-card">
+            <h3>Telemetry &mdash; Bridge family (<span data-count="ccr.bridge_events">30</span> events)</h3>
+            <p><strong>Adaptive heartbeat confirmed:</strong> at <code>maxSessions</code> capacity the bridge switches from polling to heartbeat-only. Exits on <code>capacity_changed</code>, <code>auth_failed</code>, <code>fatal</code>, <code>shutdown</code>, or <code>timeout</code>. Telemetered via <code>bridge-namespace{entered,exited}</code>.</p>
+            <p>Lifecycle: <code>session_started</code> &rarr; <code>message_received</code> / <code>heartbeat_error</code> / <code>reconnected</code> &rarr; <code>session_done</code>. REPL sub-surface: <code>repl_ws_{connected,closed}</code>, <code>repl_connect_timeout</code>, <code>repl_teardown</code>. Multi-session gated via <code>ccr-namespace</code>.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Env Vars (<span data-count="ccr.env_vars">12</span>)</h3>
+            <p><strong>Runner-side:</strong> <code>CLAUDE_CODE_REMOTE</code> (master toggle), <code>CLAUDE_CODE_REMOTE_SESSION_ID</code>, <code>CLAUDE_CODE_REMOTE_MEMORY_DIR</code>, <code>CLAUDE_CODE_REMOTE_ENVIRONMENT_TYPE</code>, <code>CLAUDE_CODE_REMOTE_SETTINGS_PATH</code>, <code>CLAUDE_CODE_REMOTE_SEND_KEEPALIVES</code>.</p>
+            <p><strong>CCR controls:</strong> <code>CCR_UPSTREAM_PROXY_ENABLED</code>, <code>CCR_ENABLE_BUNDLE</code>, <code>CCR_FORCE_BUNDLE</code>, plus three new on v2.1.109: <code>CCR_V</code>, <code>CCR_OAUTH_TOKEN_FILE</code>, <code>CCR_BYOC_BETA</code> (beta-cohort override).</p>
+          </div>
+          <div class="detail-card">
+            <h3>Sub-surfaces: Ultrareview (<span data-count="ccr.ultrareview_events">5</span> events) + Autofix-PR (<span data-count="ccr.autofix_events">2</span> events)</h3>
+            <p><strong>Ultrareview</strong> (<code>review-namespace</code>): Runs a full bug-hunter code review inside fixed CCR env <code>env_011111111111111111111113</code>. Preflight gate at <code>GET /v1/ultrareview/preflight</code>. Streams progress via <code>&lt;remote-review-progress&gt;</code> XML: <code>{stage, bugs_found, bugs_verified, bugs_refuted}</code>. 8 <code>BUGHUNTER_*</code> env vars. Overage gating: <code>review-namespace</code> / <code>review-namespace</code>. <strong>Output extraction decoded (v2.1.110):</strong> Two extractors search event arrays for <code>&lt;remote-review&gt;</code> XML tags: <code>xg9()</code> (incremental, 3-pass, returns null on miss) called during polling; <code>bg9()</code> (final, 4-pass + raw-assistant fallback) called on completion. Delivery via <code>ug9()</code> → <code>CA({mode:"task-notification"})</code> appends findings after <code>&lt;/task-notification&gt;</code> as plain text. Tasks with <code>remoteTaskType==="ultrareview"</code> get <code>isRemoteReview:true</code> + 30-min wall-clock timeout. See <code>results/ccr-enrichment-2026-04-16.md</code>.</p>
+            <p><strong>Autofix-PR</strong> (<code>autofix-namespace</code>): Subscribes to GitHub PRs for automated fix suggestions via <code>POST /v1/code/github/subscribe-pr</code> (function <code>bX7</code>). 3-phase React UI: checking &rarr; spawning &rarr; subscribing. <code>autofix-namespace</code> carries 11 outcome values. <strong>Background-PR</strong>: validation array present, no call-sites; unreleased.</p>
+          </div>
+        </div>
+        <div class="species-note">CCR is a candidate "quiet consent" hazard: the <code>/loop</code> cadence-based prompt nudges users toward hosted execution without explicit opt-in on the session-level trust boundary. Decoded: the prompt fires when <code>/loop</code> cadence is &ge; 60 minutes or uses daily phrasing, and all five gate conjuncts resolve true.</div>
+      </section>
+
+      <!-- Reactive Compaction -->
+      <section id="subsys-compact" class="section">
+        <h2><span class="system-label subsystems">Reactive</span> Compaction</h2>
+        <p class="section-intro">Added in v2.1.107. Replaces the manual <code>/compact</code> slash command with an auto-triggered pathway: when the session's token count or memory pressure crosses a threshold, context is automatically compacted without user confirmation. The <code>SM_COMPACT</code> env var was removed, suggesting the opt-out knob is gone.</p>
+        <div class="arch-details">
+          <div class="detail-card">
+            <h3>New Telemetry (v2.1.107)</h3>
+            <p><code>auto-compact-namespace</code> &mdash; fires when rapid successive compactions are rate-limited</p>
+            <p><code>auto-compact-namespace</code> &mdash; successful compaction</p>
+            <p><code>auto-compact-namespace</code> &mdash; user changed compaction settings</p>
+            <p>+ <code>memory-namespace</code> &mdash; trigger-side event</p>
+          </div>
+          <div class="detail-card">
+            <h3>Why It Matters</h3>
+            <p>Context compaction is <em>lossy by design</em>. Auto-triggering it without user-in-the-loop means conversation context can silently shrink during long sessions, affecting agent behaviour and reproducibility. The 2.1.107 baseline diff flagged it as one of three new subsystems in that release.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Unknown Thresholds</h3>
+            <p>The exact token-count or memory-pressure threshold that triggers auto-compaction has not been characterized empirically. <code>CLAUDE_CODE_AUTO_COMPACT_WINDOW</code> (ms) suggests the trigger is at least partly time-windowed, but the full trigger logic requires a long-running session probe.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- MCP Client -->
+      <section id="subsys-mcp" class="section">
+        <h2><span class="system-label subsystems">MCP</span> Client</h2>
+        <p class="section-intro">The MCP client subsystem manages connections to external tool-servers. <span data-count="mcp.total_events">42</span> <code>mcp-namespace</code> events across 8 functional groups. <span data-count="mcp.transport_types">8</span> transport types support every execution context. Each server can have its own OAuth token lifecycle. Binary-probed on v2.1.110; see <code>results/mcp-client-2026-04-16.md</code>.</p>
+        <div class="arch-details">
+          <div class="detail-card">
+            <h3>Transport Types (<span data-count="mcp.transport_types">8</span>)</h3>
+            <p><code>stdio</code> &mdash; subprocess (default local), <code>sse</code> &mdash; HTTP SSE (remote), <code>sse-ide</code> &mdash; IDE injected SSE, <code>ws</code> &mdash; WebSocket, <code>ws-ide</code> &mdash; IDE injected WebSocket, <code>http</code> &mdash; stateless HTTP, <code>claudeai-proxy</code> &mdash; claude.ai relay, <code>sdk</code> &mdash; in-process SDK transport.</p>
+            <p>Session-expired reconnect: <code>mcp-namespace</code> fires on 404 or JSON-RPC <code>-32001</code> from http/claudeai-proxy; triggers transparent reconnect.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Allowlist &mdash; <code>[mcp-allowlist-fn]</code></h3>
+            <p>Truthy <code>CLAUDE_CODE_SANDBOXED</code> env: allowed servers in <code>MCP_ALLOWLIST_ENV</code> are passed through with sensitive vars stripped; absent servers are blocked. False env: block all. Absent env: check <code>ENTRYPOINT === "local-agent"</code> fallback. Ensures sandboxed runners cannot inject arbitrary MCP tools.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Registry / BFF</h3>
+            <p>BFF path (gated by <code>mcp-namespace</code>): <code>https://api.anthropic.com/mcp-registry/v0/servers</code>. Legacy path: <code>https://api.anthropic.com/api/directory/servers</code>. Registry fetch carries <code>source</code> (<code>"bff"</code>|<code>"legacy"</code>), <code>success</code>, <code>url_count</code>, <code>duration_ms</code>. Visibility URL list in <code>pC4()</code> scopes which servers are shown per-org.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Per-server OAuth (<span data-count="mcp.oauth_events">6</span> events)</h3>
+            <p>Each MCP server can require its own OAuth token. Flow: <code>server_needs_auth</code> &rarr; browser redirect (<code>oauth_flow_start</code>) &rarr; <code>oauth_flow_success</code> | <code>oauth_flow_failure</code> | <code>oauth_flow_error</code>. Token refresh: <code>oauth_refresh_success</code> / <code>oauth_refresh_failure</code>. Auth config persisted via <code>auth_config_authenticate</code>; cleared via <code>auth_config_clear</code>.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Plugin System -->
+      <section id="subsys-plugins" class="section">
+        <h2><span class="system-label subsystems">Plugin</span> System</h2>
+        <p class="section-intro">First-party plugin distribution surface for extending Claude Code with skills, agents, hooks, MCP servers, LSP servers, and monitors. <span data-count="plugins.total_events">22</span> <code>plugin-namespace</code> events. Plugins are grouped into <strong>marketplaces</strong>; the official marketplace is <code>claude-plugins-official</code> served from GCS with a GitHub git fallback. Binary-probed on v2.1.110; see <code>results/plugins-subsystem-2026-04-16.md</code>.</p>
+        <div class="arch-details">
+          <div class="detail-card">
+            <h3>Marketplace Architecture</h3>
+            <p>Marketplaces are versioned collections with manifests at <code>.claude-plugin/marketplace.json</code>. Official: <code>anthropics/claude-plugins-official</code> (GCS primary, git fallback &rarr; <code>plugin-namespace</code>). Third-party: GitHub, git URL, HTTPS URL, or local directory. Plugins install under per-user cache directory.</p>
+            <p>Install identifier format: <code>name@marketplace</code> (e.g. <code>my-plugin@claude-plugins-official</code>). The <code>WK()</code> function splits on <code>@</code>.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Extension Types (<span data-count="plugins.extension_types">6</span>)</h3>
+            <p>Each plugin can bundle any combination of: <strong>skills</strong> (slash commands), <strong>agents</strong> (subagent definitions), <strong>hooks</strong> (event subscribers), <strong>MCP servers</strong> (tool providers), <strong>LSP servers</strong> (language services), <strong>monitors</strong> (background watchers).</p>
+            <p>Session-load telemetry (<code>plugin-namespace</code>) carries per-type counts: <code>skill_count</code>, <code>agent_count</code>, <code>hook_count</code>, <code>mcp_count</code>, <code>lsp_count</code>.</p>
+          </div>
+          <div class="detail-card">
+            <h3>CLI Surface</h3>
+            <p><code>claude plugin install|uninstall|enable|disable|list|update</code> + <code>claude plugin marketplace add|remove|refresh</code>. REPL slash commands: <code>/plugins</code> (management UI) and <code>/reload-plugins</code> (hot-reload after file changes).</p>
+            <p>Hint system: model response containing <code>&lt;claude-code-hint&gt;</code> element can recommend a plugin &rarr; <code>plugin-namespace</code> + user response <code>plugin-namespace</code>.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Auto-Dream Memory Scheduler -->
+      <section id="subsys-autodream" class="section">
+        <h2><span class="system-label subsystems">Auto-Dream</span> Memory Scheduler</h2>
+        <p class="section-intro">A background memory-consolidation scheduler. When the user has accumulated enough sessions over a sufficient time window, the system forks an invisible conversation (<code>forkLabel: "auto_dream"</code>, <code>skipTranscript: true</code>) that reviews recent session transcripts and writes consolidated memories to <code>~/.claude/CLAUDE.md</code> and the per-project memory tree. <span data-count="auto_dream.total_events">5</span> <code>auto-dream-namespace</code> events; probed on v2.1.110. See <code>results/auto-dream-2026-04-16.md</code>.</p>
+        <div class="arch-details">
+          <div class="detail-card">
+            <h3>Trigger Gate Chain</h3>
+            <p>Scheduler function <code>Fz7()</code> runs the following guards in order:</p>
+            <p>1. Feature gate <code>[auto-dream-gate-fn]</code>: non-interactive / non-firstParty / autoMemory disabled / autoDreamEnabled setting false &rarr; exit silently.</p>
+            <p>2. Force-fire override <code>sH1()</code>: hardcoded <code>false</code> in v2.1.110 (reserved for testing).</p>
+            <p>3. Time gate: <code>(now &minus; lastConsolidation) &lt; minHours</code> (default <span data-count="auto_dream.min_hours_default">24</span>h) &rarr; skip silently.</p>
+            <p>4. Scan throttle: if re-check within 10 min &rarr; log <code>[autoDream]</code> only, no telemetry.</p>
+            <p>5. Session gate: <code>session_count &lt; minSessions</code> (default <span data-count="auto_dream.min_sessions_default">5</span>) &rarr; <code>auto-dream-namespace {reason:"sessions"}</code>.</p>
+            <p>6. PID lock (<code>[pid-lock-fn]</code>): stale lock checked by mtime + live PID; race-confirmed write &rarr; else <code>_skipped {reason:"lock"}</code>.</p>
+          </div>
+          <div class="detail-card">
+            <h3>State Machine</h3>
+            <p><code>auto-dream-namespace</code> &rarr; dream agent runs (forked, invisible) &rarr; <code>auto-dream-namespace</code> or <code>auto-dream-namespace</code>.</p>
+            <p><code>_completed</code> payload: <code>{cache_read, cache_created, output, sessions_reviewed, files_touched_count, team_memory_enabled}</code>.</p>
+            <p><code>auto-dream-namespace</code> fires when the user changes the auto-dream on/off setting; <code>is_first_enable: true</code> when previously <code>undefined</code>.</p>
+            <p>Config: <code>&lt;flag-name&gt;</code> feature flag carries <code>{minHours, minSessions}</code> config overrides.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Team Memory Boundary</h3>
+            <p>When team memory is enabled, the dream agent also processes <code>team/</code> memory files. The embedded system prompt fragment <code>nH1</code> explicitly instructs: "Do not promote personal memories into <code>team/</code> during a dream &mdash; that&rsquo;s a deliberate choice the user makes via <code>/remember</code>."</p>
+            <p>Manual trigger: <code>/dream</code> slash command bypasses the time/session gates and runs immediately.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Provider Registry -->
+      <section id="subsys-providers" class="section">
+        <h2><span class="system-label subsystems">Provider</span> Registry</h2>
+        <p class="section-intro"><span data-count="providers.total">6</span> provider kinds decoded from v2.1.110 binary. Provider type is the outermost gate: it controls which auth path, which telemetry events, and which feature flags (including firstParty-gated features like buddy and advisor) are active for the session. Detection order: <code>[provider-detect-fn]</code>. firstParty-equivalence: <code>[first-party-equiv-fn]</code>. See <code>results/bedrock-vertex-2026-04-15.md</code>, <code>results/foundry-probe-2026-04-16.md</code>, <code>results/anthropicaws-probe-2026-04-16.md</code>, <code>results/mantle-probe-2026-04-16.md</code>.</p>
+        <div class="arch-details">
+          <div class="detail-card">
+            <h3>firstParty + anthropicAws (peer)</h3>
+            <p><strong>firstParty</strong>: OAuth access token auth, full feature set (buddy, advisor, CCR, telemetry). Default for Claude.ai / Claude Code standard installs.</p>
+            <p><strong>anthropicAws</strong> (<code>CLAUDE_CODE_USE_ANTHROPIC_AWS</code>): <code>[first-party-equiv-fn]</code> = <code>H === "firstParty" || H === "anthropicAws"</code> &mdash; explicitly designed as a firstParty peer. Uses model ID selection, telemetry routing, and error handling from the firstParty path. Zero dedicated telemetry events by design, not by scaffolding. Base URL: <code>https://aws-external-anthropic.{region}.api.aws</code>; requires <code>ANTHROPIC_AWS_WORKSPACE_ID</code>.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Bedrock + Vertex (characterized, 11 events each)</h3>
+            <p><strong>Bedrock</strong> (<code>CLAUDE_CODE_USE_BEDROCK</code>): AWS SigV4 auth. 11 <code>bedrock-namespace</code> events covering setup wizard, model availability, IAM configuration. <code>AnthropicBedrock</code> SDK class.</p>
+            <p><strong>Vertex</strong> (<code>CLAUDE_CODE_USE_VERTEX</code>): GCP service-account auth. 11 <code>vertex-namespace</code> events, matching Bedrock's event structure. <code>AnthropicVertex</code> SDK class.</p>
+            <p>Both always take the non-firstParty branch; buddy and advisor are gated off. Both have interactive <code>/setup-bedrock</code> / <code>/setup-vertex</code> wizards.</p>
+          </div>
+          <div class="detail-card">
+            <h3>Foundry (scaffolded) + Mantle</h3>
+            <p><strong>Foundry</strong> (<code>CLAUDE_CODE_USE_FOUNDRY</code>): Azure Cognitive Services backend. Client class <code>AnthropicFoundry</code> + <code>DefaultAzureCredential</code> fully wired. Env vars: <code>ANTHROPIC_FOUNDRY_API_KEY</code>, <code>ANTHROPIC_FOUNDRY_BASE_URL</code>, <code>ANTHROPIC_FOUNDRY_RESOURCE</code>. <strong>Zero telemetry events in v2.1.110</strong> &mdash; scaffolded (env vars + client class present; wizard and events absent). Peer-listed with all providers in error-reporting suppression gate.</p>
+            <p><strong>Mantle</strong> (<code>CLAUDE_CODE_USE_MANTLE</code>): Internal Anthropic deployment path. Present in error-suppression gate alongside other BYOC providers.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Security Findings Catalogue -->
+      <section id="subsys-security" class="section">
+        <h2><span class="system-label subsystems">Security</span> Findings Catalogue</h2>
+        <p class="section-intro">Full enumeration of the security audit. <span data-count="security.audit_vulnerabilities">13</span> vulnerabilities + <span data-count="security.audit_observations">1</span> observation from <code>SECURITY-AUDIT.md</code> + <span data-count="security.post_audit">1</span> post-audit Critical (#31 AC3 empirical) = <strong><span data-count="security.total">15</span> items</strong> total. Source: <code>SECURITY-AUDIT.md</code> + <code>results/skill-subagent-inbox-test-2026-04-14-empirical.md</code>.</p>
+        <div class="strategy-grid">
+          <div class="strategy-card" style="border-left:4px solid var(--critical);">
+            <h3>C1 &middot; Command Injection <span class="tag sev-critical">Critical</span></h3>
+            <p>Environment-variable-sourced arguments shelled without quoting in <code>strategy-scrape.mjs</code>. Attacker-controlled env leads to arbitrary command execution.</p>
+          </div>
+          <div class="strategy-card" style="border-left:4px solid var(--critical);">
+            <h3>#31 AC3 &middot; Ghost-Inbox Forgery <span class="tag sev-critical">Critical</span></h3>
+            <p>Skill-forked subagent silently creates inbox files and forges <code>from: "team-lead"</code> attribution. Empirical 2026-04-14. Attribution laundering with no log trail.</p>
+          </div>
+          <div class="strategy-card" style="border-left:4px solid var(--warning);">
+            <h3>H1 &middot; Credential Exposure in Logs <span class="tag sev-high">High</span></h3>
+            <p>OAuth tokens appeared in capture logs and hook payloads before the 2026-04-15 redaction expansion to <code>filter-tengu.py</code>.</p>
+          </div>
+          <div class="strategy-card" style="border-left:4px solid var(--text-dim);">
+            <h3>H2 &middot; Missing SRI <span class="tag sev-resolved">Resolved</span></h3>
+            <p>CDN script lacked Subresource Integrity. Fixed with <code>integrity="sha384-..."</code> on the Three.js inclusion.</p>
+          </div>
+          <div class="strategy-card" style="border-left:4px solid var(--warning);">
+            <h3>H4 &middot; Unfiltered Transcript Transmission <span class="tag sev-high">High</span></h3>
+            <p>The <code>buddy_react</code> API receives the last 12 messages × 300 chars &mdash; including user-pasted credentials or secrets. No redaction client-side.</p>
+          </div>
+          <div class="strategy-card" style="border-left:4px solid var(--info);">
+            <h3>OBS1 &middot; Stat Spoofing <span class="tag sev-observation">Observation</span></h3>
+            <p>Server trusts client-sent stat parameters on <code>buddy_react</code>. Documented behaviour, not a vulnerability in this repo.</p>
+          </div>
+          <div class="strategy-card">
+            <h3>M0 &middot; Path Traversal via --config-dir <span class="tag sev-medium">Medium</span></h3>
+            <p><code>buddy-config.mjs</code>'s <code>--config-dir</code> flag accepts arbitrary paths. Write primitive is JSON-constrained so downgraded from Critical.</p>
+          </div>
+          <div class="strategy-card">
+            <h3>M1 &middot; TOCTOU Races <span class="tag sev-medium">Medium</span></h3>
+            <p>Time-of-check-to-time-of-use gaps in file operations across capture tools. Small window, local tool.</p>
+          </div>
+          <div class="strategy-card">
+            <h3>M2 &middot; Insecure File Permissions <span class="tag sev-medium">Medium</span></h3>
+            <p>Config and backup directories are world-readable in default creation. Contains OAuth tokens post-capture.</p>
+          </div>
+          <div class="strategy-card">
+            <h3>M3 &middot; Missing CSP <span class="tag sev-medium">Medium</span></h3>
+            <p>No Content-Security-Policy header on this documentation site. Hardening gap for an externally-linked site.</p>
+          </div>
+          <div class="strategy-card">
+            <h3>M4 &middot; Rate-Limit Bypass <span class="tag sev-medium">Medium</span></h3>
+            <p>Addressed-trigger pattern allows bypassing the reaction cooldown by using direct-addressed inputs.</p>
+          </div>
+          <div class="strategy-card">
+            <h3>M5 &middot; Predictable Temp Filenames <span class="tag sev-medium">Medium</span></h3>
+            <p>Capture tools use deterministic temp filenames; enables symlink attacks on shared tmpdirs.</p>
+          </div>
+          <div class="strategy-card">
+            <h3>L1 &middot; Unicode Validation <span class="tag sev-low">Low</span></h3>
+            <p>Insufficient validation of Unicode control characters in user-provided strings.</p>
+          </div>
+          <div class="strategy-card">
+            <h3>L2 &middot; innerHTML Pattern <span class="tag sev-low">Low</span></h3>
+            <p><code>innerHTML</code> with template literals in doc-site scripts. Low risk because inputs are static, but pattern is dangerous.</p>
+          </div>
+          <div class="strategy-card">
+            <h3>L3 &middot; Date-Gate Seasonal Bug <span class="tag sev-low">Low</span></h3>
+            <p><code>[month-gate-condition]</code> disables the companion January-March every year. Amusing, fixable one-liner.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Empirical Tooling -->
+      <section id="subsys-tools" class="section">
+        <h2>Empirical Tooling Surface</h2>
+        <p class="section-intro">Open-source tools produced during the investigation. All zero-dep or minimal-dep, all in <code>tools/</code>.</p>
+        <div class="strategy-grid">
+          <div class="strategy-card">
+            <h3><code>binary-probe.mjs</code></h3>
+            <p>Seven commands: <code>scan</code>, <code>enum</code>, <code>window</code>, <code>methods</code>, <code>constructors</code>, <code>sdk-discover</code>, <code>post-patterns</code>. Bundled-skill region exclusion by default. Zero deps.</p>
+          </div>
+          <div class="strategy-card">
+            <h3><code>mitm-harness/</code></h3>
+            <p>MITM proxy harness + <code>filter-tengu.py</code>. The filter partitions <code>firing</code> (ingest-path) vs <code>mention</code> (schema-ref) records; redacts Bearer tokens, system-reminders, emails, home paths, UUID session IDs.</p>
+          </div>
+          <div class="strategy-card">
+            <h3><code>hooks-capture/</code></h3>
+            <p>Project-local 9-event hook wrapper. <code>cd</code> into the directory to activate; leave to deactivate. No modifications to <code>~/.claude/settings.json</code>.</p>
+          </div>
+          <div class="strategy-card">
+            <h3><code>version-monitor.mjs</code></h3>
+            <p>Per-version presence scoring for 5 subsystems (companion, advisor, Kairos loop, OAuth-SDK, MCP-Dir). Detects system presence/absence changes across upgrades.</p>
+          </div>
+          <div class="strategy-card">
+            <h3><code>shingle-capture/</code> + <code>shingle-mcp/</code></h3>
+            <p>Dual-strategy buddy-reaction capture (terminal scrape + API replay) and MCP server for programmatic <code>buddy_react</code> access. Buddy API is still live.</p>
+          </div>
+          <div class="strategy-card">
+            <h3><code>loop-capture/</code> + <code>sessions/</code></h3>
+            <p>Loop-system capture tooling + multi-buddy session presets (deep-focus, debug-squad, dream-lab, full-crew).</p>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /panel-subsystems -->
 
     <!-- ===== LINEAGE TAB ===== -->
     <div id="panel-lineage" class="tab-panel" role="tabpanel" aria-labelledby="tab-lineage" tabindex="-1" hidden>
@@ -1038,14 +1788,14 @@ when the advisor's guidance contradicts observed evidence.</code>
         <div class="arch-compare">
           <div class="arch-compare-panel buddy-panel">
             <h3>Buddy Companion</h3>
-            <p class="section-intro" style="font-size:0.8rem; margin-bottom:0;">v2.1.89 &ndash; v2.1.96</p>
+            <p class="section-intro label">v2.1.89 &ndash; v2.1.96</p>
           </div>
           <div class="arch-compare-panel advisor-panel">
             <h3>Advisor Strategy</h3>
-            <p class="section-intro" style="font-size:0.8rem; margin-bottom:0;">v2.1.97+</p>
+            <p class="section-intro label">v2.1.97+</p>
           </div>
         </div>
-        <div class="command-table" style="margin-top:0.5rem;">
+        <div class="command-table">
           <div class="command-row" style="grid-template-columns: 160px 1fr 1fr; background:rgba(62,73,137,0.08);">
             <strong>Dimension</strong>
             <span style="color:var(--buddy-accent-bright);">Buddy</span>
@@ -1084,7 +1834,7 @@ when the advisor's guidance contradicts observed evidence.</code>
           <div class="command-row" style="grid-template-columns: 160px 1fr 1fr;">
             <span>Cost</span>
             <span style="color:var(--text-dim);">Hidden from user</span>
-            <span style="color:var(--text-dim);">Explicit per-call cost tracking</span>
+            <span style="color:var(--text-dim);">Explicit <code>[cost-field]</code></span>
           </div>
           <div class="command-row" style="grid-template-columns: 160px 1fr 1fr;">
             <span>Identity</span>
@@ -1093,23 +1843,23 @@ when the advisor's guidance contradicts observed evidence.</code>
           </div>
           <div class="command-row" style="grid-template-columns: 160px 1fr 1fr;">
             <span>Kill switch</span>
-            <span style="color:var(--text-dim);">Environment variable kill switch</span>
-            <span style="color:var(--text-dim);">Environment variable kill switch</span>
+            <span style="color:var(--text-dim);"><code>DISABLE_NONESSENTIAL_TRAFFIC</code></span>
+            <span style="color:var(--text-dim);"><code>DISABLE_ADVISOR_TOOL</code></span>
           </div>
           <div class="command-row" style="grid-template-columns: 160px 1fr 1fr;">
             <span>Feature gate</span>
             <span style="color:var(--text-dim);">Date gate + firstParty + plan tier</span>
-            <span style="color:var(--text-dim);">firstParty + server-side feature flag</span>
+            <span style="color:var(--text-dim);">firstParty + <code>[advisor-gate]</code></span>
           </div>
           <div class="command-row" style="grid-template-columns: 160px 1fr 1fr;">
             <span>Telemetry</span>
-            <span style="color:var(--text-dim);">Buddy telemetry events (removed)</span>
-            <span style="color:var(--text-dim);">5 advisor telemetry events</span>
+            <span style="color:var(--text-dim);"><code>buddy-namespace</code> (removed)</span>
+            <span style="color:var(--text-dim);"><code>advisor-namespace</code></span>
           </div>
           <div class="command-row" style="grid-template-columns: 160px 1fr 1fr;">
             <span>Config key</span>
-            <span style="color:var(--text-dim);">Companion object + mute flag</span>
-            <span style="color:var(--text-dim);">Advisor model selection</span>
+            <span style="color:var(--text-dim);"><code>companion</code>, <code>[companion-muted-key]</code></span>
+            <span style="color:var(--text-dim);"><code>advisorModel</code></span>
           </div>
           <div class="command-row" style="grid-template-columns: 160px 1fr 1fr;">
             <span>API type</span>
@@ -1147,7 +1897,7 @@ when the advisor's guidance contradicts observed evidence.</code>
           </div>
           <div class="strategy-card">
             <h3>Kill Switch Pattern</h3>
-            <p>Both have env-var kill switches. Different names, same pattern: one for non-essential traffic, one for the advisor feature.</p>
+            <p>Both have env-var kill switches. Different names, same pattern: <code>DISABLE_NONESSENTIAL_TRAFFIC</code> vs <code>DISABLE_ADVISOR_TOOL</code>.</p>
           </div>
           <div class="strategy-card">
             <h3>companion_intro Ghost</h3>
@@ -1155,12 +1905,12 @@ when the advisor's guidance contradicts observed evidence.</code>
           </div>
         </div>
 
-        <hr class="system-divider" style="margin-top:3rem;"><span class="system-divider-label">Design Delta</span>
+        <hr class="system-divider"><span class="system-divider-label">Design Delta</span>
 
-        <div class="arch-compare" style="margin-top:2rem;">
+        <div class="arch-compare">
           <div class="arch-compare-panel buddy-panel">
             <h3>What's Lost (Buddy)</h3>
-            <ul style="list-style:none; margin-top:1rem; display:flex; flex-direction:column; gap:0.6rem;">
+            <ul class="feature-list">
               <li>&#9675; Deterministic identity system</li>
               <li>&#9675; ASCII sprites</li>
               <li>&#9675; Speech bubbles</li>
@@ -1171,7 +1921,7 @@ when the advisor's guidance contradicts observed evidence.</code>
           </div>
           <div class="arch-compare-panel advisor-panel">
             <h3>What's New (Advisor)</h3>
-            <ul style="list-style:none; margin-top:1rem; display:flex; flex-direction:column; gap:0.6rem;">
+            <ul class="feature-list">
               <li>&#9679; Bidirectionality &mdash; can redirect</li>
               <li>&#9679; Full conversation context</li>
               <li>&#9679; User-configurable model</li>
@@ -1211,9 +1961,9 @@ when the advisor's guidance contradicts observed evidence.</code>
       <section class="section">
         <h2>Harness Architecture Flow</h2>
         <p class="section-intro">
-          Full structural map of the Claude Code harness — 14 subsystems across the
-          Startup Spine, Core Runtime, and all satellite clusters. Clusters A–N plus P (v2.1.111+ additions);
-          version scope v2.1.89 → v2.1.112.
+          Full structural map of the Claude Code harness — <span data-count="subsystems.total">14</span> subsystems across the
+          Startup Spine, Core Runtime, and all satellite clusters. Clusters A–N; version scope
+          <span data-count="version.range">v2.1.89 → v2.1.112</span>.
           Node styles: <strong>blue border</strong> = verified, <strong>red dashed</strong> = gap, <strong>grey dashed</strong> = removed, <strong>violet</strong> = our tooling.
         </p>
 
@@ -1237,20 +1987,19 @@ when the advisor's guidance contradicts observed evidence.</code>
           <table>
             <thead><tr><th>Cluster</th><th>Role</th><th>Lifecycle</th></tr></thead>
             <tbody>
-              <tr><td><strong>Startup Spine</strong></td><td>OAuth + provider registry + 7-layer flags (GrowthBook+Statsig+grove) + config; gates every subsystem</td><td>startup-only</td></tr>
+              <tr><td><strong>Startup Spine</strong></td><td>OAuth + provider registry <code>[provider-detect-fn]</code> + 7-layer flags (GrowthBook+Statsig+grove) + config; gates every subsystem</td><td>startup-only</td></tr>
               <tr><td><strong>A — Core Runtime</strong></td><td>Bun runtime, model router, Messages API client, per-turn loop, streaming handler</td><td>startup → per-turn</td></tr>
               <tr><td><strong>D — Buddy</strong> <span class="tl-badge">OUTSIDE</span></td><td>Identity pipeline + reaction dispatch; native UI removed v2.1.97, API lives</td><td>startup + per-turn-end</td></tr>
               <tr><td><strong>E — Advisor</strong> <span class="tl-badge">INSIDE</span></td><td>Server-side tool inside Messages API; model-initiated consultation to stronger reviewer</td><td>per-turn (tool call)</td></tr>
               <tr><td><strong>F — Kairos Loop</strong> <span class="tl-badge">AROUND</span></td><td><code>ScheduleWakeup</code> + <code>/loop</code>; ends turn, schedules future turn via cron</td><td>per-turn + background</td></tr>
-              <tr><td><strong>G — MCP</strong></td><td>42 events; 8 transport types; per-server OAuth; BFF registry; sandboxed allowlist</td><td>startup + per-turn</td></tr>
+              <tr><td><strong>G — MCP</strong></td><td>42 events; 8 transport types; per-server OAuth; BFF registry; <code>[mcp-allowlist-fn]</code> allowlist</td><td>startup + per-turn</td></tr>
               <tr><td><strong>H — Hooks + Skills</strong></td><td>Extension surface: subprocess hooks, skill loader, <code>/dream nightly</code></td><td>all phases</td></tr>
               <tr><td><strong>I — State</strong></td><td>Persisted config, credentials, backups, in-memory transcript, server-side Kairos state</td><td>all phases</td></tr>
-              <tr><td><strong>J — Telemetry</strong></td><td>Fan-in from every subsystem; event-logging batch endpoint + Datadog ingest confirmed</td><td>per-turn + background</td></tr>
+              <tr><td><strong>J — Telemetry</strong></td><td>Fan-in from every subsystem; <code>/api/event_logging/v2/batch</code> + Datadog ingest confirmed</td><td>per-turn + background</td></tr>
               <tr><td><strong>K — Our Tooling</strong></td><td>shingle-capture, shingle-mcp, workspace-mcp, mempalace, workspace UI</td><td>hook-triggered + offline</td></tr>
               <tr><td><strong>L — CCR Cloud-Runner</strong></td><td>Teleport (17) + Bridge (30) + CCR (7) + Ultrareview (5) + Autofix-PR (2) = 54 events</td><td>on-demand</td></tr>
               <tr><td><strong>M — Auto-Dream</strong></td><td>Background memory consolidation; 5 events; 24h/5-session gate + PID lock</td><td>background (session-end or timed)</td></tr>
               <tr><td><strong>N — Plugins</strong></td><td>Extension distribution; 22 events; 6 extension types; GCS marketplace + git fallback</td><td>startup + on-demand</td></tr>
-              <tr><td><strong>P — v2.1.111+ Systems</strong></td><td>Opus 4.7 launch, relay chain, PowerShell gate, memory survey, proxy auth, GrowthBook system-prompt override</td><td>startup + per-turn</td></tr>
             </tbody>
           </table>
         </div>
@@ -1294,7 +2043,7 @@ when the advisor's guidance contradicts observed evidence.</code>
       <div class="footer-content">
         <p class="footer-title">Claude Code Hidden Systems Investigation</p>
         <p>Conducted using <a href="https://github.com/pjt222/agent-almanac/blob/main/skills/unleash-the-agents/SKILL.md"><strong>unleash-the-agents</strong></a> and <a href="https://github.com/pjt222/agent-almanac/blob/main/teams/synoptic-mind.md"><strong>synoptic-mind</strong></a> teams</p>
-        <p>21+ agents &bull; 4 waves &bull; Security audit (14 findings) &bull; 14 subsystems &bull; v2.1.89&ndash;v2.1.112</p>
+        <p><span data-count="investigation.agents_deployed">21+</span> agents &bull; <span data-count="investigation.waves">4</span> waves &bull; Security audit (<span data-count="security.audit_vulnerabilities">13</span> vulns + <span data-count="security.audit_observations">1</span> obs + <span data-count="security.post_audit">1</span> post-audit) &bull; <span data-count="subsystems.total">14</span> subsystems &bull; MITM + hook capture &bull; <span data-count="version.start">v2.1.89</span>&ndash;<span data-count="version.end">v2.1.112</span></p>
         <div class="footer-links">
           <a href="https://github.com/pjt222/claude-buddy-investigation">Source</a>
         </div>
@@ -1303,6 +2052,7 @@ when the advisor's guidance contradicts observed evidence.</code>
   </main>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu" crossorigin="anonymous"></script>
+  <script src="counts.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

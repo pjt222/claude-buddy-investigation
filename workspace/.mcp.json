@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "workspace-mcp": {
+      "command": "node",
+      "args": ["tools/workspace-mcp/server.js"],
+      "env": { "BUDDY_PORT": "3777" }
+    },
+    "shingle-mcp": {
+      "command": "node",
+      "args": ["../tools/shingle-mcp/server.js"]
+    }
+  }
+}

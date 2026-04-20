@@ -5,21 +5,21 @@ flowchart LR
         oauth["OAuth token<br/>~/.claude/.credentials.json"]:::core
         firstparty["firstParty check"]:::core
         orguuid["organizationUuid"]:::core
-        providers["Provider registry<br/>firstParty / bedrock / vertex / anthropicAws<br/>mantle / foundry(scaffolded)<br/>firstParty-equivalence gate"]:::core
+        providers["Provider registry resolveProvider()<br/>firstParty / bedrock / vertex / anthropicAws<br/>mantle / foundry(scaffolded)<br/>firstPartyEquivGate() firstParty-equivalence gate"]:::core
         mtls["mTLS envs (v2.1.101)<br/>CERT_STORE / CLIENT_CERT/KEY"]:::gap
-        sdkrefresh["SDK OAuth refresh callback"]:::gap
-        flags["feature flags — 7-layer resolution<br/>GrowthBook + Statsig + grove<br/>session/project/env overrides"]:::core
-        envkill["CLAUDE_CODE_DISABLE_* env kill switches"]:::core
+        sdkrefresh["SDK OAuth refresh callback<br/>oauth-sdk-refresh-event"]:::gap
+        flags["[feature-flag] feature flags — 7-layer resolution<br/>GrowthBook flagResolverA()/flagResolverB()/flagResolverC() + Statsig statsigResolver()<br/>grove /api/[internal-policy-endpoint]<br/>session/project/env overrides"]:::core
+        envkill["&lt;feature-disable-env-var&gt; kill switches"]:::core
         settings["~/.claude/settings.json<br/>~/.claude/.claude.json"]:::core
     end
     %% ===== Core Runtime A =====
     subgraph CORE["A — Core Runtime (per-turn loop)"]
         direction TB
         startup["Startup bootstrap<br/>getStartupInfo family"]:::core
-        model_router["Model router<br/>opus-4-7 / opus-4-6 / sonnet-4-6 / haiku<br/>xhigh_effort→4-7 / max_effort→4-6"]:::core
+        model_router["Model router modelRouterSelect() / resolveModelSpec(spec,mainLoop,override,permMode)<br/>opus-4-7 / opus-4-6 / sonnet-4-6 / haiku<br/>xhigh_effort→4-7 / max_effort→4-6<br/>CLAUDE_CODE_SUBAGENT_MODEL override<br/>[1m] tier suffix: useOneMillionCtx()&&!suppressTierSuffix()<br/>inherit path via inheritModelSpec()"]:::core
         msgs_api["Messages API<br/>POST /v1/messages"]:::core
         turn_loop["Per-turn loop<br/>(ordering unverified)"]:::gap
-        stream_handler["Streaming handler<br/>tool_use / tool_result"]:::core
+        stream_handler["Streaming handler<br/>[advisor-response-type] / tool_result"]:::core
         hook_checkpoints["Hook checkpoints<br/>(7 named, 2 observed)"]:::gap
     end
     %% ===== D — Buddy =====
@@ -28,8 +28,8 @@ flowchart LR
         identity["Identity pipeline<br/>hash + Mulberry32"]:::core
         soul["Soul LLM call<br/>querySource: buddy_companion"]:::core
         companion_cfg["companion key<br/>(name, personality, hatchedAt)"]:::core
-        turn_watcher["turn watcher"]:::removed
-        bi_sender["POST dispatcher"]:::removed
+        turn_watcher["turnWatcher() turn watcher"]:::removed
+        bi_sender["buddyDispatch() POST dispatcher"]:::removed
         buddy_api(["POST /buddy_react<br/>(API lives; UI removed v2.1.97)"]):::core
         sprite_ui["ASCII sprite + SpeechBubble"]:::removed
         intro_inject["companion_intro<br/>(dead filter v2.1.97+)"]:::removed
@@ -37,11 +37,11 @@ flowchart LR
     %% ===== E — Advisor =====
     subgraph ADVISOR["E — Advisor [INSIDE]"]
         direction TB
-        advisor_gate["advisor gate<br/>sage_compass2_flag"]:::core
+        advisor_gate["advisorGate() gate<br/>[advisor-gate]"]:::core
         advisor_schema["tool schema<br/>advisor_20260301"]:::core
-        advisor_prompt["system prompt (appended)"]:::core
+        advisor_prompt["system prompt [advisor-prompt-A]/[advisor-prompt-B]"]:::core
         advisor_tool["advisor() tool-use<br/>inside Messages API"]:::core
-        advisor_cost["cost tracking (per-call)"]:::core
+        advisor_cost["[advisor-cost-tracker]/[advisor-cost-calc]/[advisor-cost-budget] cost tracking"]:::core
         advisor_cli["--advisor / /advisor<br/>(hidden until rollout)"]:::gap
     end
     %% ===== F — Kairos Loop =====
@@ -49,7 +49,7 @@ flowchart LR
         direction TB
         sched_tool["ScheduleWakeup tool<br/>delaySeconds / prompt / reason"]:::core
         sentinels["4 sentinels<br/>autonomous-loop / loop.md / -dynamic"]:::core
-        sched_fn["scheduleLoopWakeup fn<br/>clamp [60, 3600]"]:::core
+        sched_fn["scheduleLoopWakeup<br/>clamp [60, 3600]"]:::core
         cron_create["CronCreate(kind: loop)"]:::core
         loop_state["state keyed by prompt hash<br/>recurringMaxAgeMs=7d"]:::core
         loop_slash["/loop slash command"]:::core
@@ -58,8 +58,8 @@ flowchart LR
     subgraph MCP["G — MCP (42 events)"]
         direction TB
         mcp_config["mcpServers key<br/>in .claude.json"]:::core
-        mcp_client["MCP client<br/>8 transports: stdio/sse/sse-ide<br/>ws/ws-ide/http/claudeai-proxy/sdk"]:::core
-        mcp_sandbox["MCP allowlist<br/>CLAUDE_CODE_SANDBOXED + MCP_ALLOWLIST_ENV"]:::core
+        mcp_client["MCP client mcpClient()<br/>8 transports: stdio/sse/sse-ide<br/>ws/ws-ide/http/claudeai-proxy/sdk"]:::core
+        mcp_sandbox["mcpClient() allowlist<br/>CLAUDE_CODE_SANDBOXED + MCP_ALLOWLIST_ENV"]:::core
         mcp_bff["Registry BFF<br/>/mcp-registry/v0/servers"]:::core
         mcp_oauth["per-server OAuth (6 events)<br/>browser redirect → token → refresh"]:::core
         mcp_tools["MCP tools → tools array"]:::core
@@ -72,6 +72,7 @@ flowchart LR
         skill_loader["Skill loader<br/>~/.claude/skills + almanac"]:::core
         dream_nightly["/dream nightly<br/>SessionStart consolidation"]:::gap
         ma_agents["POST /v1/agents (doc-only,<br/>no live call-sites)"]:::gap
+        async_stall["Async agent stall watchdog<br/>[agent-stall-gate]<br/>default 600s (CLAUDE_ASYNC_AGENT_STALL_TIMEOUT_MS)<br/>aborts + marks task failed"]:::core
     end
     %% ===== I — State =====
     subgraph STATE["I — Session State"]
@@ -84,26 +85,29 @@ flowchart LR
     %% ===== J — Telemetry =====
     subgraph TEL["J — Telemetry (fan-in)"]
         direction TB
-        tel_main["advisor (5 events)<br/>loop (3) / oauth (41) / mcp (42)"]:::core
-        tel_ccr["teleport (17)+bridge (30)+ccr (7)<br/>review (5)+autofix (2)"]:::core
-        tel_ext["plugin (22) / auto_dream (5)<br/>tool (25)+file (21)<br/>api (15)+streaming (7)+post (9)"]:::core
-        tel_v111["opus47_launch<br/>ptl_surfaced / velvet_moth<br/>unknown_cmd_suggestion"]:::core
+        tel_main["advisor-events-5<br/>loop-events-3<br/>oauth-events-41<br/>mcp-events-42"]:::core
+        tel_ccr["teleport-events-17+bridge_{30}+ccr_{7}<br/>[feature-flag]+autofix_{2}"]:::core
+        tel_ext["plugin-events-22<br/>auto-dream-events-5<br/>[feature-flag]+file_{21}<br/>[feature-flag]+streaming_{7}+post_{9}"]:::core
+        tel_v111["opus47-launch-shown<br/>ptl-surfaced<br/>velvet-moth-event<br/>unknown-command-suggestion"]:::core
+        tel_team["Team telemetry (v2.1.112)<br/>16 events (was 0)<br/>team-events"]:::core
         tel_transport["Ingest: /api/event_logging/v2/batch<br/>+ Datadog /api/v2/logs"]:::core
     end
     %% ===== L — CCR =====
     subgraph CCR["L — CCR Cloud-Runner"]
         direction TB
-        ccr_gate["Gate: cinder_almanac<br/>+ surreal_dali<br/>+ allow_remote_sessions"]:::core
+        ccr_gate["Gate: [ccr-gate]<br/>+ [remote-session-gate]<br/>+ allow_remote_sessions"]:::core
         teleport["Teleport (17 events)<br/>POST /v1/sessions"]:::core
         bridge["Bridge (30 events)<br/>POST /v1/environments/bridge"]:::core
         ultrareview["Ultrareview (5 events)<br/>GET /v1/ultrareview/preflight<br/>SDK: {subtype:ultrareview_launch}"]:::core
         autofix_pr["Autofix-PR (2 events)<br/>POST /v1/code/github/subscribe-pr"]:::core
+        remote_trigger["RemoteTrigger tool<br/>[remote-session-gate] gate<br/>ccr-triggers-2026-01-30<br/>actions: list/get/create/update/run"]:::core
+        cobalt_lantern["[github-token-sync-gate]<br/>GitHub token-sync CCR access"]:::core
     end
     %% ===== M — Auto-Dream =====
     subgraph DREAM["M — Auto-Dream (5 events)"]
         direction TB
-        dream_gate["gate:<br/>non-interactive / no autoMemory"]:::core
-        dream_time["Time 24h + Session 5 gate<br/>PID lock"]:::core
+        dream_gate["dreamGate() gate:<br/>non-interactive / no autoMemory"]:::core
+        dream_time["Time 24h + Session 5 gate<br/>PID lock dreamPidLock()"]:::core
         dream_agent["Dream agent<br/>forkLabel:auto_dream skipTranscript:true"]:::core
         dream_files["~/.claude/CLAUDE.md<br/>+ project memory tree"]:::core
     end
@@ -114,19 +118,29 @@ flowchart LR
         plugin_load["Plugin loader<br/>skills+agents+hooks+mcp+lsp+monitors"]:::core
         plugin_hints["Hint system<br/>&lt;claude-code-hint&gt;"]:::core
         plugin_cli["claude plugin install|enable|disable<br/>list|update|marketplace"]:::core
+        official_marketplace["Official MCP marketplace<br/>auto-installer (v2.1.112)<br/>&lt;feature-disable-env-var&gt;<br/>[marketplace-autoinstall-gate]<br/>states: policy_blocked / already_installed / git_unavailable"]:::core
     end
     %% ===== P — v2.1.111+ New Systems =====
     subgraph NEW111["P — v2.1.111+ Systems"]
         direction TB
-        opus47_launch["Opus 4.7 launch modal<br/>opus47LaunchSeenCount"]:::core
+        opus47_launch["Opus 4.7 launch modal<br/>opus47-launch-shown<br/>opus47LaunchSeenCount"]:::core
         relay_chain["relay_chain_v1 flag<br/>strips parallel-Bash instructions<br/>from Bash tool description"]:::core
-        cobalt_ridge["cobalt_ridge flag<br/>PowerShell tool on Windows<br/>CLAUDE_CODE_USE_POWERSHELL_TOOL"]:::core
-        velvet_moth["velvet_moth / memory survey<br/>trigger: /memor(y|ies)/ regex"]:::core
+        cobalt_ridge["cobalt_ridge flag<br/>PowerShell tool on Windows<br/>&lt;powershell-tool-env-var&gt;"]:::core
+        velvet_moth["velvet_moth / memory survey<br/>trigger: /memor(y|ies)/ regex<br/>co-event: [memory-survey-co-event]"]:::core
         proxy_auth["Corporate proxy auth<br/>PROXY_URL / PROXY_HOST<br/>PROXY_AUTH_HELPER + TTL<br/>trustAccepted / timed out"]:::core
         gb_sys_prompt["GrowthBook system prompt<br/>SYSTEM_PROMPT_GB_FEATURE<br/>remote-mode only: CLAUDE_CODE_REMOTE"]:::core
     end
-    %% ===== K — Our Tooling =====
-    subgraph OURS["K — Our Tooling"]
+    %% ===== K — TUI Renderer =====
+    subgraph TUI["K — TUI Renderer (three-tier)"]
+        direction TB
+        tui_fullscreen["Tier 1: Ink Flexbox<br/>fullscreenGate()=true<br/>[ink-flexbox-gate] / CLAUDE_CODE_NO_FLICKER<br/>OSC 8 hyperlinks"]:::core
+        tui_decstbm["Tier 2: decstbmRenderer DECSTBM renderer<br/>[decstbm-gate] / CLAUDE_CODE_DECSTBM<br/>scroll-region + nativeHistory[10K]<br/>syncViewport / tickPump / draw<br/>gate: TTY + not-tmux-CC + decstbmCapabilityCheck + not-Zellij + not-fullscreen"]:::gap
+        tui_minimal["Tier 3: minimal Fragment<br/>(fallback)"]:::core
+        tui_fullscreen -->|"fullscreenGate()=false"| tui_decstbm
+        tui_decstbm -->|"decstbmGate()=false"| tui_minimal
+    end
+    %% ===== Q — Our Tooling =====
+    subgraph OURS["Q — Our Tooling"]
         direction TB
         shingle_capture["shingle-capture (hook)"]:::ours
         shingle_mcp["shingle-mcp (bypasses binary)"]:::ours
@@ -151,13 +165,13 @@ flowchart LR
     turn_loop --> stream_handler
     turn_loop -. "unverified" .-> hook_checkpoints
     flags -. "date gate + firstParty" .-> identity
-    flags -. "sage_compass2_flag" .-> advisor_gate
-    flags -. "kairos_loop_dynamic flag" .-> sched_tool
-    flags -. "mcp_* flags" .-> mcp_client
+    flags -. "[advisor-gate]" .-> advisor_gate
+    flags -. "[loop-tool-gate]" .-> sched_tool
+    flags -. "mcp-namespace" .-> mcp_client
     flags --> hook_pipeline
-    flags -. "relay_chain_v1 flag" .-> relay_chain
-    flags -. "cobalt_ridge flag" .-> cobalt_ridge
-    flags -. "loud_sugary_rock flag" .-> opus47_launch
+    flags -. "[relay-chain-gate]" .-> relay_chain
+    flags -. "[powershell-tool-gate]" .-> cobalt_ridge
+    flags -. "[opus47-launch-gate]" .-> opus47_launch
     identity --> soul
     soul --> companion_cfg
     companion_cfg --> claudejson
@@ -168,7 +182,7 @@ flowchart LR
     advisor_gate --> advisor_schema
     advisor_schema -- "tools array" --> msgs_api
     advisor_prompt -- "appended to system" --> msgs_api
-    stream_handler -. "tool_use(advisor)" .-> advisor_tool
+    stream_handler -. "[advisor-response-type](advisor)" .-> advisor_tool
     advisor_tool --> advisor_cost
     stream_handler -- "tool_use: ScheduleWakeup" --> sched_tool
     sched_tool --> sched_fn
@@ -191,14 +205,14 @@ flowchart LR
     state_atomicity -. "write" .-> claudejson
     sdkrefresh -. "writeback?" .-> credsjson
     transcript_mem -- "hook payload" --> hook_pipeline
-    flags -. "cinder_almanac + surreal_dali flags" .-> ccr_gate
+    flags -. "[ccr-gate] + surreal_dali" .-> ccr_gate
     ccr_gate --> teleport
     ccr_gate --> bridge
     ccr_gate --> ultrareview
     ccr_gate --> autofix_pr
     teleport -. "workspace bundle" .-> msgs_api
     bridge -- "remote session events" --> stream_handler
-    flags -. "onyx_plover flag" .-> dream_gate
+    flags -. "[dream-gate]" .-> dream_gate
     dream_gate --> dream_time
     dream_time -- "gates met" --> dream_agent
     dream_agent -- "write" --> dream_files
@@ -235,7 +249,18 @@ flowchart LR
     shingle_mcp -- "bypass binary" --> buddy_api
     workspace_mcp --> mcp_client
     shingle_capture --> mempalace
+    ccr_gate --> remote_trigger
+    ccr_gate --> cobalt_lantern
+    cobalt_lantern -. "token sync" .-> teleport
+    flags -. "[marketplace-autoinstall-gate]" .-> official_marketplace
+    official_marketplace --> plugin_load
+    flags -. "[agent-stall-gate]" .-> async_stall
+    async_stall -. "abort on stall" .-> ma_agents
+    flags -. "[ink-flexbox-gate]" .-> tui_fullscreen
+    flags -. "[decstbm-gate]" .-> tui_decstbm
+    startup --> tui_fullscreen
+    tel_team --> tel_transport
     classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
     classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
-    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2 2,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
     classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
