@@ -30,16 +30,20 @@ window.VIZ_COUNTS = Object.freeze({
   // SECURITY-AUDIT.md enumerates 13 vulnerabilities + 1 observation = 14.
   // Plus #31 AC3 (ghost-inbox forgery, empirical 2026-04-14) = 15 total.
   // Plus 6 mithril-probe harness findings (#73/#76 HIGH, #78/#80/#81/#85 MEDIUM) = 21 total.
-  // by_severity sums to 21 (2+5+10+3+1).
+  // v126 added 2 disclosure-candidates: brief-mode stop-hook GrowthBook injection
+  // (Critical, empirically reaches model context as user-text verbatim, no client-side
+  // length cap at 64KB confirmed) + Datadog third-party processor PII leak (High,
+  // extends earlier envelope-leak finding with new processor surface).
+  // by_severity sums to 23 (3+6+10+3+1).
   security: {
-    total: 21,
+    total: 23,
     audit_vulnerabilities: 13,
     audit_observations: 1,
-    post_audit: 7,   // #31 AC3 + 6 mithril harness-level findings
+    post_audit: 9,   // #31 AC3 + 6 mithril harness + brief stop-hook + Datadog 3rd-party
     by_severity: {
-      critical: 2,   // C1 + #31 AC3
-      high: 5,       // H1, H2 (resolved), H4, #73 off-switch, #76 paper_halyard
-      medium: 10,    // M0-M5, #78 datadog, #80 moth_copse, #81 passport_quail, #85 malort_pedway
+      critical: 3,   // C1 + #31 AC3 + brief stop-hook injection (v126)
+      high: 6,       // H1, H2 (resolved), H4, #73 off-switch, #76 paper_halyard, Datadog 3rd-party (v126)
+      medium: 10,    // M0-M5, #78 datadog (subset), #80 moth_copse, #81 passport_quail, #85 malort_pedway
       low: 3,        // L1-L3
       observation: 1 // OBS1
     }
@@ -73,7 +77,7 @@ window.VIZ_COUNTS = Object.freeze({
   //   5. Statsig supplemental gates [statsig-gate-fn] (cachedStatsigGates)
   //   6. Grove policy (GET /api/[internal-policy-endpoint])
   //   7. Embedded default ($ parameter fallback)
-  flags: { resolution_layers: 7, gate_reads: 148, default_true: 15 },
+  flags: { resolution_layers: 7, gate_reads: 148, default_true: 18 },  // v126: 18 DEFAULT-TRUE (one default-on killswitch removed since v123); both flag-reader functions rotated their minified names this cycle
 
   // ---- Local agents subsystem ----
   agents: {
@@ -165,7 +169,39 @@ window.VIZ_COUNTS = Object.freeze({
   // ---- Version coverage ----
   version: {
     start: "v2.1.89",
-    end: "v2.1.114",
-    range: "v2.1.89 \u2192 v2.1.114"  // unicode rightwards arrow
+    end: "v2.1.126",
+    range: "v2.1.89 \u2192 v2.1.126",  // unicode rightwards arrow
+    skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125"]
+  },
+
+  // ---- v126 brief-mode stop-hook GrowthBook content injection ----
+  // Empty-default GrowthBook string-flag overrides hardcoded harness Stop-hook
+  // reminder text in brief mode. Empirically reaches model context as a synthetic
+  // user-text message verbatim (probe-q canary). 64KB canary upper-bound test
+  // (probe-u) confirms NO client-side length cap. No certificate pinning at the
+  // eval channel (probe-s) \u2014 network-MITM threat is realistic in addition to
+  // server-side per-account targeting.
+  brief_stop_hook_injection: {
+    flag: "<brief-mode-stop-hook-flag>",  // GrowthBook string-flag, empty default
+    reach_layer: "model context as synthetic user-text message verbatim",
+    confirmed_canary_size_bytes: 65596,    // empirical upper bound, no cap detected
+    cert_pinning_at_eval_channel: false,
+    severity: "critical",
+    mitigations_invalidated: 1,            // length-cap mitigation verified missing
+    targeting_envelope: "per-account via existing GrowthBook eval-request payload"
+  },
+
+  // ---- v126 Datadog third-party processor extension of envelope-leak class ----
+  // When the Datadog event-logging gate flag is server-flipped on for an account,
+  // a 110-event subset of telemetry duplicates to Datadog US5 ingest. Body retains
+  // session_id (every event), subscription_type (also search-indexed via ddtags),
+  // last_session_id (cross-session correlation), and 47-field system fingerprint.
+  datadog_third_party_leak: {
+    endpoint: "http-intake.logs.us5.datadoghq.com/api/v2/logs",
+    event_allow_list_size: 110,            // subset of all telemetry events
+    ddtag_field_count: 23,                 // search-indexed at SaaS
+    confirmed_pii_in_body: ["session_id", "subscription_type", "last_session_id"],
+    severity: "high",
+    extends: "earlier envelope-leak class (raw session/account identifiers)"
   }
 });

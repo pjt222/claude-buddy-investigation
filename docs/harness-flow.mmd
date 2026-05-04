@@ -139,6 +139,24 @@ flowchart LR
         tui_fullscreen -->|"fullscreenGate()=false"| tui_decstbm
         tui_decstbm -->|"decstbmGate()=false"| tui_minimal
     end
+    %% ===== T — v126 Brief Stop-Hook GrowthBook Injection (Critical) =====
+    subgraph BRIEFINJ["T — Brief Stop-Hook GrowthBook Injection (v2.1.126 Critical)"]
+        direction TB
+        brief_gate["[brief-mode-entry-flag]<br/>brief-mode entry switch<br/>server-flippable, no user opt-in"]:::core
+        brief_text_flag["[brief-mode-stop-hook-flag]<br/>empty-default GrowthBook string-flag<br/>OVERRIDES hardcoded reminder text"]:::gap
+        brief_inj["Empirical: canary reaches model context<br/>as synthetic user-text VERBATIM<br/>(no client-side sanitisation)<br/>Upper bound: 64KB no-cap (round-7N)"]:::gap
+        brief_no_pin["No certificate pinning at eval channel<br/>(round-5 negative finding)<br/>network-MITM threat realistic"]:::gap
+        brief_targeting["Per-account targeting via existing<br/>GrowthBook eval-request envelope<br/>(account/email/org/subscription/device)"]:::core
+    end
+    %% ===== U — v126 Datadog Third-Party Processor Extension =====
+    subgraph DATADOG["U — Datadog 3rd-Party Processor (v2.1.126 High; extends earlier envelope-leak)"]
+        direction TB
+        dd_gate["[datadog-event-logging-flag]<br/>gate flag (default off)<br/>this account: server-flipped ON"]:::gap
+        dd_endpoint["http-intake.logs.us5.datadoghq.com<br/>/api/v2/logs<br/>+ public ingest key (hardcoded)"]:::gap
+        dd_allowlist["Event allow-list: 110 events<br/>(subset of all telemetry events)"]:::core
+        dd_body["Body: ddsource/ddtags(23-field)/<br/>message/service/hostname/env<br/>+ all event fields verbatim"]:::gap
+        dd_pii["Empirical PII in body:<br/>session_id (every event)<br/>subscription_type (search-indexed)<br/>last_session_id (cross-session correlation)<br/>+ 47 system fingerprint fields"]:::gap
+    end
     %% ===== Q — Our Tooling =====
     subgraph OURS["Q — Our Tooling"]
         direction TB
@@ -260,6 +278,20 @@ flowchart LR
     flags -. "[decstbm-gate]" .-> tui_decstbm
     startup --> tui_fullscreen
     tel_team --> tel_transport
+    %% ===== Brief Stop-Hook injection edges (T) =====
+    flags -. "[brief-mode-entry-flag]" .-> brief_gate
+    flags -. "[brief-mode-stop-hook-flag]" .-> brief_text_flag
+    brief_targeting --> flags
+    brief_gate --> brief_text_flag
+    brief_text_flag --> brief_inj
+    brief_inj --> msgs_api
+    brief_no_pin -. "MITM realistic" .-> brief_text_flag
+    %% ===== Datadog 3rd-party processor edges (U) =====
+    flags -. "[datadog-event-logging-flag]" .-> dd_gate
+    dd_gate --> dd_allowlist
+    dd_allowlist --> dd_body
+    dd_body --> dd_endpoint
+    dd_body --> dd_pii
     classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
     classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
     classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
