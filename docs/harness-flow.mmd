@@ -157,6 +157,29 @@ flowchart LR
         dd_body["Body: ddsource/ddtags(23-field)/<br/>message/service/hostname/env<br/>+ all event fields verbatim"]:::gap
         dd_pii["Empirical PII in body:<br/>session_id (every event)<br/>subscription_type (search-indexed)<br/>last_session_id (cross-session correlation)<br/>+ 47 system fingerprint fields"]:::gap
     end
+    %% ===== V — v128 ShareOnboardingGuide unauth-public share URL (Critical) =====
+    subgraph SHAREONBOARD["V — ShareOnboardingGuide unauth-public share URL (v2.1.128 Critical)"]
+        direction TB
+        share_gate["[share-tool-gate]<br/>GrowthBook string-flag (default false)<br/>server-flipped ON this account"]:::gap
+        share_tool["ShareOnboardingGuide tool<br/>model-invocable (no disableModelInvocation)<br/>reads ONBOARDING.md from cwd<br/>64KB file-size cap"]:::gap
+        share_endpoint["[organization-onboarding-endpoint]<br/>POST = create (mode:check NOT idempotent-read)<br/>PUT = update<br/>NO DELETE in v128 binary"]:::gap
+        share_url["[onboarding-share-url-pattern]<br/>12-char mixed-case short_code<br/>UNAUTH-PUBLIC (round-3 anon-incognito test)<br/>cross-org content-leak via single URL"]:::gap
+        share_msg_inject["Tool result injects model-directive<br/>(Close with: '...' instruction)<br/>same channel class as brief stop-hook"]:::gap
+    end
+    %% ===== W — v128 iron_gate fail-open inversion (Med-High) =====
+    subgraph IRONGATE["W — Sandbox classifier fail-closed inversion (v2.1.128 Med-High)"]
+        direction TB
+        iron_classifier["Sandbox network classifier<br/>auto-mode call-site"]:::core
+        iron_flag["[iron-gate-flag]<br/>default TRUE = deny when classifier unavailable<br/>server flip false → ALLOW (fail-open)"]:::gap
+        iron_decision["Effective decision when classifier unavailable<br/>flag-driven (fail-closed by default; inverts on flip)"]:::gap
+    end
+    %% ===== X — v128 harbor_prism PR-status path-switcher (Med info) =====
+    subgraph HARBORPRISM["X — PR-status path-switcher (v2.1.128 Med info)"]
+        direction TB
+        prism_flag["[harbor-prism-flag]<br/>string-flag (default false)<br/>per-account decision-routing"]:::core
+        prism_off["OFF path: local `gh pr view --json ...`<br/>ground truth"]:::core
+        prism_on["ON path: Anthropic-server side<br/>[pr-server-path-fn]($)"]:::gap
+    end
     %% ===== Q — Our Tooling =====
     subgraph OURS["Q — Our Tooling"]
         direction TB
@@ -292,6 +315,21 @@ flowchart LR
     dd_allowlist --> dd_body
     dd_body --> dd_endpoint
     dd_body --> dd_pii
+    %% ===== ShareOnboardingGuide unauth-public share URL edges (V) =====
+    flags -. "[share-tool-gate]" .-> share_gate
+    share_gate --> share_tool
+    share_tool --> share_endpoint
+    share_endpoint --> share_url
+    share_tool --> share_msg_inject
+    share_msg_inject -. "model-directive injected" .-> msgs_api
+    %% ===== iron_gate sandbox classifier inversion edges (W) =====
+    flags -. "[iron-gate-flag]" .-> iron_flag
+    iron_classifier -. "classifier unavailable branch" .-> iron_flag
+    iron_flag --> iron_decision
+    %% ===== harbor_prism PR-status path-switcher edges (X) =====
+    flags -. "[harbor-prism-flag]" .-> prism_flag
+    prism_flag --> prism_off
+    prism_flag --> prism_on
     classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
     classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
     classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px

@@ -34,16 +34,21 @@ window.VIZ_COUNTS = Object.freeze({
   // (Critical, empirically reaches model context as user-text verbatim, no client-side
   // length cap at 64KB confirmed) + Datadog third-party processor PII leak (High,
   // extends earlier envelope-leak finding with new processor surface).
-  // by_severity sums to 23 (3+6+10+3+1).
+  // v128 added 3 disclosure-candidates: ShareOnboardingGuide tool unauth-public share
+  // URL (Critical, anon-incognito browser test confirmed cross-org content-leak),
+  // <iron-gate-flag> sandbox network classifier fail-closed→fail-open inversion
+  // (Med-High), <harbor-prism-flag> PR-status path-switcher (Med info).
+  // by_severity sums to 26 (4+6+11+3+1+1).
   security: {
-    total: 23,
+    total: 26,
     audit_vulnerabilities: 13,
     audit_observations: 1,
-    post_audit: 9,   // #31 AC3 + 6 mithril harness + brief stop-hook + Datadog 3rd-party
+    post_audit: 12,  // #31 AC3 + 6 mithril harness + brief stop-hook + Datadog 3rd-party + share-onboarding + iron-gate + harbor-prism
     by_severity: {
-      critical: 3,   // C1 + #31 AC3 + brief stop-hook injection (v126)
+      critical: 4,   // C1 + #31 AC3 + brief stop-hook injection (v126) + share-onboarding-guide (v128)
       high: 6,       // H1, H2 (resolved), H4, #73 off-switch, #76 paper_halyard, Datadog 3rd-party (v126)
-      medium: 10,    // M0-M5, #78 datadog (subset), #80 moth_copse, #81 passport_quail, #85 malort_pedway
+      medium: 11,    // M0-M5, #78 datadog (subset), #80 moth_copse, #81 passport_quail, #85 malort_pedway, harbor-prism (v128)
+      med_high: 1,   // iron-gate fail-open inversion (v128)
       low: 3,        // L1-L3
       observation: 1 // OBS1
     }
@@ -77,7 +82,7 @@ window.VIZ_COUNTS = Object.freeze({
   //   5. Statsig supplemental gates [statsig-gate-fn] (cachedStatsigGates)
   //   6. Grove policy (GET /api/[internal-policy-endpoint])
   //   7. Embedded default ($ parameter fallback)
-  flags: { resolution_layers: 7, gate_reads: 148, default_true: 18 },  // v126: 18 DEFAULT-TRUE (one default-on killswitch removed since v123); both flag-reader functions rotated their minified names this cycle
+  flags: { resolution_layers: 7, gate_reads: 148, default_true: 3 },  // v128: boolean-reader rotated again (G$→f0); only 3 boolean-default-true call-sites remain (iron-gate, kairos-cron, kairos-cron-durable); most flags migrated to string-reader (Z$, 148 callsites)
 
   // ---- Local agents subsystem ----
   agents: {
@@ -169,9 +174,9 @@ window.VIZ_COUNTS = Object.freeze({
   // ---- Version coverage ----
   version: {
     start: "v2.1.89",
-    end: "v2.1.126",
-    range: "v2.1.89 \u2192 v2.1.126",  // unicode rightwards arrow
-    skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125"]
+    end: "v2.1.128",
+    range: "v2.1.89 \u2192 v2.1.128",  // unicode rightwards arrow
+    skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125", "v2.1.127"]
   },
 
   // ---- v126 brief-mode stop-hook GrowthBook content injection ----
@@ -203,5 +208,79 @@ window.VIZ_COUNTS = Object.freeze({
     confirmed_pii_in_body: ["session_id", "subscription_type", "last_session_id"],
     severity: "high",
     extends: "earlier envelope-leak class (raw session/account identifiers)"
+  },
+
+  // ---- v128 ShareOnboardingGuide unauth-public share URL ----
+  // New built-in agentic tool reads ONBOARDING.md from cwd and POSTs/PUTs
+  // contents to <organization-onboarding-endpoint>; returns a share_url. Empirical
+  // promotion-gate (anon-incognito browser, no cookies, no claude.ai login):
+  // page rendered the canary content client-side; cross-org content-leak via
+  // single URL confirmed. Tool is gated by <share-tool-gate> GrowthBook
+  // string-flag, server-flipped ON for the reporter's account. No delete API
+  // in v128 binary (only check/update/create). mode:"check" not idempotent-read
+  // (no-existing → POSTs upload). Tool result text injects model-directing
+  // instruction (Close with: "...") same channel class as #106 brief stop-hook.
+  share_onboarding_unauth_public_url: {
+    flag: "<share-tool-gate>",                  // GrowthBook string-flag, default false
+    server_flipped_on_for_reporter_account: true,
+    cwd_file_read: "ONBOARDING.md",
+    file_size_cap_bytes: 65536,
+    endpoint: "<organization-onboarding-endpoint>",
+    share_url_pattern: "<onboarding-share-url-pattern>",
+    short_code_chars: 12,
+    short_code_charset: "mixed-case alphanumeric",
+    auth_required_to_view_share_url: false,    // round-3 anon-incognito promotion-gate
+    delete_api_present: false,
+    model_invocable: true,                       // no disableModelInvocation flag
+    tool_result_instruction_injection: true,     // Bx7 "Close with: ..." text
+    mode_check_idempotent_read: false,           // POSTs upload if no existing
+    cwes: ["CWE-200", "CWE-94", "CWE-915"],
+    severity: "critical"
+  },
+
+  // ---- v128 iron_gate sandbox network classifier fail-closed inversion ----
+  // <iron-gate-flag> default-TRUE controls fail-closed-vs-fail-open
+  // behaviour of the sandbox network classifier when classifier is unavailable.
+  // Server flip to false inverts the safety default from DENY (fail-closed) to
+  // ALLOW (fail-open). Server-flippable safety-default inversion.
+  iron_gate_fail_open_inversion: {
+    flag: "<iron-gate-flag>",                   // GrowthBook boolean-flag, default true
+    default_behavior_when_classifier_unavailable: "deny (fail-closed, safe)",
+    behavior_after_server_flip_to_false: "allow (fail-open, unsafe)",
+    severity: "medium-high",
+    promotion_gate_to_high: "empirical observation of classifier-unavailable window in normal operations"
+  },
+
+  // ---- v128 harbor_prism PR-status path-switcher ----
+  // <harbor-prism-flag> string-flag (default false) switches PR-status
+  // check between local `gh pr view` (default, ground truth) and Anthropic-server
+  // side path. Decision-routing flag — diverges per-account.
+  harbor_prism_path_switcher: {
+    flag: "<harbor-prism-flag>",                // GrowthBook string-flag, default false
+    off_path: "local `gh pr view --json ...` (ground truth)",
+    on_path: "Anthropic-server side <pr-server-path-fn>($) routing",
+    severity: "medium-info",
+    class: "decision-routing flag — per-account path-divergence"
+  },
+
+  // ---- v128 positive delta: session_memory feature retired ----
+  // <session-memory-flag-cluster> (5 flags) all removed in v128 binary.
+  // Zero hits in v128 for session_memory / memory_extraction / MemorySaved /
+  // initExtractMemory / UpdateMemory / memoryFile. Auto-memory feature
+  // appears fully retired — privacy improvement.
+  v128_positive_session_memory_retired: {
+    flags_removed: 5,
+    behaviour: "auto-memory feature fully retired in v128",
+    note: "positive privacy delta to acknowledge alongside negative findings"
+  },
+
+  // ---- v128 reader rotation + flag delta ----
+  v128_flag_delta: {
+    boolean_reader: { v126: "<gb-bool-reader-v126>", v128: "<gb-bool-reader-v128>" },  // identifier rotation only
+    string_reader: { v126: "<gb-string-reader-v126>", v128: "<gb-string-reader-v128>" },
+    flags_added: 37,
+    flags_removed: 17,
+    bg_daemon_events_added: 17,    // adopt/attach/dispatch/worker lifecycle expansion
+    note: "reader rotation = identifier-only churn (same call signature, version-specific minified name)"
   }
 });
