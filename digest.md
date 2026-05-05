@@ -134,6 +134,66 @@ Categories observed: stream watchdog, bridge compatibility shim, cache optimizat
 
 ---
 
+## Phase 7: Hook Subsystem + Daemon + Disclosure-Candidate Findings (v2.1.118 → v2.1.128)
+
+**Scope**: rolling versions across the v2.1.118 → v2.1.128 release line. This phase tracks ongoing harness behavior changes alongside finding accumulation. All flag and reader-identifier names redacted; functional descriptions only.
+
+**Cumulative metric (as of v2.1.128)**: 21 disclosure-candidate findings filed against the private investigation repo. Severity tally per `docs/counts.js`:
+
+- **3 confirmed Critical** (empirically reproduced via local sandboxed probes)
+- **7 High** (1 with promotion-gate pending re-verify)
+- **11 Medium-class** (Medium / Medium-info / Med-High)
+- **3 Low**
+- **1 Observation**
+
+### Hook subsystem hardening (v2.1.118)
+
+A unified hook subsystem covers five hook types (command, prompt, http, mcp_tool, agent) across 29 harness events. Two confirmed-Critical findings filed:
+
+1. **PreToolUse JSON-rewrite path**: a hook returning JSON parsed by the harness's hook-output reader can rewrite tool arguments before execution and override the permission decision via documented JSON contract fields. Full rewrite chain confirmed via local probe.
+2. **Workspace-trust gate skipped in non-interactive mode**: the trust gate that protects against malicious cloned-repo settings.json files does not fire in `--print` / SDK / non-interactive mode, and the in-process trust cache lasts for the full process lifetime.
+
+A third High finding composes the two via the `--print --teleport` flag chain — the chain git-checks-out an attacker-controlled branch into the victim's working directory and chains into the trust-bypass for one-command remote-code-execution.
+
+### Background daemon goes live (v2.1.121 → v2.1.128)
+
+The background daemon subsystem (statically present since v2.1.119, dormant) became active in v2.1.121 with +47 telemetry events. v2.1.128 added another +17 events covering daemon-state-machine edge cases (adopt, attach-stall, dispatch reject/rescue/drop, sendclaim, settle, worker-stalled/vanished, ptyhost-crash, phase-illegal, daemon-service-stale-exec, zombie-FP, roster-orphan-adopted). Harbor permissions sub-protocol was runtime-confirmed in TUI mode (1 confirmed Critical, MCP servers can decide tool-use authorization within the harbor channel).
+
+### Subagent attribution detection (v2.1.123)
+
+A telemetry layer for detecting forged subagent-attribution chains was shipped. Static analysis showed 3 of 4 reachable attack-class variants remain undefended at parse/load time: transcript-replay forge, sidechain-insertion forge, SendMessage inbox forge. SDK-stdin variant IS defended. One additional structural defense was confirmed bypassable via matched-pair forge.
+
+### v2.1.126 brief-mode stop-hook GrowthBook injection (1 Critical)
+
+A new GrowthBook string-flag (empty-default) was added that overrides the hardcoded brief-mode Stop-hook reminder text. mitm-injection canary empirically reaches the model's `/v1/messages` request body as a `role:"user"` `type:"text"` synthetic message verbatim. 64KB canary upper-bound test confirmed no client-side length cap. No certificate pinning at the eval channel — network-MITM threat is realistic. Cross-model alignment retest: the v126 `--print` default model COMPLIED with a stripped bare-workdir canary; smaller models REFUSED. The default-model surface is wide open.
+
+### v2.1.126 third-party processor extension (1 High)
+
+A second-channel telemetry processor (Datadog ingest) receives the same envelope identifiers (session_id, subscription_type, last_session_id, plus a 47-field system fingerprint) when a server-flippable gate flag is enabled for an account. Extends the earlier "raw envelope identifiers across telemetry events" meta finding with a new processor surface.
+
+### v2.1.128 ShareOnboardingGuide content-sharing tool (1 High → Critical pending re-verify)
+
+A new built-in agentic tool reads a conventionally-named file from the user's working directory and POSTs the content to an Anthropic-hosted org-scoped endpoint, returning a share URL. Tool availability is gated by a server-flippable string-flag, server-flipped ON for the reporter's account at the time of probe. The tool is model-invocable (no `disableModelInvocation`); the `mode:"check"` argument variant is NOT idempotent-read (it POSTs the upload silently if no existing share is found). The tool result text injects a model-directing instruction (a `Close with: "..."` directive) into the model context — same channel class as the v126 brief-stop-hook injection but via the tool-output channel. The binary exposes no `delete` mode for the share endpoint. **Auth-model status**: round-3 informal incognito browser test reported the URL as anyone-with-link unauth-public, but round-4 scrapling re-test (3 runs, no cookies, no auth state) all returned server-side redirects to the login page. Severity reverted to HIGH pending USER fresh-profile incognito re-verification with explicit address-bar and canary-marker checks.
+
+### v2.1.128 sandbox classifier safety inversion (1 Med-High)
+
+A new default-TRUE boolean flag controls the fail-closed-vs-fail-open behavior of the sandbox network classifier when the classifier service is unavailable. Default-TRUE means deny-on-classifier-unavailable (safe, fail-closed). A server flip to false inverts to allow-on-classifier-unavailable (unsafe, fail-open). Server-flippable safety-default inversion.
+
+### v2.1.128 path-switcher (1 Medium info)
+
+A new string-flag switches the PR-status decision lookup between local `gh pr view` (default, ground truth) and an Anthropic-server-side path. Per-account decision-routing flag.
+
+### Positive deltas
+
+- v2.1.128 retired the auto-memory feature entirely (5 flags removed; zero binary-string hits for the related identifiers). Privacy improvement, noted alongside the negative findings.
+- The hook system's documented JSON contract is one of the few harness mechanisms with a publicly-documented full schema, even where individual fields enable problematic behaviors.
+
+### Disclosure approach
+
+Per-thread HackerOne anthropic-vdp filing for each of the 21 findings. Standard 9-section H1 form structure. Capture sharing offered via Anthropic-controlled secure channel on follow-up (captures contain raw envelope identifiers, which are themselves the subject of the meta findings).
+
+---
+
 ## Methodology Notes
 
 The mithril probe (Phase 6) used a completeness-tracking approach:
