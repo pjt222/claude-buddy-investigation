@@ -35,18 +35,22 @@ window.VIZ_COUNTS = Object.freeze({
   // length cap at 64KB confirmed) + Datadog third-party processor PII leak (High,
   // extends earlier envelope-leak finding with new processor surface).
   // v128 added 3 disclosure-candidates: ShareOnboardingGuide tool unauth-public share
-  // URL (Critical, anon-incognito browser test confirmed cross-org content-leak),
+  // URL (HIGH — round-3 USER incognito test reported "landed cleanly" but round-4
+  // scrapling re-test from WSL host with no cookies got 3-of-3 server-side redirects
+  // to /login?returnTo=...; promotion-gate from HIGH to CRITICAL pending USER
+  // re-verification of which URL appeared in the address bar + whether canary
+  // marker rendered or "Sign in" interstitial appeared),
   // <iron-gate-flag> sandbox network classifier fail-closed→fail-open inversion
   // (Med-High), <harbor-prism-flag> PR-status path-switcher (Med info).
-  // by_severity sums to 26 (4+6+11+3+1+1).
+  // by_severity sums to 26 (3+7+11+3+1+1).
   security: {
     total: 26,
     audit_vulnerabilities: 13,
     audit_observations: 1,
     post_audit: 12,  // #31 AC3 + 6 mithril harness + brief stop-hook + Datadog 3rd-party + share-onboarding + iron-gate + harbor-prism
     by_severity: {
-      critical: 4,   // C1 + #31 AC3 + brief stop-hook injection (v126) + share-onboarding-guide (v128)
-      high: 6,       // H1, H2 (resolved), H4, #73 off-switch, #76 paper_halyard, Datadog 3rd-party (v126)
+      critical: 3,   // C1 + #31 AC3 + brief stop-hook injection (v126); share-onboarding pending re-verify
+      high: 7,       // H1, H2 (resolved), H4, #73 off-switch, #76 paper_halyard, Datadog 3rd-party (v126), share-onboarding (v128, pending re-verify)
       medium: 11,    // M0-M5, #78 datadog (subset), #80 moth_copse, #81 passport_quail, #85 malort_pedway, harbor-prism (v128)
       med_high: 1,   // iron-gate fail-open inversion (v128)
       low: 3,        // L1-L3
@@ -229,13 +233,14 @@ window.VIZ_COUNTS = Object.freeze({
     share_url_pattern: "<onboarding-share-url-pattern>",
     short_code_chars: 12,
     short_code_charset: "mixed-case alphanumeric",
-    auth_required_to_view_share_url: false,    // round-3 anon-incognito promotion-gate
+    auth_required_to_view_share_url: "needs-reverify",  // round-3 USER incognito reported "landed cleanly"; round-4 scrapling 3-of-3 redirected to /login
     delete_api_present: false,
     model_invocable: true,                       // no disableModelInvocation flag
     tool_result_instruction_injection: true,     // Bx7 "Close with: ..." text
     mode_check_idempotent_read: false,           // POSTs upload if no existing
-    cwes: ["CWE-200", "CWE-94", "CWE-915"],
-    severity: "critical"
+    cwes: ["CWE-200 (pending re-verify)", "CWE-94", "CWE-915"],
+    severity: "high",
+    severity_promotion_gate_pending: "USER incognito re-verify with explicit address-bar + sign-in-interstitial check"
   },
 
   // ---- v128 iron_gate sandbox network classifier fail-closed inversion ----
