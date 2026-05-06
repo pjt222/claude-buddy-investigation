@@ -94,7 +94,7 @@ window.VIZ_COUNTS = Object.freeze({
   //   5. Statsig supplemental gates [statsig-gate-fn] (cachedStatsigGates)
   //   6. Grove policy (GET /api/[internal-policy-endpoint])
   //   7. Embedded default ($ parameter fallback)
-  flags: { resolution_layers: 7, gate_reads: 410, default_true: 15 },  // v129: unified reader rotation — f0 (bool) + Z$ (string) FULLY RETIRED → G$ is sole tengu_ reader (410 call sites). DEFAULT-TRUE bool count = 15 (was 18 in v128 stable).
+  flags: { resolution_layers: 7, gate_reads: 410, default_true: 17 },  // v131 round-1: unified reader G$ (410 sites) + parallel P0 3-arg reader (18 sites) — no rotation v129→v131. DEFAULT-TRUE bool count = 17 (corrected from 15; prior count missed P0's 3-arg form covering iron_gate_closed/kairos_cron/kairos_cron_durable). Set byte-identical v128↔v129↔v131.
 
   // ---- Local agents subsystem ----
   agents: {
@@ -186,9 +186,9 @@ window.VIZ_COUNTS = Object.freeze({
   // ---- Version coverage ----
   version: {
     start: "v2.1.89",
-    end: "v2.1.129",
-    range: "v2.1.89 \u2192 v2.1.129",  // unicode rightwards arrow
-    skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125", "v2.1.127"]
+    end: "v2.1.131",
+    range: "v2.1.89 \u2192 v2.1.131",  // unicode rightwards arrow
+    skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125", "v2.1.127", "v2.1.130"]
   },
 
   // ---- v126 brief-mode stop-hook GrowthBook content injection ----
