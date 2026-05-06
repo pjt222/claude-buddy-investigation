@@ -44,17 +44,18 @@ window.VIZ_COUNTS = Object.freeze({
   // (Med-High), <harbor-prism-flag> PR-status path-switcher (Med info).
   // v129 added 1 disclosure-candidate: <_PROTO_-leak> destructure-rename pattern
   // egresses raw plugin/skill/marketplace identifiers as 1P-telemetry top-level
-  // fields (HIGH, extends envelope-level leak class to field-level; v128 had 11
-  // emitters, v129 +2 = 13 active emitters).
-  // by_severity sums to 27 (3+8+11+3+1+1).
+  // fields. PROMOTED HIGH→CRITICAL via probe-r MITM 2026-05-06: empirical wire
+  // capture showed 356 raw skill_name + 9 plugin_name + 9 marketplace_name on
+  // 2 event_logging batches from a single bootstrap; zero redaction.
+  // by_severity sums to 27 (4+7+11+3+1+1).
   security: {
     total: 27,
     audit_vulnerabilities: 13,
     audit_observations: 1,
     post_audit: 13,  // #31 AC3 + 6 mithril harness + brief stop-hook + Datadog 3rd-party + share-onboarding + iron-gate + harbor-prism + _PROTO_-leak
     by_severity: {
-      critical: 3,   // C1 + #31 AC3 + brief stop-hook injection (v126); share-onboarding pending re-verify
-      high: 8,       // H1, H2 (resolved), H4, #73 off-switch, #76 paper_halyard, Datadog 3rd-party (v126), share-onboarding (v128, pending re-verify), _PROTO_-leak (v129)
+      critical: 4,   // C1 + #31 AC3 + brief stop-hook injection (v126) + _PROTO_-leak (v129, promoted from HIGH per probe-r MITM 2026-05-06)
+      high: 7,       // H1, H2 (resolved), H4, #73 off-switch, #76 paper_halyard, Datadog 3rd-party (v126), share-onboarding (v128, pending re-verify)
       medium: 11,    // M0-M5, #78 datadog (subset), #80 moth_copse, #81 passport_quail, #85 malort_pedway, harbor-prism (v128)
       med_high: 1,   // iron-gate fail-open inversion (v128)
       low: 3,        // L1-L3

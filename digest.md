@@ -138,9 +138,9 @@ Categories observed: stream watchdog, bridge compatibility shim, cache optimizat
 
 **Scope**: rolling versions across the v2.1.118 → v2.1.128 release line. This phase tracks ongoing harness behavior changes alongside finding accumulation. All flag and reader-identifier names redacted; functional descriptions only.
 
-**Cumulative metric (as of v2.1.128)**: 21 disclosure-candidate findings filed against the private investigation repo. Severity tally per `docs/counts.js`:
+**Cumulative metric (as of v2.1.129)**: 22 disclosure-candidate findings filed against the private investigation repo. Severity tally per `docs/counts.js`:
 
-- **3 confirmed Critical** (empirically reproduced via local sandboxed probes)
+- **4 confirmed Critical** (empirically reproduced via local sandboxed probes — includes the v2.1.129 `_PROTO_` field-level leak promoted from High via runtime MITM 2026-05-06)
 - **7 High** (1 with promotion-gate pending re-verify)
 - **11 Medium-class** (Medium / Medium-info / Med-High)
 - **3 Low**
@@ -190,13 +190,21 @@ Tail-item dispositions completed before v129 pivot:
 - The path-switcher's ON-path was confirmed to make direct GitHub API calls from the binary, not via Anthropic-intermediary. Auth-identity divergence threat removed; subprocess/proxy/cache divergence threats stand.
 - Two additional flags decoded as feature-rollout / DEFAULT-TRUE killswitch class (no new findings).
 
-### v2.1.129 _PROTO_ destructure-rename egresses raw identifiers as top-level event fields (1 High)
+### v2.1.129 _PROTO_ destructure-rename egresses raw identifiers as top-level event fields (1 Critical, promoted from High via runtime MITM 2026-05-06)
 
 A destructure-rename pattern in the 1P telemetry pipeline extracts `_PROTO_*`-prefixed payload values into local variables and then re-attaches them to the egressed event as typed top-level fields (`plugin_name`, `skill_name`, `marketplace_name`). The `_PROTO_` prefix is **not** a redaction marker — the sibling field-residual redactor only operates on the leftover destructure rest, not on the destructured locals which are explicitly egressed. Raw third-party / private plugin and marketplace names reach the 1P telemetry endpoint as top-level event fields rather than opaque metadata.
 
+- **Empirical wire confirmation (2026-05-06)**: a single non-interactive bootstrap invocation captured under MITM produced 2 telemetry batches to the 1P endpoint with **356 raw skill_name occurrences (355 unique values)**, **9 plugin_name (2 unique)**, and **9 marketplace_name (2 unique)**. All values raw, unhashed, top-level on `event_data`. Third-party plugin and marketplace identities (one private plugin and its source marketplace) leaked verbatim alongside the official catalogue entries.
+- Per-bootstrap volume scales linearly with installed-skill count: each globally-installed skill emits one `tengu_skill_loaded` event with its raw name, fingerprintable when combined with the durable per-account session identifiers transmitted at envelope level.
 - v2.1.128 had 11 emitters using this pattern; v2.1.129 adds 2 (`tengu_plugin_folder_shadowed`, `tengu_plugin_name_collision`) for 13 active emitters total
-- A `_PROTO_code → repl_code` slot exists at the egress destructure across v123/v126/v128/v129 but is currently unwired (no emitter sets it). Forward-compat slot — escalate watch if a future binary wires a `_PROTO_code:` setter, since raw REPL inputs would be considerably more sensitive than identifier strings.
+- A `_PROTO_code → repl_code` slot exists at the egress destructure across v123/v126/v128/v129 but is currently unwired (0 emitter hits empirically). Forward-compat slot — escalate watch if a future binary wires a `_PROTO_code:` setter, since raw REPL inputs would be considerably more sensitive than identifier strings.
 - Extends the prior envelope-level leak class (raw session_id / device_id / email transmitted on every batch) from envelope to field level
+
+### v2.1.129 GrowthBook eval-SDK reachability baseline (informational, supports prior v128 findings)
+
+The same MITM run captured the GrowthBook SDK feature-flag evaluation response: a 46 KB body containing 224 resolved features. Distribution by source: 162 `defaultValue`, 48 `force` (admin-pushed override), 14 `experiment` (active A/B assignment).
+
+This is the substrate behind the two adjacent v128 findings (sandbox classifier fail-open inversion via DEFAULT-TRUE flag; PR-status path-switcher activation via boolean flag). Neither flag was server-resolved for this user during the capture (one absent → local default applied, one present with `defaultValue: false`). However, the same response shows that the experiment-source and force-source override paths are demonstrably active for ~30 other flags right now — the inversions documented in those v128 findings are reachable via a single config push using mechanisms already in production use, not theoretical mechanisms requiring new infrastructure.
 
 ### v2.1.129 reader unification (informational)
 
