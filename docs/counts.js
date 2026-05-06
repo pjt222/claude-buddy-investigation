@@ -103,7 +103,7 @@ window.VIZ_COUNTS = Object.freeze({
   // Methodology rule: prefer string-pool literals over minified-identifier patterns.
   cross_version_v131: {
     probes_total: 11,
-    findings_confirmed_byte_stable: 16,
+    findings_confirmed_byte_stable: 15,
     new_findings_filed: 0,
     remediations_observed: 0,
     rebuilds_covered: 3,
