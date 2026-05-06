@@ -140,9 +140,9 @@ Categories observed: stream watchdog, bridge compatibility shim, cache optimizat
 
 **Cumulative metric (as of v2.1.129)**: 22 disclosure-candidate findings filed against the private investigation repo. Severity tally per `docs/counts.js`:
 
-- **4 confirmed Critical** (empirically reproduced via local sandboxed probes — includes the v2.1.129 `_PROTO_` field-level leak promoted from High via runtime MITM 2026-05-06)
+- **5 confirmed Critical** (empirically reproduced via local sandboxed probes — includes both 2026-05-06 promotions: `_PROTO_` field-level leak via probe-r MITM and sandbox classifier fail-open inversion via probe-v2 MITM)
 - **7 High** (1 with promotion-gate pending re-verify)
-- **11 Medium-class** (Medium / Medium-info / Med-High)
+- **11 Medium-class** (Medium / Medium-info)
 - **3 Low**
 - **1 Observation**
 
@@ -205,6 +205,25 @@ A destructure-rename pattern in the 1P telemetry pipeline extracts `_PROTO_*`-pr
 The same MITM run captured the GrowthBook SDK feature-flag evaluation response: a 46 KB body containing 224 resolved features. Distribution by source: 162 `defaultValue`, 48 `force` (admin-pushed override), 14 `experiment` (active A/B assignment).
 
 This is the substrate behind the two adjacent v128 findings (sandbox classifier fail-open inversion via DEFAULT-TRUE flag; PR-status path-switcher activation via boolean flag). Neither flag was server-resolved for this user during the capture (one absent → local default applied, one present with `defaultValue: false`). However, the same response shows that the experiment-source and force-source override paths are demonstrably active for ~30 other flags right now — the inversions documented in those v128 findings are reachable via a single config push using mechanisms already in production use, not theoretical mechanisms requiring new infrastructure.
+
+### v2.1.129 sandbox classifier fail-open inversion empirically confirmed (1 Critical, promoted from Med-High via runtime MITM 2026-05-06)
+
+The DEFAULT-TRUE classifier-killswitch flag's fail-open inversion (originally filed against v2.1.128 as a Med-High static-decode finding) was empirically confirmed via runtime MITM on 2026-05-06 using a synthetic-rewrite addon built earlier the same day.
+
+The probe runs a 2-step rewrite chain in front of `api.anthropic.com`:
+
+1. The eval-SDK response is rewritten to inject the killswitch flag with `value: false, source: "experiment"` — simulating the documented "server flips the DEFAULT-TRUE flag to false on a targeted cohort" condition.
+2. Any `/v1/messages` POST whose body matches the auto-mode classifier system-prompt fingerprint (a stable string in the binary's classifier system prompt) is force-503ed — simulating classifier endpoint outage.
+
+A simple `claude --print --permission-mode auto` invocation with a non-allowlisted Bash command then triggers the auto-mode permission classifier path. The binary's debug log emits the literal string **`Auto mode classifier unavailable, falling back to normal permission handling (fail open)`** under both attack inputs — exactly matching the binary string-pool entry decoded statically.
+
+Control run (same prompt, no rewrites): classifier returns OK, permission decision `allow`, tool dispatched, command executes normally.
+
+Full-attack run: classifier 3× retries all 503, classifier-error log emitted, then the `(fail open)` log line, then the upstream layer auto-denies because there is no human to ask in `--print` mode. **In an interactive TUI session — the actual target environment — the upstream layer would re-prompt the user, replacing the LLM-evaluated safety review with a manual permission prompt.** Users habituated to clicking through prompts have no signal that the deeper safety check has been disabled; in `acceptEdits`/permission-bypassed contexts, the fall-through is direct allow.
+
+Site coverage: this run confirms the auto-mode permission classifier path. The sandbox-network classifier (separate function in the binary) uses the same flag with the same fail-open inversion semantics but fires only when network sandboxing is active (Linux unshare / macOS sandbox-exec) — empirical confirmation deferred to a sandbox-active TUI session. Static-decode evidence already filed for that site.
+
+Adversary capability required: server-flip access to GrowthBook (Anthropic operations) plus classifier endpoint disruption (could be partial outage, network event, or coordinated). Both are realistic operational conditions. The binary's own `(fail open)` log line is direct acknowledgement of the inversion.
 
 ### v2.1.129 reader unification (informational)
 

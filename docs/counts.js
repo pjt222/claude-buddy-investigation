@@ -47,17 +47,20 @@ window.VIZ_COUNTS = Object.freeze({
   // fields. PROMOTED HIGH→CRITICAL via probe-r MITM 2026-05-06: empirical wire
   // capture showed 356 raw skill_name + 9 plugin_name + 9 marketplace_name on
   // 2 event_logging batches from a single bootstrap; zero redaction.
-  // by_severity sums to 27 (4+7+11+3+1+1).
+  // 2026-05-06 follow-up via probe-v2: iron-gate fail-open EMPIRICALLY confirmed
+  // (literal binary log line "(fail open)" fires under documented attack input);
+  // #108 PROMOTED Med-High→CRITICAL.
+  // by_severity sums to 27 (5+7+11+3+0+1).
   security: {
     total: 27,
     audit_vulnerabilities: 13,
     audit_observations: 1,
     post_audit: 13,  // #31 AC3 + 6 mithril harness + brief stop-hook + Datadog 3rd-party + share-onboarding + iron-gate + harbor-prism + _PROTO_-leak
     by_severity: {
-      critical: 4,   // C1 + #31 AC3 + brief stop-hook injection (v126) + _PROTO_-leak (v129, promoted from HIGH per probe-r MITM 2026-05-06)
+      critical: 5,   // C1 + #31 AC3 + brief stop-hook injection (v126) + _PROTO_-leak (v129, probe-r MITM) + iron-gate fail-open (v128, probe-v2 MITM 2026-05-06)
       high: 7,       // H1, H2 (resolved), H4, #73 off-switch, #76 paper_halyard, Datadog 3rd-party (v126), share-onboarding (v128, pending re-verify)
       medium: 11,    // M0-M5, #78 datadog (subset), #80 moth_copse, #81 passport_quail, #85 malort_pedway, harbor-prism (v128)
-      med_high: 1,   // iron-gate fail-open inversion (v128)
+      med_high: 0,   // iron-gate fail-open promoted to CRITICAL via probe-v2 empirical
       low: 3,        // L1-L3
       observation: 1 // OBS1
     }
