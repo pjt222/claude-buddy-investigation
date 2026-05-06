@@ -2,7 +2,7 @@
 
 Investigation into Shingle — the companion owl in Claude Code's built-in "Buddy" pet system.
 
-> **Status (2026-05-05):** The companion UI was **removed from the binary in v2.1.97** (built April 8), but the **`buddy_react` API is still alive** server-side. A new **advisor system** (`advisor_20260301`) was discovered in v2.1.98 — code-complete since v2.1.96, dark-launched behind a feature flag. See `advisor-architecture.md` for the full technical spec. Investigation rolling across binary releases (v2.1.107 → **v2.1.128** current; v2.1.120/v2.1.122/v2.1.124/v2.1.125/v2.1.127 skipped). **Disclosure-candidate count: 21** (3 confirmed Critical, 7 High including 1 with promotion-gate pending re-verify, 11 Medium-class, 3 Low, 1 Observation). See `docs/counts.js` for the canonical severity tally.
+> **Status (2026-05-06):** The companion UI was **removed from the binary in v2.1.97** (built April 8), but the **`buddy_react` API is still alive** server-side. A new **advisor system** (`advisor_20260301`) was discovered in v2.1.98 — code-complete since v2.1.96, dark-launched behind a feature flag. See `advisor-architecture.md` for the full technical spec. Investigation rolling across binary releases (v2.1.107 → **v2.1.129** current; v2.1.120/v2.1.122/v2.1.124/v2.1.125/v2.1.127 skipped). **Disclosure-candidate count: 22** (3 confirmed Critical, 8 High including 1 with promotion-gate pending re-verify, 11 Medium-class, 3 Low, 1 Observation). See `docs/counts.js` for the canonical severity tally.
 >
 > **Recent version highlights**:
 > - **v2.1.114** (2026-04-19): complete feature-flag surface audit, 148 unique gate reads, 15 DEFAULT-TRUE flags, 6 harness-level findings
@@ -11,6 +11,7 @@ Investigation into Shingle — the companion owl in Claude Code's built-in "Budd
 > - **v2.1.123**: subagent-attribution detection telemetry shipped, but 3 of 4 reachable variants of the attribution-laundering attack class remain undefended at parse/load
 > - **v2.1.126**: brief-mode stop-hook reminder text became a server-controlled GrowthBook string-flag (1 confirmed Critical, mitm-injection canary verbatim reach to model context, no client-side length cap)
 > - **v2.1.128**: a new agentic tool can upload local `ONBOARDING.md` content to a shareable Anthropic-hosted URL when a server-flippable feature flag is enabled. Auth model needs further USER incognito re-verification — round-3 informal "landed cleanly" report was contradicted by 3 scrapling re-runs all redirecting to `/login`; severity HIGH pending re-verify. See `docs/counts.js` `share_onboarding_unauth_public_url` entry for the structured fields and `auth_required_to_view_share_url: "needs-reverify"` flag.
+> - **v2.1.129**: telemetry destructure-rename pattern egresses raw plugin/skill/marketplace identifiers as 1P-telemetry top-level fields (HIGH, extends prior envelope-level leak class to field-level). Unified reader rotation: bool + string flag readers FULLY RETIRED into one unified reader (410 call sites). New env-var-opt-in package-manager auto-updater with hardcoded signed-PM commands (NOT disclosure — uses standard signature chain). 13 active emitters in v129 vs 11 in v128; forward-compat slot for raw REPL-input field exists but is currently unwired.
 
 ## Quick Start
 

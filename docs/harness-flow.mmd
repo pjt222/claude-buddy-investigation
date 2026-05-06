@@ -178,7 +178,16 @@ flowchart LR
         direction TB
         prism_flag["[harbor-prism-flag]<br/>string-flag (default false)<br/>per-account decision-routing"]:::core
         prism_off["OFF path: local `gh pr view --json ...`<br/>ground truth"]:::core
-        prism_on["ON path: Anthropic-server side<br/>[pr-server-path-fn]($)"]:::gap
+        prism_on["ON path: direct GitHub API/GraphQL fetch from binary<br/>(NOT Anthropic-intermediary, uses gh-CLI auth)"]:::gap
+    end
+    %% ===== Y — v129 _PROTO_ destructure-rename field-level leak (High) =====
+    subgraph PROTOLEAK["Y — _PROTO_ destructure-rename leak (v2.1.129 High)"]
+        direction TB
+        proto_emitters["13 active emitters in v129<br/>(plugin install/uninstall/enable/disable/update_command,<br/>plugin_hint_*, plugin_folder_shadowed, plugin_name_collision,<br/>skill_loaded, skill_tool_invocation, slash_command_forked,<br/>input_command)<br/>Each adds _PROTO_plugin_name / _PROTO_skill_name /<br/>_PROTO_marketplace_name to event.additional"]:::gap
+        proto_egress["Egress site at [proto-egress-offset]<br/>destructures _PROTO_* into local vars<br/>then re-attaches as top-level event fields:<br/>plugin_name / skill_name / marketplace_name"]:::gap
+        proto_endpoint["1P telemetry endpoint:<br/>api.anthropic.com/api/event_logging/v2/batch<br/>Top-level fields (raw): skill_name, plugin_name,<br/>marketplace_name, device_id, email, auth"]:::gap
+        proto_redactor["Sibling redactor jyH() at [proto-redactor-offset]<br/>strips remaining _PROTO_* in residual j object<br/>but does NOT block the destructured raw values<br/>that are explicitly re-attached at egress"]:::core
+        proto_dormant["_PROTO_code → repl_code slot present at destructure<br/>but no emitter populates it in v123/v126/v128/v129<br/>(forward-compat slot — escalate watch if v130+ adds setter)"]:::core
     end
     %% ===== Q — Our Tooling =====
     subgraph OURS["Q — Our Tooling"]

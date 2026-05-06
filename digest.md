@@ -181,16 +181,40 @@ A new default-TRUE boolean flag controls the fail-closed-vs-fail-open behavior o
 
 ### v2.1.128 path-switcher (1 Medium info)
 
-A new string-flag switches the PR-status decision lookup between local `gh pr view` (default, ground truth) and an Anthropic-server-side path. Per-account decision-routing flag.
+A new string-flag switches the PR-status decision lookup between local `gh pr view` (default, ground truth) and a binary-direct GitHub API/GraphQL fetch path (uses gh-CLI auth, NOT an Anthropic-intermediary as initially framed). Per-account decision-routing flag. Original report corrected in round-6 closure: divergence is subprocess footprint, gh-CLI extension applicability, network-egress proxy bypass, and ETag/30-min review-cache vs fresh-per-call timing — not auth-identity divergence.
+
+### v2.1.128 round-6 closure (informational)
+
+Tail-item dispositions completed before v129 pivot:
+- A second call site for the sandbox-classifier flag was identified at the auto-mode permission classifier (same flag, manual-prompt fallback rather than fail-open). Critical impact still driven by the sandbox-network call site.
+- The path-switcher's ON-path was confirmed to make direct GitHub API calls from the binary, not via Anthropic-intermediary. Auth-identity divergence threat removed; subprocess/proxy/cache divergence threats stand.
+- Two additional flags decoded as feature-rollout / DEFAULT-TRUE killswitch class (no new findings).
+
+### v2.1.129 _PROTO_ destructure-rename egresses raw identifiers as top-level event fields (1 High)
+
+A destructure-rename pattern in the 1P telemetry pipeline extracts `_PROTO_*`-prefixed payload values into local variables and then re-attaches them to the egressed event as typed top-level fields (`plugin_name`, `skill_name`, `marketplace_name`). The `_PROTO_` prefix is **not** a redaction marker — the sibling field-residual redactor only operates on the leftover destructure rest, not on the destructured locals which are explicitly egressed. Raw third-party / private plugin and marketplace names reach the 1P telemetry endpoint as top-level event fields rather than opaque metadata.
+
+- v2.1.128 had 11 emitters using this pattern; v2.1.129 adds 2 (`tengu_plugin_folder_shadowed`, `tengu_plugin_name_collision`) for 13 active emitters total
+- A `_PROTO_code → repl_code` slot exists at the egress destructure across v123/v126/v128/v129 but is currently unwired (no emitter sets it). Forward-compat slot — escalate watch if a future binary wires a `_PROTO_code:` setter, since raw REPL inputs would be considerably more sensitive than identifier strings.
+- Extends the prior envelope-level leak class (raw session_id / device_id / email transmitted on every batch) from envelope to field level
+
+### v2.1.129 reader unification (informational)
+
+Two of the three flag readers in v2.1.128 (`<bool-reader>` and `<string-reader>`) FULLY RETIRED in v2.1.129 — a single unified reader (`<unified-reader>`) handles both bool-default-with-second-arg and string-flag pattern across all 410 `tengu_*` call sites. DEFAULT-TRUE bool count went from 18 (v128 stable) to 15 (v129 stable). Net flag delta +13/-3 (1109→1119 unique flags).
+
+### v2.1.129 env-var-opt-in package-manager auto-updater (NOT disclosure-candidate)
+
+A new env-var-opt-in (`CLAUDE_CODE_PACKAGE_MANAGER_AUTO_UPDATE`) auto-updater spawns hardcoded signed-PM commands (`brew upgrade --cask claude-code`, `winget upgrade --id Anthropic.ClaudeCode --exact --silent --disable-interactivity`) with a 5-minute subprocess timeout, surfacing success/failure to UI state. Telemetry-only flags (`tengu_pkg_manager_auto_updater_{start,success,fail}`) carry only platform booleans and exit codes. NOT disclosure-candidate — uses standard PM signature verification chain, opt-in, hardcoded package names.
 
 ### Positive deltas
 
 - v2.1.128 retired the auto-memory feature entirely (5 flags removed; zero binary-string hits for the related identifiers). Privacy improvement, noted alongside the negative findings.
+- v2.1.129's auto-updater is opt-in and uses signed PM commands (rather than self-modifying binary or bundled-installer paths), preserving signature-chain integrity.
 - The hook system's documented JSON contract is one of the few harness mechanisms with a publicly-documented full schema, even where individual fields enable problematic behaviors.
 
 ### Disclosure approach
 
-Per-thread HackerOne anthropic-vdp filing for each of the 21 findings. Standard 9-section H1 form structure. Capture sharing offered via Anthropic-controlled secure channel on follow-up (captures contain raw envelope identifiers, which are themselves the subject of the meta findings).
+Per-thread HackerOne anthropic-vdp filing for each of the 22 findings. Standard 9-section H1 form structure. Capture sharing offered via Anthropic-controlled secure channel on follow-up (captures contain raw envelope identifiers, which are themselves the subject of the meta findings).
 
 ---
 

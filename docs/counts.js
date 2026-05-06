@@ -42,15 +42,19 @@ window.VIZ_COUNTS = Object.freeze({
   // marker rendered or "Sign in" interstitial appeared),
   // <iron-gate-flag> sandbox network classifier fail-closed→fail-open inversion
   // (Med-High), <harbor-prism-flag> PR-status path-switcher (Med info).
-  // by_severity sums to 26 (3+7+11+3+1+1).
+  // v129 added 1 disclosure-candidate: <_PROTO_-leak> destructure-rename pattern
+  // egresses raw plugin/skill/marketplace identifiers as 1P-telemetry top-level
+  // fields (HIGH, extends envelope-level leak class to field-level; v128 had 11
+  // emitters, v129 +2 = 13 active emitters).
+  // by_severity sums to 27 (3+8+11+3+1+1).
   security: {
-    total: 26,
+    total: 27,
     audit_vulnerabilities: 13,
     audit_observations: 1,
-    post_audit: 12,  // #31 AC3 + 6 mithril harness + brief stop-hook + Datadog 3rd-party + share-onboarding + iron-gate + harbor-prism
+    post_audit: 13,  // #31 AC3 + 6 mithril harness + brief stop-hook + Datadog 3rd-party + share-onboarding + iron-gate + harbor-prism + _PROTO_-leak
     by_severity: {
       critical: 3,   // C1 + #31 AC3 + brief stop-hook injection (v126); share-onboarding pending re-verify
-      high: 7,       // H1, H2 (resolved), H4, #73 off-switch, #76 paper_halyard, Datadog 3rd-party (v126), share-onboarding (v128, pending re-verify)
+      high: 8,       // H1, H2 (resolved), H4, #73 off-switch, #76 paper_halyard, Datadog 3rd-party (v126), share-onboarding (v128, pending re-verify), _PROTO_-leak (v129)
       medium: 11,    // M0-M5, #78 datadog (subset), #80 moth_copse, #81 passport_quail, #85 malort_pedway, harbor-prism (v128)
       med_high: 1,   // iron-gate fail-open inversion (v128)
       low: 3,        // L1-L3
@@ -86,7 +90,7 @@ window.VIZ_COUNTS = Object.freeze({
   //   5. Statsig supplemental gates [statsig-gate-fn] (cachedStatsigGates)
   //   6. Grove policy (GET /api/[internal-policy-endpoint])
   //   7. Embedded default ($ parameter fallback)
-  flags: { resolution_layers: 7, gate_reads: 148, default_true: 3 },  // v128: boolean-reader rotated again (G$→f0); only 3 boolean-default-true call-sites remain (iron-gate, kairos-cron, kairos-cron-durable); most flags migrated to string-reader (Z$, 148 callsites)
+  flags: { resolution_layers: 7, gate_reads: 410, default_true: 15 },  // v129: unified reader rotation — f0 (bool) + Z$ (string) FULLY RETIRED → G$ is sole tengu_ reader (410 call sites). DEFAULT-TRUE bool count = 15 (was 18 in v128 stable).
 
   // ---- Local agents subsystem ----
   agents: {
@@ -178,8 +182,8 @@ window.VIZ_COUNTS = Object.freeze({
   // ---- Version coverage ----
   version: {
     start: "v2.1.89",
-    end: "v2.1.128",
-    range: "v2.1.89 \u2192 v2.1.128",  // unicode rightwards arrow
+    end: "v2.1.129",
+    range: "v2.1.89 \u2192 v2.1.129",  // unicode rightwards arrow
     skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125", "v2.1.127"]
   },
 
