@@ -96,6 +96,21 @@ window.VIZ_COUNTS = Object.freeze({
   //   7. Embedded default ($ parameter fallback)
   flags: { resolution_layers: 7, gate_reads: 410, default_true: 17 },  // v131 round-1: unified reader G$ (410 sites) + parallel P0 3-arg reader (18 sites) — no rotation v129→v131. DEFAULT-TRUE bool count = 17 (corrected from 15; prior count missed P0's 3-arg form covering iron_gate_closed/kairos_cron/kairos_cron_durable). Set byte-identical v128↔v129↔v131.
 
+  // ---- Session-44 v131 cross-version regression (2026-05-06) ----
+  // 11 v131 probes total covering all priority-2 disclosure-candidate findings.
+  // 16 findings cross-version-confirmed byte-stable v128/v129/v131. Zero new
+  // findings filed. Zero remediations observed across 3 binary rebuilds.
+  // Methodology rule: prefer string-pool literals over minified-identifier patterns.
+  cross_version_v131: {
+    probes_total: 11,
+    findings_confirmed_byte_stable: 16,
+    new_findings_filed: 0,
+    remediations_observed: 0,
+    rebuilds_covered: 3,
+    interactive_probes: 2,
+    methodology_rule: "string-pool literals over minified-identifier patterns"
+  },
+
   // ---- Local agents subsystem ----
   agents: {
     telemetry_events: 15,
