@@ -122,15 +122,17 @@ window.VIZ_COUNTS = Object.freeze({
   // (v126/v128/v129/v131/v132). Probe-W/EE wire-confirmation deferred per advisor —
   // marginal info gain when silent layer holds.
   cross_version_v132: {
-    probes_total: 1,
+    probes_total: 4,
     findings_confirmed_byte_stable: 16,
+    findings_confirmed_wire: 3,
     new_findings_filed: 0,
     remediations_observed: 0,
     rebuilds_covered: 5,
     flag_delta: { added: 23, removed: 5, net: 18 },
     default_true_delta: { v131: 15, v132: 14 },
     new_topic_relevant_flags: 3,
-    methodology_rule: "static deep-dive sufficient when silent layer holds; defer wire probes pending signal"
+    growthbook_source_drift: { force: "48→47", default: "162→161", experiment: "14→16", total: 224 },
+    methodology_rule: "static + wire-confirmation across 3 channels; no remediations across 5-version chain"
   },
 
   // ---- Local agents subsystem ----
