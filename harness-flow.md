@@ -2,7 +2,7 @@
 
 **Scope**: composite structural map across v2.1.89 – v2.1.138. Tier-2 abstraction — role-level node labels, generic edge semantics. Exact function names, feature-flag identifiers, internal endpoint paths, and result-file references are redacted. Claude Desktop is out of scope; only Claude Code (WSL/binary) is mapped.
 
-**Last updated**: 2026-05-10 (added clusters Z/AA/AB for v2.1.138 forced-downgrade primitive, ghost-inbox transcript-replay AC3 partial defense, mid-conversation system predicate, and BYOC third-party-logging killswitch).
+**Last updated**: 2026-05-10 (added clusters Z/AA/AB for v2.1.138 forced-downgrade primitive, ghost-inbox transcript-replay AC3 partial defense, mid-conversation system predicate, and BYOC third-party-logging killswitch). Also added clusters Q1/Q2 for the pi-passport research-tooling subsystem (post-hardening) and the server-side billing-tier classifier it exercises.
 
 > **Version-composite disclaimer**: the three side-systems (buddy companion, advisor tool, Kairos self-continuation loop) were **never simultaneously live** in any single running build — the native buddy UI was removed mid-2.1 before the advisor feature-flag rolled out or the loop shipped. Read the diagram as a *structural map* of the harness's architectural surfaces, not as a snapshot of one installation.
 
@@ -313,6 +313,8 @@ flowchart LR
 | **L — CCR Cloud-Runner** | Teleport + Bridge + sub-surfaces (Ultrareview, Autofix-PR) | on-demand |
 | **M — Auto-Dream** | Background memory consolidation scheduler; time + session gates with PID lock | background |
 | **N — Plugins** | First-party extension distribution; marketplace + git fallback; six extension types | startup + on-demand |
+| **Q1 — Pi-Passport** `[OURS]` | Research tooling: OAuth-bearer driven `/v1/messages` against the Pro/Max billing tier with a sanitiser ladder; multi-perspective audit + hardening 2026-05-10 (#111 disclosure batch) | on-demand |
+| **Q2 — Billing-tier classifier** | Server-side gate that inspects `system[].text` content for density + structural patterns; 200 = plan-billing, 400 = extra-usage; cached on identical body | per-request |
 
 ## Edge-Semantics Legend
 

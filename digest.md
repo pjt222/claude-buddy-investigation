@@ -195,8 +195,8 @@ Tail-item dispositions completed before v129 pivot:
 A destructure-rename pattern in the 1P telemetry pipeline extracts `_PROTO_*`-prefixed payload values into local variables and then re-attaches them to the egressed event as typed top-level fields (`plugin_name`, `skill_name`, `marketplace_name`). The `_PROTO_` prefix is **not** a redaction marker — the sibling field-residual redactor only operates on the leftover destructure rest, not on the destructured locals which are explicitly egressed. Raw third-party / private plugin and marketplace names reach the 1P telemetry endpoint as top-level event fields rather than opaque metadata.
 
 - **Empirical wire confirmation (2026-05-06)**: a single non-interactive bootstrap invocation captured under MITM produced 2 telemetry batches to the 1P endpoint with **356 raw skill_name occurrences (355 unique values)**, **9 plugin_name (2 unique)**, and **9 marketplace_name (2 unique)**. All values raw, unhashed, top-level on `event_data`. Third-party plugin and marketplace identities (one private plugin and its source marketplace) leaked verbatim alongside the official catalogue entries.
-- Per-bootstrap volume scales linearly with installed-skill count: each globally-installed skill emits one `tengu_skill_loaded` event with its raw name, fingerprintable when combined with the durable per-account session identifiers transmitted at envelope level.
-- v2.1.128 had 11 emitters using this pattern; v2.1.129 adds 2 (`tengu_plugin_folder_shadowed`, `tengu_plugin_name_collision`) for 13 active emitters total
+- Per-bootstrap volume scales linearly with installed-skill count: each globally-installed skill emits one telemetry event carrying its raw name, fingerprintable when combined with the durable per-account session identifiers transmitted at envelope level.
+- v2.1.128 had 11 emitters using this pattern; v2.1.129 adds 2 (a plugin-folder-shadowed event and a plugin-name-collision event) for 13 active emitters total
 - A `_PROTO_code → repl_code` slot exists at the egress destructure across v123/v126/v128/v129 but is currently unwired (0 emitter hits empirically). Forward-compat slot — escalate watch if a future binary wires a `_PROTO_code:` setter, since raw REPL inputs would be considerably more sensitive than identifier strings.
 - Extends the prior envelope-level leak class (raw session_id / device_id / email transmitted on every batch) from envelope to field level
 
@@ -227,11 +227,11 @@ Adversary capability required: server-flip access to GrowthBook (Anthropic opera
 
 ### v2.1.129 reader unification (informational)
 
-Two of the three flag readers in v2.1.128 (`<bool-reader>` and `<string-reader>`) FULLY RETIRED in v2.1.129 — a single unified reader (`<unified-reader>`) handles both bool-default-with-second-arg and string-flag pattern across all 410 `tengu_*` call sites. DEFAULT-TRUE bool count went from 18 (v128 stable) to 15 (v129 stable). Net flag delta +13/-3 (1109→1119 unique flags).
+Two of the three flag readers in v2.1.128 (`<bool-reader>` and `<string-reader>`) FULLY RETIRED in v2.1.129 — a single unified reader (`<unified-reader>`) handles both bool-default-with-second-arg and string-flag pattern across all 410 telemetry-name call sites. DEFAULT-TRUE bool count went from 18 (v128 stable) to 15 (v129 stable). Net flag delta +13/-3 (1109→1119 unique flags).
 
 ### v2.1.129 env-var-opt-in package-manager auto-updater (NOT disclosure-candidate)
 
-A new env-var-opt-in (`CLAUDE_CODE_PACKAGE_MANAGER_AUTO_UPDATE`) auto-updater spawns hardcoded signed-PM commands (`brew upgrade --cask claude-code`, `winget upgrade --id Anthropic.ClaudeCode --exact --silent --disable-interactivity`) with a 5-minute subprocess timeout, surfacing success/failure to UI state. Telemetry-only flags (`tengu_pkg_manager_auto_updater_{start,success,fail}`) carry only platform booleans and exit codes. NOT disclosure-candidate — uses standard PM signature verification chain, opt-in, hardcoded package names.
+A new env-var-opt-in (`CLAUDE_CODE_PACKAGE_MANAGER_AUTO_UPDATE`) auto-updater spawns hardcoded signed-PM commands (`brew upgrade --cask claude-code`, `winget upgrade --id Anthropic.ClaudeCode --exact --silent --disable-interactivity`) with a 5-minute subprocess timeout, surfacing success/failure to UI state. Telemetry-only events (start/success/fail variants) carry only platform booleans and exit codes. NOT disclosure-candidate — uses standard PM signature verification chain, opt-in, hardcoded package names.
 
 ### Positive deltas
 

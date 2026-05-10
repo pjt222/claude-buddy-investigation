@@ -318,5 +318,61 @@ window.VIZ_COUNTS = Object.freeze({
     flags_removed: 17,
     bg_daemon_events_added: 17,    // adopt/attach/dispatch/worker lifecycle expansion
     note: "reader rotation = identifier-only churn (same call signature, version-specific minified name)"
+  },
+
+  // ---- pi-passport research tooling (subsystem PIPASS) ----
+  // Research-grade tooling demonstrating that an OAuth bearer extracted from
+  // a logged-in first-party Claude Code session can drive `/v1/messages` from
+  // outside the official binary, against the same Pro/Max subscription billing
+  // tier. The tooling exercises a billing-tier classifier evasion via a
+  // sanitiser ladder applied to system-prompt blocks. Disclosure batched as
+  // a single bundled report (research-grade, no in-the-wild abuse).
+  //
+  // Post-hardening tally re-derived from the multi-perspective audit at
+  // results/pi-passport-review-postQ3Q4-2026-05-10.md (private). All Critical
+  // and High items closed across 6 follow-up commits; remaining open work is
+  // documented architectural limitations or out-of-scope research-grade Lows.
+  pi_passport: {
+    sanitiser_levels: 4,                  // ladder: light → nuclear
+    classifier_corpus_size: 41,           // labelled samples; PASS:BLOCKED skew 37:4 (majority baseline 90.2%)
+    sanctioned_path_l1_trials: 13,        // 3 verifier + 10 stress-multiturn
+    sanctioned_path_l1_ci_lower_95_clopper: 0.7942,  // (0.05)^(1/13); the right CI for n=13
+    statistical_scope: "demonstrated bypass within 2026-05-07 corpus snapshot; effective independent units = 1 classifier-snapshot, NOT the 13 Bernoulli trials",
+    test_count: 112,                      // unit + integration; lineage 41 → 54 → 82 → 95 → 107 → 112
+    review_post_hardening: {
+      timestamp: "2026-05-10",
+      severity_breakdown_original: { critical: 1, high: 11, medium: 12, low: 6, info: 5 },
+      severity_breakdown_rebaselined: {
+        closed: 35,
+        refuted: 1,
+        architectural_residual: 1,        // bearer-in-/proc; Pi contract requires env-var bearer-injection
+        low_open: 3,                      // research-grade-acceptable: stderr meta, hot-reload-fwd-compat, import-time-side-effect
+        info_writeup_open: 1,             // cosmetic doc snippet
+        info_positive: 3,                 // tsconfig lib, no outcome→feature leakage, contained-env-pattern
+        total: 44
+      },
+      empirical_falsification_class: "shell-script $PATH-attacker token exfil — pre-strip dependency-binary shim AND post-strip PATH forwarding; sandbox-confirmed with fake bearer (no real exfil); CLOSED via absolute-path resolution at startup + hardcoded minimal PATH in env-strip allowlist",
+      hardening_themes: [
+        "absolute-path resolution for all dependency binaries before any external invocation",
+        "$PATH sanity-check refusing /tmp/* and . entries",
+        "hardcoded minimal PATH in env-strip allowlist (no parent-shell PATH forwarding)",
+        "CWE-78 arithmetic-injection guard via integer-format validation before bash $(( ... )) context",
+        "single-flight mid-session OAuth refresh with background scheduler + clock-skew defense via server Date header",
+        "TZ-stress test matrix (UTC / Asia/Tokyo / America/Los_Angeles / Pacific/Kiritimati) confirming epoch-only invariant",
+        "Anthropic-API runtime drift watcher (Sunset / Deprecation / anthropic-deprecation-notice headers + version-error body types)",
+        "Pi-API runtime event-shape sentinel (per-event expected/missing/wrong-type/extra-field detection, once-per-process dedup)",
+        "nuclear-mode opt-in gate (env-injected level=4 clamps to 3 unless explicit second env var is set)",
+        "client_id discovery primitive when hardcoded ladder exhausts (binary-string-grep for fresh UUIDs ranked by oauth-keyword proximity)",
+        "MITM-log path safety: lstat refuses symlinks + non-regular-files + non-current-user-owned paths"
+      ],
+      remaining_open_classes: [
+        "bearer-in-/proc/<pid>/environ (architectural — Pi contract; needs Pi-upstream change)",
+        "stderr account meta on each request (research-grade-acceptable diagnostic surface)",
+        "module-state under hot-reload (forward-compat — Pi has no hot-reload; A3 session_start hook covers single-process multi-session)",
+        "import-time await side-effects in a script-only verifier",
+        "writeup snippet predates module decompose (cosmetic)"
+      ]
+    },
+    issue_bundle: 111
   }
 });

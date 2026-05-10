@@ -1,0 +1,26 @@
+# Local research debris — NOT for public mirror
+# capture/ contains stderr/network captures from probe sessions; raw content
+# may include verbatim system prompts, bearer tokens, account meta, etc.
+# Verified safe staging path is publish/ in the private repo.
+capture/
+CONTINUE_HERE.md
+
+# Node deps
+node_modules/
+**/node_modules/
+
+# Editor / OS noise
+.DS_Store
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+
+# Build / dist
+dist/
+build/
+.cache/

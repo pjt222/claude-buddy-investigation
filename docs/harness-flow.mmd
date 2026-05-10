@@ -264,6 +264,28 @@ flowchart LR
         workspace_mcp["workspace-mcp transcript"]:::ours
         mempalace["mempalace-sync"]:::ours
     end
+    %% ===== Q1 — Pi-Passport (research tooling — billing-tier classifier evasion via OAuth bearer; batched as #111) =====
+    %% Multi-perspective audit 2026-05-10 (7 reviewers, opaque-team) — all Critical/High items closed in 6 follow-up commits same day.
+    subgraph PIPASS["Q1 — Pi-Passport [research tooling, hardened postQ3Q4 2026-05-10]"]
+        direction TB
+        pp_creds["~/.claude/.credentials.json<br/>OAuth bearer + refreshToken<br/>(stolen-token threat surface)"]:::ours
+        pp_refresh["OAuth refresh helper<br/>POST <oauth-token-endpoint><br/>multi-candidate client_id ladder<br/>+ client_id discovery primitive when ladder exhausts"]:::ours
+        pp_launcher["Shell launcher (env-strip allowlist)<br/>+E1 absolute paths for all dep binaries (closed)<br/>+E1 hardcoded minimal PATH (closed)<br/>+S1 integer guard before bash arithmetic (closed)"]:::ours
+        pp_canary["First-call canary against real system blocks<br/>L_N → 400 → bump to L_(N+1)<br/>cap at maxLevel<br/>+R2 refuses initialLevel>maxLevel (closed)"]:::ours
+        pp_sanitizer["Sanitiser hook (in-place mutation)<br/>before_provider_request<br/>L1 light → L4 nuclear ladder<br/>+drift detector (extracted module + tests)<br/>+nuclear-mode opt-in gate (LEVEL=4 needs second env var)"]:::ours
+        pp_refresh_flow["Mid-session OAuth refresh<br/>single-flight + background scheduler<br/>+clock-skew defense (server Date header is canonical)<br/>+TZ-stress test matrix (UTC / Asia/Tokyo / etc.)"]:::ours
+        pp_drift_watch["Anthropic-API drift watcher<br/>Sunset / Deprecation / version-error body types<br/>+Pi-API runtime event-shape sentinel<br/>(once-per-process dedup)"]:::ours
+        pp_classifier["Classifier corpus + rule-fallback<br/>~41 labelled samples (PASS:BLOCKED 37:4 skew)<br/>gate requires density+structure (not keyword OR-rule)"]:::ours
+        pp_test_suite["Test suite: 41 → 54 → 82 → 95 → 107 → 112<br/>unit + integration + TZ-stress<br/>typecheck clean across hardening batch"]:::ours
+    end
+    %% ===== Q2 — Anthropic Third-Party-App Classifier (server-side billing-tier gate) =====
+    subgraph TPGATE["Q2 — Anthropic billing-tier classifier (server-side)"]
+        direction TB
+        tp_input["Inspects system[].text content<br/>(not headers / TLS / SDK identity)"]:::gap
+        tp_features["Feature scoring<br/>density + structural patterns<br/>+ total block size"]:::gap
+        tp_verdict["200 = plan-billing<br/>400 = 'extra usage'<br/>cached on identical body"]:::gap
+        tp_input --> tp_features --> tp_verdict
+    end
     %% ===== Edges =====
     oauth --> firstparty
     firstparty --> orguuid
@@ -406,6 +428,14 @@ flowchart LR
     flags -. "[harbor-prism-flag]" .-> prism_flag
     prism_flag --> prism_off
     prism_flag --> prism_on
+    %% ===== Pi-Passport edges (Q1 → Q2) — research tooling drives the server-side billing-tier classifier =====
+    pp_creds --> pp_launcher
+    pp_launcher --> pp_canary
+    pp_canary --> pp_sanitizer
+    pp_sanitizer --> tp_input
+    pp_refresh_flow --> pp_creds
+    pp_refresh --> pp_creds
+    pp_drift_watch -. "monitors" .-> tp_verdict
     classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
     classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
     classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px

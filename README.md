@@ -69,6 +69,25 @@ Investigation into Shingle — the companion owl in Claude Code's built-in "Budd
 
 The workspace bypasses the Claude Code binary entirely. It calls the `buddy_react` API with custom stat blocks per buddy, multiplexes reactions across the crew, and renders them in a React UI. Tested and confirmed working on v2.1.97 (2026-04-09).
 
+### Pi-passport research tooling (subsystem PIPASS, batched as #111)
+
+Research-grade tooling demonstrating that an OAuth bearer extracted from a logged-in first-party Claude Code session can drive `/v1/messages` from outside the official binary, against the same Pro/Max subscription billing tier. The tooling exercises a **billing-tier classifier evasion** via a sanitiser ladder (light → nuclear) applied to system-prompt blocks. **Disclosure batched as a single bundled report (research-grade; no in-the-wild abuse).**
+
+Statistical scope is honest: 13 sanctioned-path L1 trials within a 2026-05-07 corpus snapshot (Clopper-Pearson 95% one-sided LB = 0.7942). Effective independent units = 1 classifier-snapshot, **NOT** the 13 Bernoulli trials. Disclosure-grade claim is "demonstrated bypass within snapshot," not "durable bypass."
+
+Multi-perspective audit (7 reviewers; opaque-team) ran on 2026-05-10. **All Critical and High items closed across 6 follow-up commits the same day.** Hardening themes:
+
+- **Shell-script `$PATH`-attacker token-exfil class — CLOSED**: empirically demonstrated (sandbox, fake bearer) via two independent paths (pre-strip dependency-binary shim + post-strip `PATH` forwarding); closed via absolute-path resolution at startup, `$PATH` sanity-check refusing untrusted entries, and hardcoded minimal `PATH` in the env-strip allowlist (no parent-shell forwarding).
+- **CWE-78 arithmetic-injection — CLOSED**: integer-format guard before bash `$(( ... ))` context.
+- **Mid-session OAuth refresh — ADDED**: single-flight background scheduler with clock-skew defense (server `Date` header is canonical reference for token expiry); TZ-stress test matrix (UTC / Asia/Tokyo / America/Los_Angeles / Pacific/Kiritimati) confirms epoch-only invariant.
+- **Anthropic-API runtime drift watcher — ADDED**: monitors `Sunset` / `Deprecation` / `anthropic-deprecation-notice` headers + version-error body types; once-per-process dedup.
+- **Pi-API runtime event-shape sentinel — ADDED**: per-event expected/missing/wrong-type/extra-field detection on the 3 hooked events.
+- **Nuclear-mode opt-in gate — ADDED**: env-injected level=4 clamps to 3 unless an explicit second env var opts in.
+- **`client_id` discovery primitive — ADDED**: when the hardcoded ladder exhausts, a binary-string-grep helper surfaces fresh UUIDs ranked by oauth-keyword proximity.
+- **MITM-log path safety — ADDED**: lstat refuses symlinks + non-regular files + non-current-user-owned paths.
+
+Test count lineage: 41 → 54 → 82 → 95 → 107 → **112** across the hardening batch. Remaining open items are documented architectural limitations (bearer-in-`/proc/<pid>/environ`, which requires a Pi-upstream change) or out-of-scope research-grade Lows (stderr diagnostic surface, hot-reload forward-compat, import-time await side-effects in a script-only verifier).
+
 ### Crew Roster
 
 Each buddy has a unique stat block (like a TCG card) that shapes its reaction personality via the `buddy_react` API.
