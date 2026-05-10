@@ -40,29 +40,52 @@ window.VIZ_COUNTS = Object.freeze({
   // to /login?returnTo=...; promotion-gate from HIGH to CRITICAL pending USER
   // re-verification of which URL appeared in the address bar + whether canary
   // marker rendered or "Sign in" interstitial appeared),
-  // <iron-gate-flag> sandbox network classifier fail-closed→fail-open inversion
-  // (Med-High), <harbor-prism-flag> PR-status path-switcher (Med info).
-  // v129 added 1 disclosure-candidate: <_PROTO_-leak> destructure-rename pattern
-  // egresses raw plugin/skill/marketplace identifiers as 1P-telemetry top-level
-  // fields. PROMOTED HIGH→CRITICAL via probe-r MITM 2026-05-06: empirical wire
-  // capture showed 356 raw skill_name + 9 plugin_name + 9 marketplace_name on
-  // 2 event_logging batches from a single bootstrap; zero redaction.
-  // 2026-05-06 follow-up via probe-v2: iron-gate fail-open EMPIRICALLY confirmed
-  // (literal binary log line "(fail open)" fires under documented attack input);
-  // #108 PROMOTED Med-High→CRITICAL.
-  // by_severity sums to 27 (5+7+11+3+0+1).
+  // sandbox network classifier fail-closed → fail-open inversion (CRITICAL,
+  // promoted in v129 via empirical wire capture: literal binary log line
+  // "(fail open)" fires under documented attack input). PR-status path-switcher
+  // remains Medium-info pending billed-mode runtime verification.
+  // v129 added 1 disclosure-candidate: a destructure-rename pattern egresses raw
+  // plugin/skill/marketplace identifiers as first-party-telemetry top-level
+  // fields. PROMOTED HIGH→CRITICAL via MITM wire capture 2026-05-06: a single
+  // bootstrap produced 356 raw skill_name + 9 plugin_name + 9 marketplace_name
+  // on 2 event-logging batches; zero redaction.
+  // v138 added 2 HIGH disclosures: a server-pushed forced-downgrade primitive
+  // (typed-config eval-SDK reader returns {maxVersion, forceDowngradeEnabled})
+  // and a partial defense for the ghost-inbox transcript-replay variant on the
+  // skip-persistence path (third-party SDK wrapper survey: 5 of 7 sampled
+  // wrappers default unconditionally to the bypass-vulnerable mode).
+  //
+  // TWO COUNTING BASES tracked here, deliberately:
+  //   (1) audit-baseline-tally = SECURITY-AUDIT.md (13V + 1OBS) + curated
+  //       post-audit GH adds. Historical lineage, codenamed C1/H1/M0/L1/OBS1.
+  //   (2) gh_label_counts = live re-derivation from `gh issue list` severity
+  //       labels in the private issue tracker (refreshed each version bump).
+  //
+  // by_severity sums to 28 (5+9+10+3+1).
   security: {
-    total: 27,
+    total: 28,
     audit_vulnerabilities: 13,
     audit_observations: 1,
-    post_audit: 13,  // #31 AC3 + 6 mithril harness + brief stop-hook + Datadog 3rd-party + share-onboarding + iron-gate + harbor-prism + _PROTO_-leak
+    post_audit: 14,
     by_severity: {
-      critical: 5,   // C1 + #31 AC3 + brief stop-hook injection (v126) + _PROTO_-leak (v129, probe-r MITM) + iron-gate fail-open (v128, probe-v2 MITM 2026-05-06)
-      high: 7,       // H1, H2 (resolved), H4, #73 off-switch, #76 paper_halyard, Datadog 3rd-party (v126), share-onboarding (v128, pending re-verify)
-      medium: 11,    // M0-M5, #78 datadog (subset), #80 moth_copse, #81 passport_quail, #85 malort_pedway, harbor-prism (v128)
-      med_high: 0,   // iron-gate fail-open promoted to CRITICAL via probe-v2 empirical
-      low: 3,        // L1-L3
-      observation: 1 // OBS1
+      critical: 5,
+      high: 9,
+      medium: 10,
+      low: 3,
+      observation: 1
+    },
+    // Live re-derivation from `gh issue list --label <sev>` (run 2026-05-10,
+    // post-#115). Counts ALL repo issues with severity labels, not just curated
+    // post-audit additions. Includes informational disclosure-candidates.
+    gh_label_counts: {
+      critical: 11,
+      high: 30,
+      medium: 46,
+      low: 8,
+      labeled_total: 95,
+      unlabeled_by_severity: 20,
+      repo_total: 115,
+      derived_at: "2026-05-10"
     }
   },
 
@@ -94,46 +117,7 @@ window.VIZ_COUNTS = Object.freeze({
   //   5. Statsig supplemental gates [statsig-gate-fn] (cachedStatsigGates)
   //   6. Grove policy (GET /api/[internal-policy-endpoint])
   //   7. Embedded default ($ parameter fallback)
-  flags: { resolution_layers: 7, gate_reads: 410, default_true: 14 },  // v132 round-1: reader rotation — single unified eval reader subsumes both default-true and 3-arg eval-with-default forms. DEFAULT-TRUE 15→14 (one UI keybinding flag removed). Total flag count +18 net (+23 added incl. 3 topic-relevant telemetry-only / -5 incl. one short-lived codename). v131 historical = 17 by 3-arg form; v132 single-form = 14.
-
-  // ---- Session-44 v131 cross-version regression (2026-05-06) ----
-  // 11 v131 probes total covering all priority-2 disclosure-candidate findings.
-  // 16 findings cross-version-confirmed byte-stable v128/v129/v131. Zero new
-  // findings filed. Zero remediations observed across 3 binary rebuilds.
-  // Methodology rule: prefer string-pool literals over minified-identifier patterns.
-  cross_version_v131: {
-    probes_total: 11,
-    findings_confirmed_byte_stable: 15,
-    new_findings_filed: 0,
-    remediations_observed: 0,
-    rebuilds_covered: 3,
-    interactive_probes: 2,
-    methodology_rule: "string-pool literals over minified-identifier patterns"
-  },
-
-  // ---- Session-47 v132 round-1 flag-delta (2026-05-07) ----
-  // v2.1.132 binary landed 2026-05-07. Round-1 static flag-delta + cross-version
-  // regression on 16 priority literals across 9 existing findings. Reader rotation
-  // is cosmetic (single unified eval reader subsumes prior dual-reader forms).
-  // Forward-compat REPL-input slot byte-IDENTICAL destructure-strip context
-  // (advisor catch on count vs. proof — bounded-context grep confirms allowlist
-  // unchanged). 3 new topic-relevant flags decoded statically — all telemetry-only,
-  // not new disclosure class. Zero remediations across 5-version persistence
-  // (v126/v128/v129/v131/v132). Probe-W/EE wire-confirmation deferred per advisor —
-  // marginal info gain when silent layer holds.
-  cross_version_v132: {
-    probes_total: 4,
-    findings_confirmed_byte_stable: 16,
-    findings_confirmed_wire: 3,
-    new_findings_filed: 0,
-    remediations_observed: 0,
-    rebuilds_covered: 5,
-    flag_delta: { added: 23, removed: 5, net: 18 },
-    default_true_delta: { v131: 15, v132: 14 },
-    new_topic_relevant_flags: 3,
-    growthbook_source_drift: { force: "48→47", default: "162→161", experiment: "14→16", total: 224 },
-    methodology_rule: "static + wire-confirmation across 3 channels; no remediations across 5-version chain"
-  },
+  flags: { resolution_layers: 7, gate_reads: 410, default_true: 14 },  // v138: unified eval-SDK reader stable across 7 binary releases v132→v138 (a single function subsumes default-true and 3-arg eval-with-default forms). DEFAULT-TRUE bool count = 14 (was 18 in v128 stable; one keybinding flag removed in v132).
 
   // ---- Local agents subsystem ----
   agents: {
@@ -225,9 +209,9 @@ window.VIZ_COUNTS = Object.freeze({
   // ---- Version coverage ----
   version: {
     start: "v2.1.89",
-    end: "v2.1.131",
-    range: "v2.1.89 \u2192 v2.1.131",  // unicode rightwards arrow
-    skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125", "v2.1.127", "v2.1.130"]
+    end: "v2.1.138",
+    range: "v2.1.89 \u2192 v2.1.138",  // unicode rightwards arrow
+    skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125", "v2.1.127", "v2.1.130", "v2.1.133", "v2.1.134", "v2.1.135", "v2.1.136", "v2.1.137"]
   },
 
   // ---- v126 brief-mode stop-hook GrowthBook content injection ----

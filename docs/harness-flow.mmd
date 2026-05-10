@@ -139,6 +139,39 @@ flowchart LR
         tui_fullscreen -->|"fullscreenGate()=false"| tui_decstbm
         tui_decstbm -->|"decstbmGate()=false"| tui_minimal
     end
+    %% ===== R — v119 Background Daemon =====
+    subgraph DAEMON["R — Background Daemon (v2.1.119 — ~30 events; daemon-CLI subset hardcoded-OFF)"]
+        direction TB
+        daemon_qqh["isDaemonCliEnabled gate<br/>HARDCODED false — blocks daemon list/install/status<br/>'daemon run' subcommand BYPASSES; service install BLOCKED"]:::removed
+        daemon_czh["isAgentsFleetEnabled gate<br/>(server-flippable feature gate)<br/>gates --bg/--background/logs/attach/kill/respawn/rm<br/>current cohort defaults false"]:::gap
+        daemon_dispatch_chain["Auto-spawn dispatch chain (when fleet-enabled):<br/>--bg → spawnBackgroundFork → fork chain<br/>→ spawn `daemon run --origin auto`"]:::core
+        daemon_sparewarm["Spare-worker pre-warm via React useEffect<br/>auto-spawns on every Agents Fleet mount<br/>(component hidden when gate false)"]:::gap
+        daemon_gate["allow_remote_control<br/>managed-policy kill-switch<br/>fail-closed upstream"]:::core
+        daemon_dialog["Remote-control dialog gate<br/>!remoteDialogSeen && OAuth<br/>useEffect: remoteDialogSeen=true on MOUNT<br/>(non-interactive skips dialog)"]:::gap
+        daemon_spawn["Two install paths<br/>A: spawn-fork (detached unref)<br/>B: systemd-user / launchd<br/>service-installer registers autostart"]:::core
+        daemon_env["Env redact (spawn-fork only)<br/>strips OAuth token + token-FD on Linux/Win<br/>INHERITS both on macOS (filed disclosure)"]:::gap
+        daemon_persist["Self-restart-on-upgrade<br/>binary-target watch<br/>systemd Restart=always RestartSec=1<br/>WantedBy=default.target (autostart)"]:::core
+        daemon_zombie["Zombie recovery<br/>PID-0 probe + 2s wait + respawn"]:::core
+        daemon_sock_dir["Socket root /tmp/cc-daemon-&lt;uid&gt;/&lt;hash&gt;<br/>uid-ownership check; chmod 0o700<br/>refuses to bind on foreign-uid dir"]:::core
+        daemon_sock_ctl["control.sock — supervisor RPC (15 ops)<br/>ping/nudge/lease/dispatch/list/kill/<br/>reply/subscribe/attach/resize/permission-response"]:::core
+        daemon_pipekey["pipe-key file (16-hex)<br/>Windows: embedded in pipe name (auth)<br/>Linux: file unused (FS perms = auth)"]:::gap
+        daemon_dispatch_schema["Dispatch schema accepts arbitrary env Record<br/>source: shell|slash|fleet|respawn<br/>isolation: none|worktree"]:::gap
+        daemon_frame["DCS escape framing for PTY-compatible IPC"]:::core
+    end
+    %% ===== S — v121 Harbor MCP Channels (runtime-confirmed) =====
+    subgraph HARBOR["S — Harbor MCP Channels (v2.1.121 — runtime-confirmed; v126 unchanged)"]
+        direction TB
+        harbor_gate["Master harbor gate<br/>(server-flippable; current cohort: TRUE)"]:::core
+        harbor_ledger["Channel-ledger flag (4 entries)<br/>discord/telegram/fakechat/imessage<br/>per-cohort flippable"]:::core
+        harbor_perms["Channel-permissions sub-gate<br/>(server-flippable; current cohort: TRUE)<br/>gates React hook → channelPermissionCallbacks"]:::core
+        harbor_policy["Enterprise policy gate<br/>policySettings.channelsEnabled<br/>+ allowedChannelPlugins allowlist"]:::core
+        harbor_dev["CLI flag bypass<br/>--dangerously-load-development-channels"]:::gap
+        harbor_cap["MCP server capability:<br/>experimental[claude/channel]<br/>+ experimental[claude/channel/permission]<br/>both required for channel-permissions reach"]:::core
+        harbor_check["Gate function with 7 skip kinds<br/>capability/disabled/auth/policy/<br/>session/marketplace/allowlist"]:::core
+        harbor_inj["Channel injection finding (1):<br/>content wrapped as &lt;channel source=...&gt;...&lt;/channel&gt;<br/>round-12 model-defended; round-13 content-escape weakness"]:::gap
+        harbor_authz["Channel-permissions finding (2):<br/>tool-use ID + name + description + input_preview<br/>TUI-mode runtime-confirmed; logged as source.type:'user'"]:::gap
+        harbor_tui_only["TUI-only constraint:<br/>React provider mounts the permissions hook<br/>--print/SDK paths IMMUNE (probe-confirmed)"]:::core
+    end
     %% ===== T — v126 Brief Stop-Hook GrowthBook Injection (Critical) =====
     subgraph BRIEFINJ["T — Brief Stop-Hook GrowthBook Injection (v2.1.126 Critical)"]
         direction TB
@@ -188,6 +221,40 @@ flowchart LR
         proto_endpoint["1P telemetry endpoint:<br/>api.anthropic.com/api/event_logging/v2/batch<br/>Top-level fields (raw): skill_name, plugin_name,<br/>marketplace_name, device_id, email, auth"]:::gap
         proto_redactor["Sibling redactor jyH() at [proto-redactor-offset]<br/>strips remaining _PROTO_* in residual j object<br/>but does NOT block the destructured raw values<br/>that are explicitly re-attached at egress"]:::core
         proto_dormant["_PROTO_code → repl_code slot present at destructure<br/>but no emitter populates it in v123/v126/v128/v129<br/>(forward-compat slot — escalate watch if v130+ adds setter)"]:::core
+    end
+    %% ===== Z — v138 Forced-Downgrade + AC3 Skip-Persist Bypass =====
+    subgraph FORCED_DG["Z — Forced-Downgrade + AC3 Partial-Defense (v2.1.138 HIGH ×2)"]
+        direction TB
+        fd_reader["Server-pushed forced-downgrade primitive<br/>typed eval-SDK reader (object variant)<br/>returns {maxVersion, forceDowngradeEnabled}"]:::gap
+        fd_canary["Sister flag: bidirectional version-pin<br/>(server controls upgrade ceiling AND<br/>downgrade floor via same eval-SDK channel)"]:::gap
+        fd_floor["User mitigation: settings.json<br/>minimumVersion floor<br/>(default undefined; most users vulnerable)"]:::core
+        fd_ac3["Ghost-inbox transcript-replay AC3 partial defense<br/>Skip-persistence path adds null bypass<br/>Trigger: --no-session-persistence (--print only)<br/>+ SDK option<br/>+ env CLAUDE_CODE_SKIP_PROMPT_HISTORY"]:::gap
+        fd_wrappers["Round-3 SDK wrapper survey:<br/>97 third-party repos use the bypass flag<br/>~71% sampled default UNCONDITIONALLY<br/>(a third of public ecosystem still vulnerable)"]:::gap
+        fd_reader --> fd_floor
+        fd_canary --> fd_floor
+        fd_ac3 --> fd_wrappers
+    end
+    %% ===== AA — v138 Mid-Conversation System Predicate (Medium info) =====
+    subgraph MIDCONV["AA — Mid-Conversation System Predicate (v2.1.138 Med info)"]
+        direction TB
+        mc_env["Env-var override path"]:::gap
+        mc_cache["Cached eval-SDK string source"]:::gap
+        mc_live["Live eval-SDK fallback"]:::gap
+        mc_predicate["3-source substring-on-conversation predicate<br/>extracts conversation transcript;<br/>if any of 3 sources match → true"]:::gap
+        mc_betahdr["Caller 1: beta-headers assembler<br/>predicate true → push API beta-header<br/>(API feature gate via eval-SDK string)"]:::gap
+        mc_sysprompt["Caller 2: system-prompt assembler<br/>predicate result flows into prompt build path"]:::gap
+        mc_env --> mc_predicate
+        mc_cache --> mc_predicate
+        mc_live --> mc_predicate
+        mc_predicate --> mc_betahdr
+        mc_predicate --> mc_sysprompt
+    end
+    %% ===== AB — v138 BYOC Datadog Killswitch (partial third-party-leak remediation) =====
+    subgraph BYOC_DD["AB — BYOC Datadog Killswitch (v2.1.138 partial remediation, BYOC subset only)"]
+        direction TB
+        byoc_predicate["BYOC environment-kind predicate<br/>+ env-var killswitch check"]:::core
+        byoc_scope["Customer-segment killswitch only<br/>(BYOC contract surface; main consumer<br/>Pro/Max remains exposed when third-party<br/>logging gate server-flipped on)"]:::gap
+        byoc_predicate --> byoc_scope
     end
     %% ===== Q — Our Tooling =====
     subgraph OURS["Q — Our Tooling"]

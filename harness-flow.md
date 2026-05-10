@@ -1,6 +1,8 @@
 # Claude Code Harness — Integrated Flow Map (Public)
 
-**Scope**: composite structural map across multiple v2.1.x builds. Tier-2 abstraction — role-level node labels, generic edge semantics. Exact function names, feature-flag identifiers, internal endpoint paths, and result-file references are redacted. Claude Desktop is out of scope; only Claude Code (WSL/binary) is mapped.
+**Scope**: composite structural map across v2.1.89 – v2.1.138. Tier-2 abstraction — role-level node labels, generic edge semantics. Exact function names, feature-flag identifiers, internal endpoint paths, and result-file references are redacted. Claude Desktop is out of scope; only Claude Code (WSL/binary) is mapped.
+
+**Last updated**: 2026-05-10 (added clusters Z/AA/AB for v2.1.138 forced-downgrade primitive, ghost-inbox transcript-replay AC3 partial defense, mid-conversation system predicate, and BYOC third-party-logging killswitch).
 
 > **Version-composite disclaimer**: the three side-systems (buddy companion, advisor tool, Kairos self-continuation loop) were **never simultaneously live** in any single running build — the native buddy UI was removed mid-2.1 before the advisor feature-flag rolled out or the loop shipped. Read the diagram as a *structural map* of the harness's architectural surfaces, not as a snapshot of one installation.
 
