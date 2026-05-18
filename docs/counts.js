@@ -54,6 +54,20 @@ window.VIZ_COUNTS = Object.freeze({
   // and a partial defense for the ghost-inbox transcript-replay variant on the
   // skip-persistence path (third-party SDK wrapper survey: 5 of 7 sampled
   // wrappers default unconditionally to the bypass-vulnerable mode).
+  // v140 added 1 disclosure-candidate promoted to CRITICAL during the cycle:
+  // a server-pushed TUI notification flag delivers attacker-chosen content
+  // to the user's terminal stream with no sanitization. Probe-HH (4-phase
+  // PTY-mounted MITM session) confirmed raw ANSI escape sequences pass
+  // through; probe-JJ demonstrated the most-impactful concrete chain — OSC 8
+  // terminal hyperlinks rendered as mouse-clickable phishing labels with
+  // attacker-chosen URL targets. Length cap is ~75 visible chars but ANSI
+  // escapes are zero-width and survive the cap; markdown is rendered as
+  // literal text (defensive). For v140 the original forced-downgrade
+  // primitive also gained wire-evidence on its negative branch — Phase A
+  // of a 2-phase MITM probe pushed an invalid (URL-shaped) value and
+  // confirmed the SemVer-strict parser fires invalid-config telemetry,
+  // closing one of the original promotion-gates with positive wire
+  // evidence rather than static decode alone.
   //
   // TWO COUNTING BASES tracked here, deliberately:
   //   (1) audit-baseline-tally = SECURITY-AUDIT.md (13V + 1OBS) + curated
@@ -61,31 +75,33 @@ window.VIZ_COUNTS = Object.freeze({
   //   (2) gh_label_counts = live re-derivation from `gh issue list` severity
   //       labels in the private issue tracker (refreshed each version bump).
   //
-  // by_severity sums to 28 (5+9+10+3+1).
+  // by_severity sums to 29 (6+9+10+3+1).
   security: {
-    total: 28,
+    total: 29,
     audit_vulnerabilities: 13,
     audit_observations: 1,
-    post_audit: 14,
+    post_audit: 15,
     by_severity: {
-      critical: 5,
+      critical: 6,
       high: 9,
       medium: 10,
       low: 3,
       observation: 1
     },
-    // Live re-derivation from `gh issue list --label <sev>` (run 2026-05-10,
-    // post-#115). Counts ALL repo issues with severity labels, not just curated
-    // post-audit additions. Includes informational disclosure-candidates.
+    // Live re-derivation from `gh issue list --label <sev>` (run 2026-05-13,
+    // post-v140 cycle: 1 promotion from high-priority to critical via
+    // PTY-mounted MITM wire-evidence). Counts ALL repo issues with severity
+    // labels, not just curated post-audit additions. Includes informational
+    // disclosure-candidates.
     gh_label_counts: {
-      critical: 11,
+      critical: 12,
       high: 30,
       medium: 46,
       low: 8,
-      labeled_total: 95,
-      unlabeled_by_severity: 20,
-      repo_total: 115,
-      derived_at: "2026-05-10"
+      labeled_total: 96,
+      unlabeled_by_severity: 31,
+      repo_total: 127,
+      derived_at: "2026-05-18"  // session-56 re-derivation post v141/v142/v143 round-1; counts stable (no new issues filed v141-v143 cycle)
     }
   },
 
@@ -117,7 +133,7 @@ window.VIZ_COUNTS = Object.freeze({
   //   5. Statsig supplemental gates [statsig-gate-fn] (cachedStatsigGates)
   //   6. Grove policy (GET /api/[internal-policy-endpoint])
   //   7. Embedded default ($ parameter fallback)
-  flags: { resolution_layers: 7, gate_reads: 410, default_true: 14 },  // v138: unified eval-SDK reader stable across 7 binary releases v132→v138 (a single function subsumes default-true and 3-arg eval-with-default forms). DEFAULT-TRUE bool count = 14 (was 18 in v128 stable; one keybinding flag removed in v132).
+  flags: { resolution_layers: 7, gate_reads: 410, default_true: 15 },  // v140: DEFAULT-TRUE (both bool 2-arg + typed 3-arg readers counted) = 15. v138 baseline 16 → v139/v140 = 15 (one MCP-retry flag removed). Reader identifiers rotated v138→v139→v140 — bool reader case-flip v139→v140; typed reader full rotation each release.
 
   // ---- Local agents subsystem ----
   agents: {
@@ -209,9 +225,9 @@ window.VIZ_COUNTS = Object.freeze({
   // ---- Version coverage ----
   version: {
     start: "v2.1.89",
-    end: "v2.1.138",
-    range: "v2.1.89 \u2192 v2.1.138",  // unicode rightwards arrow
-    skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125", "v2.1.127", "v2.1.130", "v2.1.133", "v2.1.134", "v2.1.135", "v2.1.136", "v2.1.137"]
+    end: "v2.1.143",
+    range: "v2.1.89 \u2192 v2.1.143",  // unicode rightwards arrow
+    skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125", "v2.1.127", "v2.1.130", "v2.1.133", "v2.1.134", "v2.1.135", "v2.1.136", "v2.1.137", "v2.1.139"]
   },
 
   // ---- v126 brief-mode stop-hook GrowthBook content injection ----
@@ -374,5 +390,138 @@ window.VIZ_COUNTS = Object.freeze({
       ]
     },
     issue_bundle: 111
+  },
+
+  // ---- v140 round-1 + probe-AA ----
+  // v140 (build 2026-05-13) extends the v139 (build 2026-05-11) chain. Flag delta
+  // v138→v140 = +13 / -4 standalone. Reader rotated twice (bool case-flip v139→v140;
+  // typed full rotate each release).
+  //
+  // Notable NEW telemetry/throw paths (v140) — CALIBRATED:
+  //   - Two new telemetry events (subagent-type-miss + subagent-type-normalized,
+  //     literal counts 0/0/3 + 0/0/2 across v138/v139/v140) plus one new
+  //     ambiguous-detection error context (0/0/2). The pre-existing v138
+  //     defenses for not-found and permission-denied subagent types stay
+  //     byte-stable in v140. v140 EXPANDS the existing surface with
+  //     telemetry + a fuzzy normalizer rather than introducing the
+  //     defense class itself. Empirically verified live: the not-found
+  //     error string matches the binary verbatim (pre-existing throw,
+  //     re-confirmed under v140), and a dash-stripped fuzzy variant
+  //     ("seniorresearcher") normalizes-and-launches successfully
+  //     through the new normalizer.
+  //   - A bash-safety telemetry event (fires on multi-category overlap
+  //     during rule evaluation; classification-only — not a throw).
+  //   - A defensive token re-fetch telemetry event on access-token
+  //     mismatch (looks benign / hardening).
+  //
+  // Notable REMOVED flags: a previously DEFAULT-TRUE MCP-retry flag dropped.
+  //
+  // SCOPE VERDICT on the new subagent_type defense vs the prior SendMessage
+  // attribution-forge finding (skill-fork ghost-inbox class):
+  //   - Defense fires on the Task()/subagent_launch path ONLY.
+  //   - The InboxPoller plan_approval_response handler that gates permission-mode
+  //     escalation on a sender-string equality check is BYTE-STABLE v138→v140
+  //     (canonical-form compare after identifier normalization across a
+  //     600-byte anchored window — identical, including the "Ignoring ... from
+  //     non-team-lead" log line that was already present in v138 and is NOT
+  //     a new defense, just the non-matching-branch log).
+  //   - Therefore the SendMessage attribution-forge variant of the prior
+  //     ghost-inbox finding remains UNDEFENDED in v140. The new defense
+  //     targets a different attack surface (LLM-hallucinated agent type at
+  //     spawn time, not receiver-side attribution).
+  //
+  // Persistence check on prior findings (bounded-context grep, all byte-stable
+  // v138→v140): the raw _PROTO_ destructure pattern, brief-mode stop-hook
+  // GrowthBook reader, Datadog third-party gate, harbor PR-status flag,
+  // hookSpecificOutput.updatedInput nesting, --teleport CLI flag, the
+  // forced-downgrade canary primitive, the sourceToolAssistantUUID
+  // transcript-replay literal, and parent_tool_use_id (phantom_parent class)
+  // all unchanged.
+  v140_round_1: {
+    binary_size_bytes: 231577296,
+    binary_size_delta_v138: 999424,
+    standalone_flag_delta_v138_v140: { added: 13, removed: 4 },
+    default_true_v138: 16,
+    default_true_v140: 15,
+    default_true_lost: ["<mcp-retry-flag>"],
+    reader_rotation_count_v138_to_v140: 2,    // bool case-flip + typed full rotate
+    new_defense_class: "telemetry + fuzzy-normalize on existing Task()/subagent_launch agentType validation",
+    new_defense_paths_added_v140: 3,  // miss + normalized + ambiguous (the 6 prior throw contexts existed in v138 byte-stable)
+    new_defense_empirically_fires: true,
+    prior_defenses_byte_stable_v138_v140: 6,  // not_found, denied, teammate_background_denied, teams_unavailable, nested_teammate, recursive_fork
+    prior_findings_persistence_checked: 9,
+    prior_findings_byte_stable_count: 9,
+    prior_findings_byte_stable_pct: 100,
+    sendmessage_ac3_variant_byte_stable: true,
+    sendmessage_ac3_defended_in_v140: false,
+    new_disclosures_v140: 0
+  },
+
+  // ---- v141/v142/v143 round-1 (consolidated 3-version stability chain) ----
+  // Three consecutive stability releases v141 (build 2026-05-13) / v142 (build 2026-05-14) /
+  // v143 (build 2026-05-15, current head). Binary size 232.5 → 232.6 → 233.0 MB. Reader
+  // identifiers rotated: boolean reader rotated v140→v141, again v141→v142, then HELD
+  // v142→v143 (first hold of the boolean reader since v126). Typed reader rotated each
+  // release. Flag delta v140→v143 cumulative +37/−10 (per-step v140→v141 +17/−5,
+  // v141→v142 +13/−6, v142→v143 +8/−0 — v143 is a pure-additive release with zero flag
+  // removals). DEFAULT-TRUE 15 → 17 → 18 → 18 (+3 net additions across the chain).
+  //
+  // Persistence check (all 14 priority findings byte-stable v140→v143 via bounded-context
+  // grep — feature-flag literals, telemetry event names, beta-header strings, SDK Zod
+  // schema fields, CLI flags, error message prose, and protocol field names): the TUI
+  // startup-notice injection (v140 Critical), the raw `_PROTO_` destructure egress, the
+  // third-party logging gate, the forced-downgrade primitive, the mid-conversation system
+  // mechanism, the SendMessage attribution-forge field, the hook-output nesting pattern,
+  // the `--teleport` CLI flag, the harbor PR-status flag, the brief-mode stop-hook reader,
+  // and the phantom-parent field — all unchanged. Two surface-drift entries decoded as
+  // benign code-path consolidation in the remote-control bridge (no semantic remediation).
+  //
+  // 3 DEFENSIVE primitives added v141-v142 (orthogonal/adjacent to filed issues, not
+  // remediations): v141 adds a remote-control bridge event-attestation enforcement layer
+  // (enforce / accept-statuses / drop-unverified modes — ORTHOGONAL to the SendMessage
+  // attribution-forge ghost-inbox path which is local-FleetView, not bridge); v142 adds a
+  // settings-hierarchy defense that prevents repo-controllable project-local settings
+  // from granting an auto-mode permission default (a real hardening of the
+  // prompt-via-settings family); v142 also adds telemetry-only model-response keyword
+  // detection (NOT a security primitive).
+  //
+  // 1 NEW CAPABILITY decoded as DEFENSE-WORKING (not filed as a finding): v143 introduces
+  // a multi-store team-memory mirror gated by a JSON env var. Static decode confirms
+  // triple-gate eligibility (trust-dialog + a default-FALSE GrowthBook flag + OAuth
+  // presence) + a path-validator that requires server-relative paths and rejects external
+  // origin pivots (verified blocked: `https://evil.com/foo`, `//evil.com/foo`; verified
+  // accepted: `/api/...`) + server-side ACL enforcement (per "Forbidden by server policy"
+  // / "Not authorized for team memory sync" error literals) + per-store mode (rw vs ro)
+  // controlling push direction + a path-confinement guard on disk writes. Attacker-
+  // controlled env var only chooses WHICH server-authorized store to mirror; cannot grant
+  // authorization victim doesn't already have. Documented as DEFENSE-IN-DEPTH WORKING
+  // AS DESIGNED, NOT a vulnerability under current static decode. Caveat: the
+  // path-validator's defense depends on the API base URL being attacker-uncontrolled;
+  // base URL IS configurable via env var (enterprise/proxy setup), but that env-poisoning
+  // primitive is already documented as out-of-scope same-UID-attacker terrain.
+  //
+  // Zero new disclosures filed v141-v143. Zero remediations observed across the chain.
+  v141_v143_round_1: {
+    versions_covered: ["v2.1.141", "v2.1.142", "v2.1.143"],
+    chain_kind: "3-version stability release",
+    binary_sizes_bytes: [232572624, 232625872, 233088720],
+    standalone_flag_delta_v140_v143_cumulative: { added: 37, removed: 10 },
+    standalone_flag_delta_per_step: [
+      { step: "v140→v141", added: 17, removed: 5 },
+      { step: "v141→v142", added: 13, removed: 6 },
+      { step: "v142→v143", added: 8, removed: 0 }
+    ],
+    default_true_chain: { v140: 15, v141: 17, v142: 18, v143: 18 },
+    reader_rotation_count: 3,  // boolean v140→v141 + v141→v142 (then held v142→v143); typed every release
+    boolean_reader_first_hold_since: "v126",
+    prior_findings_persistence_checked: 14,
+    prior_findings_byte_stable_count: 14,
+    prior_findings_byte_stable_pct: 100,
+    defensive_primitives_added: 3,            // bridge attestation + auto-mode untrusted-source enforcement + model-response keyword detect (last is telemetry-only)
+    new_capability_decoded_safe: 1,           // multi-store team-memory mirror (defense-working per static decode)
+    new_disclosures_v141_v143: 0,
+    remediations_observed: 0,
+    surface_drift_decoded_benign: 2,           // remote-control bridge code-path consolidation accounts for the only -1 drifts
+    notes: "All persistence claims use bounded-context grep on semantic literals (flag names, telemetry events, beta-header strings, Zod field names, CLI flags, error-message prose). Minified identifier names rotate per release and are explicitly NOT used as cross-version proof."
   }
 });

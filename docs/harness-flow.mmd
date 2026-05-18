@@ -256,6 +256,23 @@ flowchart LR
         byoc_scope["Customer-segment killswitch only<br/>(BYOC contract surface; main consumer<br/>Pro/Max remains exposed when third-party<br/>logging gate server-flipped on)"]:::gap
         byoc_predicate --> byoc_scope
     end
+    %% ===== AC — v140 TUI Notification ANSI/OSC8 Injection (Critical, wire-confirmed) =====
+    subgraph STARTUP_NOTICE["AC — TUI Startup-Notice Injection (v2.1.140 Critical — wire-confirmed PTY-mounted MITM)"]
+        direction TB
+        sn_default["Default state on wire:<br/>empty value, off=true, source=defaultValue<br/>(dormant by default)"]:::baseline
+        sn_inject["Server inject via eval-SDK channel:<br/>startup-notice flag value = attacker payload"]:::risk
+        sn_render["Ink notification component renders<br/>value verbatim wrapped in yellow SGR<br/>(no sanitization)"]:::gap
+        sn_ansi["ANSI escape phase:<br/>raw escape sequences pass through<br/>to TUI stdout unchanged"]:::risk
+        sn_osc8["OSC 8 hyperlink phase:<br/>terminal hyperlink with attacker URL +<br/>visible label = mouse-clickable<br/>in modern terminals (iTerm2, WezTerm,<br/>Kitty, Windows Terminal, etc.)"]:::risk
+        sn_cap["Width cap ~75 visible chars;<br/>ANSI escapes are zero-width and survive cap"]:::gap
+        sn_markdown["Markdown rendered as literal text<br/>(defensive; no link parsing)"]:::baseline
+        sn_default --> sn_inject
+        sn_inject --> sn_render
+        sn_render --> sn_ansi
+        sn_render --> sn_osc8
+        sn_render --> sn_cap
+        sn_render --> sn_markdown
+    end
     %% ===== Q — Our Tooling =====
     subgraph OURS["Q — Our Tooling"]
         direction TB
