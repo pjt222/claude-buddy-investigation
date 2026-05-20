@@ -273,6 +273,23 @@ flowchart LR
         sn_render --> sn_cap
         sn_render --> sn_markdown
     end
+    %% ===== AD — Runtime-Probe Harness (sessions 55-59, 2026-05; two findings wire-confirmed) =====
+    subgraph PROBESANDBOX["AD — Runtime-Probe Harness (probe-sandbox + PTY automation, sessions 55-59)"]
+        direction TB
+        ps_compose["tools/probe-sandbox/<br/>two-service docker compose<br/>intercepting proxy + claude-code<br/>egress forced through the proxy on an isolated bridge"]:::ours
+        ps_creds["Bearer creds RO-mounted from host<br/>container-local writable copy<br/>TTL gate (refuses near-expiry probes)"]:::ours
+        ps_addon["Proxy addon force-injects feature-flag<br/>values into server config-eval responses<br/>(round-trips compressed bodies)"]:::ours
+        ps_tui["PTY keystroke automation<br/>seeds a minimal per-user config file<br/>walks onboarding past the theme picker"]:::ours
+        ps_113["#113 probe — inject the forced-downgrade flag<br/>the auto-updater performed the downgrade<br/>to an attacker-chosen older version, no prompt<br/>WIRE-CONFIRMED v143 + v145"]:::risk
+        ps_127["#127 probe — inject the startup-notice flag<br/>payload renders verbatim to the TUI notification<br/>ANSI escape UNSANITIZED; bare URL rendered<br/>WIRE-CONFIRMED v143 + v145"]:::risk
+        ps_115["#115 probe — inject the mid-conversation-system flag<br/>the predicate never fires on --print OR TUI<br/>baseline vs canary byte-identical<br/>NEGATIVE → finding relabeled informational"]:::baseline
+        ps_compose --> ps_creds
+        ps_creds --> ps_addon
+        ps_addon --> ps_tui
+        ps_tui --> ps_113
+        ps_tui --> ps_127
+        ps_tui --> ps_115
+    end
     %% ===== Q — Our Tooling =====
     subgraph OURS["Q — Our Tooling"]
         direction TB
@@ -453,7 +470,14 @@ flowchart LR
     pp_refresh_flow --> pp_creds
     pp_refresh --> pp_creds
     pp_drift_watch -. "monitors" .-> tp_verdict
+    %% ===== Runtime-Probe Harness edges (AD) — the probe harness drives the harness's own input surfaces =====
+    ps_addon -. "rewrites config-eval response" .-> flags
+    ps_113 -. "wire-confirms" .-> fd_reader
+    ps_127 -. "wire-confirms" .-> sn_inject
+    ps_115 -. "runtime-negative" .-> mc_predicate
     classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
     classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
     classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
     classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

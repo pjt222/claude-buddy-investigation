@@ -1,8 +1,8 @@
 # Claude Code Harness — Integrated Flow Map (Public)
 
-**Scope**: composite structural map across v2.1.89 – v2.1.138. Tier-2 abstraction — role-level node labels, generic edge semantics. Exact function names, feature-flag identifiers, internal endpoint paths, and result-file references are redacted. Claude Desktop is out of scope; only Claude Code (WSL/binary) is mapped.
+**Scope**: composite structural map across v2.1.89 – v2.1.145. Tier-2 abstraction — role-level node labels, generic edge semantics. Exact function names, feature-flag identifiers, internal endpoint paths, and result-file references are redacted. Claude Desktop is out of scope; only Claude Code (WSL/binary) is mapped.
 
-**Last updated**: 2026-05-10 (added clusters Z/AA/AB for v2.1.138 forced-downgrade primitive, ghost-inbox transcript-replay AC3 partial defense, mid-conversation system predicate, and BYOC third-party-logging killswitch). Also added clusters Q1/Q2 for the pi-passport research-tooling subsystem (post-hardening) and the server-side billing-tier classifier it exercises.
+**Last updated**: 2026-05-20 (session 59). Brought forward to v2.1.145: added abstracted finding-status and cross-version-persistence summaries for the runtime-probe campaign (sessions 55–59), which wire-confirmed two findings on an interactive TUI and cleared the runtime-probe queue. Earlier additions retained: clusters for the v2.1.138 forced-downgrade primitive, the ghost-inbox AC3 partial defense, the mid-conversation system predicate, and the third-party-logging killswitch, plus the pi-passport research-tooling subsystem (post-hardening) and the server-side billing-tier classifier it exercises.
 
 > **Version-composite disclaimer**: the three side-systems (buddy companion, advisor tool, Kairos self-continuation loop) were **never simultaneously live** in any single running build — the native buddy UI was removed mid-2.1 before the advisor feature-flag rolled out or the loop shipped. Read the diagram as a *structural map* of the harness's architectural surfaces, not as a snapshot of one installation.
 
@@ -336,7 +336,41 @@ The dominant structural pattern in the harness:
 - **OUTSIDE** the per-turn loop via a separate endpoint → **Buddy** (read-only observer, truncated context)
 - **AROUND** the per-turn loop by ending and re-entering → **Kairos Loop** (self-continuation across turns)
 
-The three side-systems clip onto the same spine (auth → flags → core runtime) but do not compose. They share OAuth + firstParty + org-scoping; otherwise they are wired independently, built by different teams, at different versions. **The harness grows by accretion, not composition.**
+The three side-systems clip onto the same spine (auth → flags → core runtime) but do not compose. They share OAuth + firstParty + org-scoping; otherwise they are wired independently, built by different teams, at different versions. **The harness grows by accretion, not composition.** Every new subsystem mapped across the v2.1.119–v2.1.145 window (background daemon, MCP channels, the server-controlled config-push primitives, the runtime-probe harness) confirms the pattern at scale: each clips onto the flag spine, and most are gated by a single server-flippable flag.
+
+---
+
+## Finding Status (current — 2026-05-20, session 59)
+
+Several diagram clusters carry live security findings. After the sessions 55–59 runtime-probe campaign, their status — referred to by finding number, with abstract descriptions only:
+
+| Finding | Severity | Status |
+|---|---|---|
+| #108 — a permission-classifier safety inversion | Critical | wire-confirmed (MITM, v129) |
+| #110 — raw plugin/skill/marketplace identifier field-level egress | Critical | wire-confirmed (MITM, v129; byte-stable through v145) |
+| #113 — a server-pushed forced-downgrade primitive | High | wire-confirmed (interactive TUI, v143 + v145) |
+| #114 — a skip-persistence bypass opening a #31 AC3 partial-defense gap | High | static; a large share of the public SDK-wrapper ecosystem is on the vulnerable path |
+| #127 — a server-pushed terminal-notification injection (unsanitized ANSI/OSC 8) | Critical | wire-confirmed (interactive TUI, v143 + v145) |
+| #107 — a content-sharing tool with an unauth-public share URL | High | static; an earlier incognito test was contradicted by a later scrapling redirect-to-login result |
+| #109 — a PR-status path-switcher | Med-info | flag-injection proven; canonical path-switcher branch unresolved |
+| #115 — a mid-conversation-system substring predicate | informational | runtime-negative — the predicate never fires on `--print` or TUI |
+| #31 AC3 — subagent ghost-inbox / attribution forgery | Critical | still undefended — the v145 skill self-recursion guard is orthogonal |
+
+**The runtime-probe queue is empty.** All five `runtime-probe-needed` issues closed across sessions 58–59 using a containerized MITM probe-sandbox plus PTY keystroke automation that drives the interactive TUI past onboarding so TUI-gated code paths can be exercised.
+
+---
+
+## Cross-Version Persistence (v2.1.126 → v2.1.145)
+
+Across 9 binary rebuilds spanning v126–v145, **zero remediations** of any tracked finding were observed; all 21 priority-finding literals are byte-stable v143→v145. Two state-machine improvements landed at v138 but neither addresses a tracked finding. Flag-reader identifiers rotate cosmetically each release — per the methodology rule, cross-version checks use string-pool literals, not minified identifiers.
+
+The net direction across the window is **attack surface added, not removed**: new server-flippable subsystems all landed in this window; the only remediation-shaped change covers a customer segment only and leaves the main Pro/Max population exposed.
+
+---
+
+## Documentation Gap (cross-cutting)
+
+Official Claude Code docs are accurate for user-triggered data flows (documented opt-outs exist) but **silent on every server-controlled channel**: the server-to-client config-push channel is entirely undocumented, the forced-downgrade / startup-notice / third-party-sink mechanisms are absent, and identity metadata on default-on metrics is described only by exclusion. The pattern itself is the finding — see `results/docs-gap-analysis-2026-05-20.md`.
 
 ---
 
@@ -344,15 +378,15 @@ The three side-systems clip onto the same spine (auth → flags → core runtime
 
 Available only from the panoramic view — none of these emerge from reading any single cluster:
 
-1. **The harness grows by accretion, not composition.** The three side-systems share OAuth + firstParty + org-scoping and nothing else. Future subsystems will clip on independently. The three-direction figure (inside / outside / around) is the predictive shape.
+1. **The harness grows by accretion, not composition.** The side-systems share OAuth + firstParty + org-scoping and nothing else. Every v119–v145 subsystem clips onto the flag spine independently. The three-direction figure (inside / outside / around) is the predictive shape.
 
 2. **Feature flags are the actual backbone, not the core runtime.** Every subsystem's first inbound edge is from the flag layer. The runtime is what executes; flags decide what exists at all.
 
-3. **The Managed Agents API is a structural bridge, not a leaf node.** It sits at the intersection of MCP extension, hook/skill extension, and potentially future buddy resurrection. Present investigation treats this as a hypothesis to test, not a prediction with mechanical support.
+3. **Server-flippable single-flag gates are the dominant new-subsystem shape.** Most subsystems mapped across v119–v145 are each gated by one server-controlled flag — activatable per-cohort without a binary release or a release-audit.
 
-4. **Our tooling is a parallel pipeline, not a downstream consumer.** The hook-subprocess capture enters via the extension surface; the reaction-replay MCP bypasses the binary entirely. We re-created the buddy loop the binary removed, by reading the harness through one surface and writing to another. The two pipelines are architecturally indistinguishable at the API layer.
+4. **Our tooling is a parallel pipeline, not a downstream consumer.** The hook-subprocess capture enters via the extension surface; the reaction-replay MCP bypasses the binary entirely; the runtime-probe harness injects server config responses and drives the TUI to wire-confirm findings the static decode could only hypothesise.
 
-5. **Telemetry is a fan-in black box.** Every subsystem emits; transport is unobserved at any depth. The diagram's largest dead-reckoned region is right here, and it is the single most tractable next-investigation target.
+5. **Telemetry is a fan-in with confirmed third-party egress.** Beyond the first-party event-logging endpoint, a third-party processor and the raw-identifier field-level leak are both wire-confirmed to ship raw identity metadata off the first-party boundary.
 
 ---
 

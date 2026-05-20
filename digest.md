@@ -245,6 +245,77 @@ Per-thread HackerOne anthropic-vdp filing for each of the 22 findings. Standard 
 
 ---
 
+## Phase 8: v2.1.131 → v2.1.145 — Runtime Wire-Confirmation Era
+
+**Scope**: rolling versions across the v2.1.131 → v2.1.145 release line (current binary v2.1.145, build 2026-05-19). From v2.1.118 onward the investigation shifted from *cataloguing new subsystems* to *runtime wire-confirmation of a stable set of findings*. All flag and reader-identifier names redacted; functional descriptions and finding numbers only.
+
+### Methodology evolution: static decode → runtime MITM → PTY automation
+
+Three distinct probing capabilities were built across this window:
+
+1. **MITM firehose capture** — an intercepting proxy against the Bun-bundled binary, trusting the proxy CA via the standard Node/Bun CA-bundle environment variables. Captures the full `api.anthropic.com` traffic: the messages API, the event-logging batch endpoint, the server-controlled config-eval endpoint, and the third-party telemetry sink. This resolved the telemetry-transport black box and confirmed the server-to-client config-eval channel as the server→client control plane.
+
+2. **Containerized probe-sandbox** — a two-service `docker compose` stack: a proxy service running per-probe Python addons, and a probe service running Claude Code on an isolated bridge network routed through the proxy. The addon **rewrites** the server config-eval responses in flight, force-injecting attacker-chosen feature values. Filesystem- and process-isolated from the host; account state (the OAuth bearer) is still shared. This unblocked the five `runtime-probe-needed` issues.
+
+3. **PTY keystroke automation** — an `expect`-based script that spawns an *interactive* Claude Code TUI on a pseudo-terminal, walks the first-run onboarding, sends scripted user turns, optionally idles, and exits cleanly. This was the missing piece: `claude --print` and `claude doctor` short-circuit before the Ink React tree mounts, so any finding gated on the TUI render path cannot fire under `--print`. The driver mounts a real interactive TUI past the theme picker. A key root-cause gotcha: Claude Code reads its main state file from `$HOME/.claude.json` (home root), not from the `.claude/` subdirectory.
+
+### The server-flippable control plane
+
+The dominant architectural finding of this window: a large and growing fraction of Claude Code's runtime behavior is controlled by **feature flags evaluated server-side at Anthropic**. The client receives pre-evaluated values; the flag-resolution chain has 7 layers (caller-side env kill switches → session-override map → project-local overrides → server-controlled cache → Statsig supplemental → Grove policy → embedded default). The recurring code shape is a single-flag gate over an entire subsystem.
+
+A flag is not only a boolean on/off — many carry **typed object or string payloads** that become part of model context, UI text, or update behavior. The flag readers rotate identifiers per binary release (cross-version analysis anchors on string-pool literals, never minified reader names). Per-version flag deltas net +8 v143→v145; the DEFAULT-TRUE set is stable at 18 and byte-identical v143→v145.
+
+Subsystems dark-launched or controllable through this channel, catalogued across v118–v145 and referred to by finding number:
+
+| Subsystem | Finding | Status |
+|---|---|---|
+| Background daemon | #100 / #101 | Live since v121; ~77 daemon telemetry events; a peer-UID check on the control socket was added at v121 |
+| Harbor MCP channels | #102 (notifications), #104 (permission delegation) | Both runtime-confirmed at protocol layer; `--print`/SDK paths immune (the consumer is a TUI-only React hook) |
+| Team-onboarding prompt | #103 | A server-supplied slash-command prompt body; byte-stable v128→v145 |
+| Brief stop-hook text | #106 (Critical) | An empty-default server string overrides hardcoded UI text and reaches the messages API as `role:"user"` verbatim; no length cap (a 64 KB canary reached), no cert pinning |
+| Content-sharing tool | #107 (High) | A built-in agentic tool uploads a working-directory file to an Anthropic endpoint |
+| Permission-classifier safety inversion | #108 (Critical) | A DEFAULT-TRUE flag governs the sandbox network classifier; flipping it false produces fail-open behavior; wire-confirmed v129 via a synthetic-rewrite MITM |
+| Field-level identifier egress | #110 (Critical) | Hundreds of raw plugin/skill/marketplace field values on the wire; wire-identical across v129/v131/v132 and byte-stable to v145 |
+| Forced downgrade | #113 (High) | A typed-object flag drives the AutoUpdater — **wire-confirmed on an interactive TUI, Session 59** (see below) |
+| Mid-conversation system predicate | #115 | **Relabelled informational, Session 59** (see below) |
+| Startup-notice UI injection | #127 (Critical) | An empty-default string flag reaches the TUI notification surface — **wire-confirmed on an interactive TUI, Session 59** (see below) |
+| Third-party telemetry sink | #105 (High) | Server-flipped on for the test account; 50–60 events/session; v144 adds a new hook-metrics event class carrying plugin and hook-event identifiers |
+| Plugin allowlist | catalogued, not filed | A v144 typed-object flag carries a server-pushed plugin-name allowlist; previously a byte-absent codename, now wired |
+
+The nonessential-traffic kill-switch env var does **not** suppress the config-eval channel or the third-party telemetry sink.
+
+### Finding status registry (current as of v2.1.145, Session 59)
+
+Severities mirror `docs/counts.js`. "Wire-confirmed" = observed on captured network traffic, not inferred from static decode.
+
+- **#31 AC3** — *Critical, UNDEFENDED on v145.* The subagent ghost-inbox / attribution-forgery class. v145 added a skill self-recursion guard — this is **orthogonal**: it blocks a forked skill from re-invoking *itself* in its own forked context, and does not touch the inbox-forge path. The relevant transcript-field and inbox-handler anchors are byte-stable v143→v145. AC3 remains an open undefended primitive.
+- **#105** — *High, wire-confirmed.* Anthropic's own third-party telemetry sink; raw envelope identifiers plus a 47–60-field fingerprint. Extends an earlier envelope-leak finding. v144 expands the surface with a new hook-metrics event class.
+- **#106** — *Critical, wire-confirmed.* The Stop-hook reminder override reaches model context verbatim; no cap, no cert pinning. The reader is byte-stable v126→v145.
+- **#108** — *Critical, wire-confirmed (v129).* The permission-classifier fail-open inversion was empirically triggered; the binary log emits a literal `(fail open)` line.
+- **#110** — *Critical, wire-confirmed (v129).* Field-level identifier egress; 356 raw `skill_name` + 9 `plugin_name` + 9 `marketplace_name`. Byte-stable to v145.
+- **#111 (pi-passport)** — *Critical.* Third-party-app gate evasion + OAuth-bearer harness bypass; the promotion-gate was met via an empirically demonstrated env-var token-exfil class, closed the same day. Post-rebaseline: 35 of 44 findings closed, 112-test suite.
+- **#113** — *High, WIRE-CONFIRMED on an interactive TUI (Session 59).* Injecting a forced-downgrade payload into the config-eval response made the AutoUpdater perform a downgrade to an attacker-chosen older version, with the interactive flag set and an `Auto-updating…` render — **no UI prompt, no confirmation**. Session 58 showed the inject lands; Session 59 (PTY-driven real TUI) showed the downstream AutoUpdater path executes. Reproduces identically on v145. The documented auto-updates opt-out does **not** cover this channel; a user who "disabled auto-updates" is still downgradable. User-side mitigation: a `settings.json` minimum-version floor.
+- **#114** — *High.* The #31 AC3 partial-defense (detection wired at v138) plus a skip-persistence bypass. Severity round-tripped Med→High after a third-party SDK-wrapper survey: of 97 public repos using the no-session-persistence flag, 5 of 7 sampled invoke it unconditionally (a large default-vulnerable share of the ecosystem).
+- **#115** — *Informational (relabelled Session 59).* A mid-conversation-system substring trigger. NEGATIVE on a full interactive TUI with both a synthetic canary and a valid model id as the injected value — the predicate did not fire despite all gates satisfied; beta headers were byte-identical baseline vs. canary turn. The substring-trigger primitive as hypothesised is not exercisable by config-value injection on v143/v145. Static decode stays catalogued.
+- **#127** — *Critical, WIRE-CONFIRMED on an interactive TUI (Session 59).* A server-controlled string reaches the TUI notification surface. The injected payload rendered verbatim; an embedded ANSI escape reached the terminal **unsanitized** as a live escape sequence, and a bare URL rendered (phishing surface). Promoted High→Critical on v140 (ANSI-escape + OSC 8 phishing demo). Reproduces identically on v145.
+
+Older findings (the global-query off-switch, the server-disablable CLAUDE.md injection, the mithril-probe medium-class findings, and others) were re-checked across the v122→v145 chain — all byte-stable, **no patches**. Net direction across this window: attack surface only added, never removed.
+
+### Persistence chain — no remediation v126 → v145
+
+Each version since v126 has been round-1 flag-diffed and the priority findings cross-checked with bounded-literal grep (string-pool literals are version-stable; minified identifiers rotate and must not be used as cross-version anchors). The result is uniform: **21 priority-finding literals byte-stable v143→v145, zero remediations observed across the chain v126→v145**. Two genuine remediations were noted earlier — a config-auth-loss fix and an OAuth refresh-token state-machine improvement at v138 — neither touched a tracked finding. Apparent string-count drops were confirmed as Bun-bundler dedup / V8 C++ symbol stripping, not silent fixes.
+
+### The documentation-gap pattern
+
+A 2026-05-20 review of the official Claude Code docs against the finding inventory surfaces a uniform, one-directional gap that is itself a disclosure-grade observation:
+
+- **User-triggered data flows are documented honestly** — `/feedback`, the session-quality survey, the transcript-share follow-up, and OpenTelemetry export each have a precise description of what is uploaded, retention, and a documented opt-out.
+- **Every server-*controlled* path this investigation found is undocumented** — a doc search for "feature flags" returns nothing; the entire server→client config/control channel is absent. None of the primitives that ride it (#103/#106/#108/#113/#115/#127) are mentioned. The Anthropic-bound default-on metrics channel (#92/#110) is described only by exclusion and is silent on the identity metadata it carries. The forced-downgrade path (#113) is not covered by the documented auto-updates opt-out.
+
+The strongest framing is the pattern, not the individual omissions: a reasonable user reading the official data-usage documentation cannot discover that the default-on metrics carry their identity, that a server-controlled channel can change their client's version / system prompt / terminal UI, or that a server flip can add a third-party telemetry destination.
+
+---
+
 ## Methodology Notes
 
 The mithril probe (Phase 6) used a completeness-tracking approach:

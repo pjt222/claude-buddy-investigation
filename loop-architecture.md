@@ -1,7 +1,7 @@
 # Claude Code Kairos Loop System — Technical Architecture
 
-**Date**: 2026-04-12
-**Version**: 1.0
+**Date**: 2026-04-12 · **Last revised**: 2026-05-20 (session 59, v2.1.145 currency pass)
+**Version**: 1.1
 
 > **Version scope:** The Kairos loop system's **dynamic-loop infrastructure landed in v2.1.101** (the smallest delta between v2.1.100 and v2.1.104 — 19 new feature flags, 3 new env vars, the `ScheduleWakeup` tool, and `/loop` slash command). Precursor Kairos markers (brief/cron/durable/dream) already existed in v2.1.98/v2.1.100 — these represent an earlier cron-only Kairos that was superseded when `ScheduleWakeup` was added. v2.1.104 is a rebuild of v2.1.101 with only one new loop-adjacent flag (image-resize failure telemetry) and one env var (agent-rule-disable kill switch) — the loop system is unchanged between 101 and 104. Descriptions below reflect v2.1.101 bundle analysis.
 
@@ -284,13 +284,32 @@ Disabling the sentinel-resolution gate while the other two are on produces an in
 | v2.1.102 | — | Never published to npm |
 | v2.1.103 | — | Never published to npm |
 | v2.1.104 | 2026-04-12 | Loop system unchanged from v2.1.101. Net additions: an image-resize failure telemetry flag and an agent-rule-disable env var; ~1 MB binary growth attributable to runtime/Bun updates rather than feature code. |
+| v2.1.117 | 2026-04-21 | Sentinel + resolver probe (`results/sentinel-collision-v2.1.117-probe.md`): all four sentinels byte-stable, resolver uses strict-equality matching, two call sites only. Minified identifiers rotated wholesale. |
+| v2.1.131 | 2026-05-06 | Empirical capture (`results/v2.1.131-probe-ff-loop-empirical.md`): loop system byte-stable v101→v131; the dynamic-loop gate resolves **DEFAULT-TRUE** via the server-controlled config-eval channel; dynamic-loop fires empirically active in-session. |
+| v2.1.101 → v2.1.145 | — | Loop surface BYTE-STABLE on string-pool literals across the full chain. Every minified identifier has rotated; no functional change. v2.1.145 (build 2026-05-19) re-verified session 59 — see header Currency note. |
 
 ---
 
 ## 11. Open Questions
 
-1. **Empirical `/loop` behaviour** — we have not exercised the slash command against a live v2.1.104 with the gates enabled. Landing the gates server-side is the gating event for empirical capture.
-2. **`recurringFrac`, `oneShotMinuteMod`, `oneShotFloorMs`** — these default-config fields are defined but we have not traced all call sites that read them. They may govern cron-mode behaviour that is orthogonal to the dynamic loop.
-3. **Interaction with advisor** — if the advisor tool is called from within a dynamic-loop tick, does the advisor's context include the prior tick or only the current one? Advisor cost-accounting functions (see advisor-architecture.md § 3) do not mention loop-aware fields.
-4. **Agent-rule-disable env var** (new in v2.1.104) — name suggests a rule-enforcement kill switch affecting agent behaviour; not obviously loop-related but worth tracing.
-5. **Sentinel collisions** — if a user's `prompt` argument accidentally contains one of the four sentinel strings, the runtime will attempt to resolve it. Defensive replacement is not visible in the resolver code.
+1. **Empirical `/loop` behaviour** — **CLOSED** (empirical capture, v2.1.131, `results/v2.1.131-probe-ff-loop-empirical.md`). The dynamic-loop gate resolves DEFAULT-TRUE for all accounts via the server-controlled config-eval channel (no rule needed); dynamic-loop fires are empirically active without any external trigger — this investigation's own sessions execute Kairos dynamic loops. The `ScheduleWakeup` tool definition, all four sentinels, both telemetry events, and the 7-day ageing constant all confirmed in-session. Wire-level telemetry firing is the one residual — would need a `/loop` invocation under MITM.
+2. **`recurringFrac`, `oneShotMinuteMod`, `oneShotFloorMs`** — still open. These default-config fields are defined but not all call sites that read them are traced. They likely govern cron-mode behaviour orthogonal to the dynamic loop.
+3. **Interaction with advisor** — still open. If the advisor tool is called from within a dynamic-loop tick, does the advisor's context include the prior tick or only the current one? Advisor cost-accounting functions (see `advisor-architecture.md` §3) do not mention loop-aware fields. Currently unfalsifiable here: the advisor flag is not enabled for this account while the loop flag is — the two cannot be exercised together until the advisor rolls out.
+4. **Agent-rule-disable env var** (new in v2.1.104) — still open. Name suggests a rule-enforcement kill switch affecting agent behaviour; not obviously loop-related but worth tracing.
+5. **Sentinel collisions** — **CLOSED** (`results/sentinel-collision-v2.1.117-probe.md`). Three independent defensive properties confirmed statically: (a) all four sentinel predicates use strict equality, never substring/regex/prefix matching — a prompt that merely *contains* a sentinel does not trigger substitution; (b) the resolver has exactly two call sites (the cron fire handler and a scheduled-tasks React effect), both fed only by strings the runtime itself wrote to the cron store — it is unreachable from REPL input, tool results, file reads, MCP responses, or agent messages; (c) the resolver fails closed — both branch resolvers return `null` when the sentinel-resolution gate is off, falling through to verbatim pass-through. Sentinel-collision privilege escalation is a non-issue. Residual low-severity notes: a user typing a sentinel as REPL input is a prompt-layer content-interpretation concern; direct cron-store file tampering is a separate local-filesystem threat model.
+
+---
+
+## 12. Runtime Status
+
+The Kairos loop was tracked through GitHub issue #8 (empirical `/loop` capture) and closed by an empirical probe on v2.1.131. **In contrast to the advisor**, the loop is *not* dark — the dynamic-loop gate resolves **DEFAULT-TRUE** for all accounts (no server rule needed). Dynamic loops fire empirically in-session; the project's own autonomous sessions run on this mechanism. The `/loop` slash-command gate and the sentinel-resolution gate are present in the binary as conditional gates but were not observed in the config-eval response — they are static/conditional rather than DEFAULT-TRUE.
+
+The v2.1.145 currency pass was static (string-pool literal counts) — the loop system was not re-probed at runtime with the session-58/59 containerized-MITM tooling; the v2.1.131 empirical capture plus the in-session firing evidence stands, and the binary surface is byte-stable across the v101→v145 chain.
+
+### Documentation status
+
+The `/loop` slash command and `ScheduleWakeup` self-pacing are **user-triggered surfaces** — the cron/loop scheduling mechanism is broadly the kind of feature that is documented once rolled out, and is not a covert server-controlled channel. The Kairos loop is therefore *not* part of the disclosure-asymmetry finding catalogued in `results/docs-gap-analysis-2026-05-20.md` (which concerns undocumented server→client config-push, forced-downgrade, and telemetry-sink primitives). The one server-controlled surface adjacent to Kairos is the brief-mode Stop-hook reminder string — but that is the injection vector tracked as security finding #106, a separate code path from the dynamic-loop scheduler documented here.
+
+---
+
+*Investigation conducted 2026-04-12; revised 2026-05-20 (session 59). Binary/bundle analysis on v2.1.101 (`cli.js`, readable); cross-version probes on v2.1.117 (sentinel/resolver, model-router) and v2.1.131 (empirical capture); currency re-verified against v2.1.145 (build 2026-05-19) by string-pool literal counts. Loop surface byte-stable v2.1.101 → v2.1.145; every minified identifier has rotated one or more times with no functional change. The dynamic-loop gate confirmed DEFAULT-TRUE; sentinel-collision and empirical-behaviour open questions closed.*

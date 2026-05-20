@@ -18,6 +18,14 @@ The buddy system's **core architecture is sound** — the unidirectional trust b
 | LOW      | 3 | Unicode validation gaps, innerHTML pattern, year gate seasonal bug |
 | OBSERVATION | 1 | API stat spoofing (intentional — "Two Owls" documented behavior) |
 
+### Post-audit harness-level additions (tracked in the issue tracker)
+
+The original repo-scoped audit baseline (14 items above) has been extended over time as the investigation expanded into the wider Claude Code harness binary. **15 post-audit findings** are tracked in the issue tracker, bringing the **audit-baseline tally to 29**: #31 AC3 (ghost-inbox forgery, 2026-04-14) + 6 mithril-probe harness findings (#73/#76 HIGH, #78/#80/#81/#85 MEDIUM, 2026-04-19) + #105 (HIGH, third-party telemetry processor, v126) + #106 (CRITICAL, brief stop-hook config-channel injection, v126) + #107 (HIGH, content-sharing tool, v128) + #108 (CRITICAL, permission-classifier inversion, v128, wire-confirmed v129) + #110 (CRITICAL, field-level identifier egress, v129, wire-confirmed) + #113 (HIGH, forced-downgrade, v138 — wire-confirmed v143 session-59) + #114 (HIGH, #31 AC3 partial-defense, v138) + #127 (CRITICAL, startup-notice ANSI/OSC8 injection, v140 — wire-confirmed v143/v145 session-59).
+
+The 29-item audit-baseline tally by severity (per `docs/counts.js`): **6 critical / 9 high / 10 medium / 3 low / 1 observation**.
+
+**Live GH-label re-derivation (2026-05-20, post-v145 round-1, session-59)**: 12 critical / 30 high-priority / 46 medium-priority / 8 low-priority = **96 severity-labeled across 135 repo issues**. The live tally counts ALL severity-labeled issues (including exploratory disclosure-candidates not tracked in the audit-baseline tally); it has been byte-stable since 2026-05-18 — no new issues filed v141–v145. See `docs/counts.js` for the two-axis tally and re-derivation procedure. Per-finding detail for the 15 post-audit items is in the **Post-Audit Harness-Level Findings** section below.
+
 ---
 
 ## CRITICAL Findings
@@ -409,6 +417,88 @@ This means the companion will be **silently disabled from January 1 through Marc
 | **OAuth authentication** | `buddy_react` requires a valid OAuth bearer token. Missing or expired tokens cause silent bail-out (4 gates in the dispatch function). |
 | **Muting behavior** | `/buddy off` sets a muted flag, which stops **both** UI display and network transmission. Muting is not cosmetic. |
 | **No tracking in docs** | Documentation site contains no analytics, cookies, localStorage access, or data exfiltration. |
+
+---
+
+## Post-Audit Harness-Level Findings
+
+The 14 audit-scoped items above cover the original repo-scoped audit. As the investigation expanded into the wider Claude Code harness binary (v2.1.107 → v2.1.145), 15 additional findings were filed in the issue tracker. They are summarised here for completeness — full reproduction details, MITM artefacts, and disclosure timelines live in the issue tracker. Numbering uses `PAn` (Post-Audit) alongside the canonical issue number. Flag and minified-identifier names are redacted; functional descriptions only.
+
+**Cross-version persistence (session-59):** all 21 priority-finding literals are byte-stable v143→v145 — **no remediation observed on any tracked finding** across the v143/v144/v145 chain. Runtime re-probes (#113, #127) reproduce on v2.1.145 identically to v2.1.143. The net direction across the version window remains attack-surface-added, not removed.
+
+### PA1 / #31 AC3 — Skill-Forked Subagent Inbox Forgery (CRITICAL)
+
+**Discovered**: 2026-04-14 (empirical). **Class**: Authorisation bypass via attribution laundering. The subagent ghost-inbox / attribution-forgery class — a skill-forked subagent can silently create inbox messages, and the attribution can be laundered. A transcript-replay variant remained undefended through v138 despite an SDK-stdin parser-level defense added in v123.
+
+**v145 status — UNDEFENDED**: v2.1.145 added a skill self-recursion guard, which is **orthogonal** — it blocks a forked skill from re-invoking *itself* in its own forked subagent context (same-skill self-recursion only). It does NOT touch the cross-agent inbox-forge path. The relevant forge-field and inbox-handler anchors are byte-stable v143→v145. **#31 AC3 remains undefended on v2.1.145.**
+
+### PA2 / #73 — Global Query Off-Switch (HIGH)
+
+**Discovered**: 2026-04-19 (mithril probe v2.1.114). **Class**: Server-flippable kill switch. A flag at the top of the main query executor — a single server-side flip can disable all queries cohort-wide.
+
+### PA3 / #76 — Server-Disablable CLAUDE.md Injection (HIGH)
+
+**Discovered**: 2026-04-19 (mithril probe v2.1.114). **Class**: Server-controlled context modification. A server-controlled flag can remotely disable CLAUDE.md injection — a silent project-context drop without user consent. The same class re-occurred in v2.1.121 with the `/team-onboarding` slash-command prompt body delivered via the same channel (#103).
+
+### PA4 / #78 — Third-Party Logging Gate (MEDIUM, subset of #105)
+
+**Discovered**: 2026-04-19 (v2.1.114). **Class**: Third-party telemetry surface. A third-party logging gate with a hardcoded public endpoint. Empirical wire-confirmation in v126 (#105) extended this to High once the full body shape (a 47-field fingerprint plus raw envelope identifiers) was confirmed.
+
+### PA5 / #80 — Semantic Co-Work Memory Selector (MEDIUM)
+
+**Discovered**: 2026-04-19 (v2.1.114). **Class**: Async vector lookup on user input. A semantic co-work memory selector running an async vector lookup on user turns. This cluster (with #81) was fully removed in v2.1.128 (auto-memory feature retired).
+
+### PA6 / #81 — Silent Async Memory Extraction (MEDIUM)
+
+**Discovered**: 2026-04-19 (v2.1.114). **Class**: Implicit data persistence. Silent async memory extraction from conversation turns. Removed in v2.1.128.
+
+### PA7 / #85 — Multi-Session Coordinate Mode (MEDIUM)
+
+**Discovered**: 2026-04-19 (v2.1.114). **Class**: Undocumented multi-Claude coordination. A multi-session coordinate mode — an undocumented multi-Claude coordination system / Computer Use config object (Pro/Max gated).
+
+### PA8 / #105 — Third-Party Telemetry Processor (HIGH)
+
+**Discovered**: 2026-05-02 (v2.1.126 MITM wire capture). **Class**: Third-party processor envelope-leak (extends an earlier finding). When the third-party logging gate is server-flipped on, a 110-event subset duplicates to a third-party processor (the gate rule was byte-stable v126→v138). The body retains `session_id` (every event), `subscription_type` (also search-indexed), `last_session_id` (cross-session correlation), and a 47-field system fingerprint. A later round found a partial remediation for a customer subset only.
+
+### PA9 / #106 — Brief Stop-Hook Config-Channel Injection (CRITICAL)
+
+**Discovered**: 2026-05-02 (v2.1.126 MITM canary). **Class**: Server-controlled string reaches model context verbatim. An empty-default server-controlled string-flag overrides the hardcoded Stop-hook reminder text. A MITM-injection canary empirically reaches the messages-API model context as `role:"user"` verbatim. No client-side length cap (a 64 KB canary reaches the model context). No certificate pinning at the config-eval channel.
+
+### PA10 / #107 — Content-Sharing Tool With Public Share URL (HIGH)
+
+**Discovered**: 2026-05-04 (v2.1.128). **Class**: Public file share via an agentic tool. A built-in agentic tool uploads a working-directory file to an Anthropic onboarding endpoint, gated by a server-controlled flag (server-flipped ON for the test account), and returns a share URL. An informal incognito test reported the URL as public; a later scrapling re-test from a no-cookies host got server-side redirects to the login page (the SPA shell serves identical bytes for login and the share route). Severity HIGH; promotion-gate to CRITICAL still open pending a fresh-profile incognito re-verify.
+
+### PA11 / #108 — Permission-Classifier Fail-Closed Inversion (CRITICAL)
+
+**Discovered**: 2026-05-04 (v2.1.128, Med-High); promoted CRITICAL 2026-05-06 via a MITM probe (v2.1.129). **Class**: Server-flippable safety-default inversion. A DEFAULT-TRUE flag controls the sandbox network classifier's fail-closed default. Server-flipping it false inverts to fail-open. The probe ran a 2-step rewrite chain (a config-eval inject plus a 503 for classifier requests) and produced a literal `(fail open)` line in the binary log. The auto-mode permission classifier site was wire-confirmed; the sandbox-network classifier site is deferred.
+
+### PA12 / #110 — Field-Level Identifier Egress (CRITICAL)
+
+**Discovered**: 2026-05-05 (v2.1.129, HIGH); promoted CRITICAL 2026-05-06 via a MITM probe. **Class**: Telemetry field-level identifier leak. A destructure-rename pattern in the first-party telemetry pipeline extracts payload values into local variables and re-attaches them as top-level event fields; a sibling redactor strips the residual but not the destructured raw values explicitly re-attached at egress. Empirically: a single `claude --print` invocation produced 356 raw `skill_name` (355 unique) + 9 `plugin_name` (2 unique third-party) + 9 `marketplace_name` (2 unique third-party) on 2 event-logging batch POSTs. A forward-compat slot for raw REPL input exists at the destructure but no emitter populates it through v138 (escalate watch if a setter is ever added).
+
+### PA13 / #113 — Forced-Downgrade Primitive (HIGH) — WIRE-CONFIRMED
+
+**Discovered**: 2026-05-10 (v2.1.138 static decode). **Wire-confirmed**: 2026-05-20 (session-59, interactive TUI on v2.1.143; reproduced v2.1.145). **Class**: Server-pushed version-pin primitive. **Status**: OPEN — `disclosure-candidate`, a wire-confirmed member of the disclosure bundle.
+
+A typed-config reader returns a `{maxVersion, forceDowngradeEnabled}` object derived from a server-provided semver string; a sister primitive provides bidirectional version-pin via the same channel. User-side mitigation: a `~/.claude/settings.json` minimum-version floor blocks downgrades below it; the default is undefined, so most users are vulnerable. The documented auto-update mitigations (the auto-updates opt-out, release-channel settings) do NOT cover this server-controlled path — a user who "disabled auto-updates" per the official docs is still downgradable.
+
+**Runtime evidence**: PTY keystroke automation drove an interactive TUI under MITM with a forced-downgrade payload force-injected into every server config-eval response. The captured event-logging batch POST carried the forced-downgrade telemetry event decoding to a `{from_version, to_version, subscription_type}` triple; the TUI then rendered `Auto-updating…` — the client entered the downgrade flow, with the interactive flag set, with **no UI prompt and no user confirmation**. Session-58 (`--print` / `claude doctor`) showed only that the inject lands; session-59's interactive TUI showed the downstream AutoUpdater path executes, closing the wire-confirmation gap.
+
+### PA14 / #114 — Skip-Persistence Bypass on the AC3 Defense (HIGH)
+
+**Discovered**: 2026-05-10 (v2.1.138 static decode); demoted to MEDIUM in a follow-up round; reverted to HIGH via an empirical SDK-wrapper survey. **Class**: Partial-defense bypass on the ghost-inbox transcript-replay variant. The message-chain insertion path has a bypass on the skip-persistence path. The skip-persistence path is reachable via an explicit no-session-persistence CLI flag, an SDK option, or an env var. A third-party SDK-wrapper survey found 97 unique public GitHub repos using the bypass flag; 5 of 7 sampled wrappers default unconditionally to the bypass-vulnerable mode (a large default-vulnerable share of the public ecosystem). Severity stays HIGH on empirical evidence.
+
+### PA15 / #127 — TUI Startup-Notice ANSI/OSC8 Injection (CRITICAL) — WIRE-CONFIRMED
+
+**Discovered**: 2026-05-13 (v2.1.140 static decode); promoted HIGH → CRITICAL the same day via a PTY-mounted MITM probe. **Re-confirmed**: 2026-05-20 (session-59, an independent PTY-driver scaffold on v2.1.143; reproduced v2.1.145). **Class**: Server-pushed UI-string injection with missing escape-sequence sanitization. **Status**: OPEN — `critical`, `disclosure-candidate`, a wire-confirmed member of the disclosure bundle.
+
+A server-controlled string-flag is read via the config-eval channel; its default state on the wire is empty/dormant. When the server flips the flag on with a string value, the Ink notification component renders the value verbatim wrapped in a yellow SGR, **with no escape-sequence sanitization**. A multi-phase probe wire-confirmed: (i) the UI render path mounts in TUI mode; (ii) raw ANSI escapes pass through to the user's terminal stream; (iii) markdown is rendered as literal text (defensive); (iv) the length cap is ~75 visible characters (defensive) but ANSI escapes are zero-width and survive the cap. A follow-up phase demonstrated the most-impactful concrete attack: a server-pushed OSC 8 terminal hyperlink rendered as a mouse-clickable link with an attacker-chosen URL (the Ink layer even auto-enhanced the hyperlink). A single server config push delivers credential-phishing UI to a targeted user cohort. No additional client-side compromise is needed.
+
+**Session-59 re-confirmation**: independently reproduced on the new PTY-driver scaffold. On both v2.1.143 and v2.1.145, an injected payload mixing a plain canary, an ANSI escape, and a bare URL rendered to the TUI notification area — the plain canary verbatim, the ANSI escape passed through **unsanitized**, the bare URL rendered. Two of the three CRITICAL promotion-gates are met; the unsanitized-ANSI result already enables cursor manipulation and screen overwrite.
+
+---
+
+> **Out of post-audit scope** (relabeled `informational`, not in the audit-baseline tally): **#115** — a server-flippable mid-conversation-system substring-on-conversation-content predicate (v2.1.138). **Runtime-confirmed NEGATIVE and relabeled `disclosure-candidate` → `informational` (session-59).** Session-58 saw the predicate not fire on `--print`; session-59 drove a full interactive two-turn TUI with the canary injected into the flag AND present in the conversation body — the predicate still did not fire, and the beta-header set was byte-identical between the baseline and canary turns. The probe was re-run with a *valid model id* as the injected value to rule out a model-validator rejecting a synthetic canary — the beta-header diff was still null. The substring-trigger primitive as hypothesised is **not exercisable** by config-value injection on v2.1.143/v2.1.145, independent of input class and mode. The static decode stays catalogued; the runtime primitive is confirmed not exercisable, so the finding is no longer a disclosure candidate.
 
 ---
 

@@ -1,9 +1,11 @@
 # Claude Code Advisor System — Technical Architecture
 
-**Date**: 2026-04-10
-**Version**: 1.0
+**Date**: 2026-04-10 · **Last revised**: 2026-05-20 (session 59, v2.1.145 currency pass)
+**Version**: 1.1
 
-> **Version scope:** The advisor tool infrastructure was already **code-complete in v2.1.96** (built 2026-04-03) — coexisting with the full buddy companion system. Both systems scored 75+/75+ in that build. The buddy UI was then removed in v2.1.97 (built 2026-04-08) while the advisor remained. The system prompt was refined in v2.1.98 (built 2026-04-10) and the advisor feature gate was bumped to a new iteration. The advisor is dark-launched behind a server-side feature flag and is not yet visible to all users. Descriptions below reflect v2.1.98/v2.1.100 analysis; advisor markers are unchanged through v2.1.104.
+> **Version scope:** The advisor tool infrastructure was already **code-complete in v2.1.96** (built 2026-04-03) — coexisting with the full buddy companion system. Both systems scored 75+/75+ in that build. The buddy UI was then removed in v2.1.97 (built 2026-04-08) while the advisor remained. The system prompt was refined in v2.1.98 (built 2026-04-10) and the feature gate bumped. The advisor is dark-launched behind a server-side feature flag and is not yet visible to all users.
+>
+> **Currency (v2.1.145, build 2026-05-19):** the advisor surface is **byte-stable on string-pool literals** from v2.1.96 through v2.1.145 — verified session 59 (2026-05-20): the tool type `advisor_20260301`, the advisor feature flag, the kill-switch env var, the advisor telemetry event names, and the system-prompt body (§4) are all byte-identical to the v2.1.98 extract. Function-reference §3 names are **minified identifiers that rotate per build** — see the §3 caveat.
 >
 > **See also:** `loop-architecture.md` for the Kairos loop system (`ScheduleWakeup` / `/loop`) that landed in v2.1.101 alongside but architecturally independent from the advisor.
 
@@ -319,6 +321,14 @@ v2.1.99                NEVER PUBLISHED — npm registry skips from 2.1.98 to 2.1
                         Likely internal-only build or intentionally skipped version
 v2.1.100 (2026-04-10)  Advisor code identical to v2.1.98
                         Minor binary size change (-4KB)
+v2.1.100 → v2.1.145    Advisor surface BYTE-STABLE on string-pool literals.
+                        Every minified identifier has rotated one or more
+                        times; no functional change. Catalogued: the Opus
+                        default migrated to the Opus 4.7 short-name path
+                        (see §3 Model Resolution). The advisor feature flag
+                        is still NOT flipped on for this account.
+v2.1.145 (2026-05-19)  Current binary. Verified session 59: advisor markers
+                        unchanged, system prompt body byte-identical to v2.1.98.
 ```
 
 ---
@@ -336,4 +346,16 @@ The blog makes **zero mention** of the buddy/companion/Shingle system. The advis
 
 ---
 
-*Investigation conducted 2026-04-10. Binary analysis on v2.1.96, v2.1.97, v2.1.98, and v2.1.100. System prompt paraphrased from v2.1.98 (verbatim text withheld). Advisor confirmed code-complete in v2.1.96 (coexisting with full buddy system — both scored FULL). Feature-gate status: advisor gate not yet rolled out to this account. buddy_react API confirmed alive (200 OK, 1331ms latency). Companion config intact in `~/.claude/.claude.json`.*
+## 12. Runtime Status
+
+The advisor was tracked through GitHub issue #21 ("Advisor empirical capture") and closed via static spec. End-to-end runtime capture of an advisor `tool_call` → `tool_result` round-trip remains **blocked on the feature flag**: the advisor feature flag is not flipped on for this account. A server-controlled config-eval probe confirms the flag's server-side value; until it flips, the advisor tool is never pushed into the Messages API `tools` array for this user, so no live telemetry or wire capture is possible without the `--advisor` CLI flag (also gated by the advisor feature gate).
+
+This is **the opposite posture from the Kairos loop**, where the dynamic-loop gate resolves DEFAULT-TRUE and dynamic loops fire empirically in-session (see `loop-architecture.md` §12).
+
+### Documentation status
+
+Unlike the server-controlled config-push, forced-downgrade, and third-party telemetry primitives catalogued in `results/docs-gap-analysis-2026-05-20.md` — all of which are entirely undocumented server-controlled channels — the advisor is a **user-triggered surface that the official docs do cover** (via the `--advisor` flag and `/advisor` slash command once rolled out). When the advisor feature flag flips, the advisor becomes a visible, user-controllable feature with a documented opt-out (`/advisor off`, the kill-switch env var). It is therefore *not* part of the disclosure-asymmetry finding; the advisor doc-gap is small and closes on rollout.
+
+---
+
+*Investigation conducted 2026-04-10; revised 2026-05-20 (session 59). Binary analysis on v2.1.96, v2.1.97, v2.1.98, v2.1.100; currency re-verified against v2.1.145 (build 2026-05-19). System prompt paraphrased from v2.1.98 (verbatim text withheld) and confirmed byte-identical in v2.1.145. Advisor confirmed code-complete in v2.1.96 (coexisting with full buddy system — both scored FULL). Feature-gate status: advisor gate still not rolled out to this account as of session 59. buddy_react API confirmed alive (200 OK, 1331ms latency) at original investigation. Companion config intact in `~/.claude/.claude.json`.*

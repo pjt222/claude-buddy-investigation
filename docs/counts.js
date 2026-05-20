@@ -18,12 +18,13 @@
 
 window.VIZ_COUNTS = Object.freeze({
   // ---- Subsystem taxonomy ----
-  // Total = 2 primary (buddy + advisor) + 13 inside the Wider Harness tab.
-  // +4 since prior build: MCP client (gap→core), Plugins (new), Auto-Dream (new), Provider Registry (new)
-  // +1 wave 7: TUI Renderer (three-tier: Ink Flexbox, DECSTBM, minimal Fragment)
+  // Total = 2 primary (buddy + advisor) + 16 inside the Wider Harness tab.
+  // Wider-harness additions through v2.1.145 include: MCP client, Plugins,
+  // Auto-Dream, Provider Registry, TUI Renderer, Background daemon, the
+  // pi-passport research tooling, and the server-side billing-tier classifier.
   subsystems: {
-    total: 15,
-    wider_harness: 13
+    total: 18,
+    wider_harness: 16
   },
 
   // ---- Security findings ----
@@ -88,20 +89,21 @@ window.VIZ_COUNTS = Object.freeze({
       low: 3,
       observation: 1
     },
-    // Live re-derivation from `gh issue list --label <sev>` (run 2026-05-13,
-    // post-v140 cycle: 1 promotion from high-priority to critical via
-    // PTY-mounted MITM wire-evidence). Counts ALL repo issues with severity
+    // Live re-derivation from `gh issue list --label <sev>` (run 2026-05-20,
+    // session-59 post-v145 round-1). Counts ALL repo issues with severity
     // labels, not just curated post-audit additions. Includes informational
-    // disclosure-candidates.
+    // disclosure-candidates. Counts byte-stable since 2026-05-18 — no new
+    // issues filed across the v141-v145 cycle (all 21 priority findings
+    // byte-stable v143→v145).
     gh_label_counts: {
       critical: 12,
       high: 30,
       medium: 46,
       low: 8,
       labeled_total: 96,
-      unlabeled_by_severity: 31,
-      repo_total: 127,
-      derived_at: "2026-05-18"  // session-56 re-derivation post v141/v142/v143 round-1; counts stable (no new issues filed v141-v143 cycle)
+      unlabeled_by_severity: 39,
+      repo_total: 135,
+      derived_at: "2026-05-20"
     }
   },
 
@@ -219,15 +221,17 @@ window.VIZ_COUNTS = Object.freeze({
   // ---- Investigation metadata ----
   investigation: {
     agents_deployed: "21+",
-    waves: 16
+    waves: 16,
+    current_binary: "2.1.145",   // session-59 (2026-05-20); npm latest
+    latest_session: 59
   },
 
   // ---- Version coverage ----
   version: {
     start: "v2.1.89",
-    end: "v2.1.143",
-    range: "v2.1.89 \u2192 v2.1.143",  // unicode rightwards arrow
-    skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125", "v2.1.127", "v2.1.130", "v2.1.133", "v2.1.134", "v2.1.135", "v2.1.136", "v2.1.137", "v2.1.139"]
+    end: "v2.1.145",
+    range: "v2.1.89 \u2192 v2.1.145",  // unicode rightwards arrow
+    skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125", "v2.1.127", "v2.1.130", "v2.1.134", "v2.1.135", "v2.1.136", "v2.1.137", "v2.1.139"]
   },
 
   // ---- v126 brief-mode stop-hook GrowthBook content injection ----
@@ -523,5 +527,38 @@ window.VIZ_COUNTS = Object.freeze({
     remediations_observed: 0,
     surface_drift_decoded_benign: 2,           // remote-control bridge code-path consolidation accounts for the only -1 drifts
     notes: "All persistence claims use bounded-context grep on semantic literals (flag names, telemetry events, beta-header strings, Zod field names, CLI flags, error-message prose). Minified identifier names rotate per release and are explicitly NOT used as cross-version proof."
+  },
+
+  // ---- v2.1.144 / v2.1.145 round-1 + sessions 55-59 runtime-probe campaign ----
+  // Static round-1 chain v143→v144→v145 (v145 build 2026-05-19, npm latest).
+  // Flag delta v143→v145 = +14 / -6 standalone (net +8). The boolean reader and
+  // the typed reader each rotated identifiers across the chain; DEFAULT-TRUE
+  // stable at 18. All 21 priority-finding literals byte-stable v143→v145 — NO
+  // remediation observed.
+  //
+  // Runtime: a containerized MITM probe-sandbox (sessions 58) plus PTY keystroke
+  // automation driving a real interactive Claude Code TUI (session 59)
+  // wire-confirmed two findings on an interactive TUI: a server-pushed
+  // forced-downgrade primitive (#113, the auto-updater performed the downgrade
+  // with no user prompt) and a server-pushed terminal-notification injection
+  // (#127, rendered verbatim with unsanitized ANSI escapes). A mid-conversation
+  // system substring predicate (#115) was negative on a full interactive TUI and
+  // relabeled informational. The runtime-probe queue is now empty.
+  //
+  // New signals decoded statically: a server-pushed plugin-name allowlist flag
+  // (now wired — catalogued), a new third-party-logging event class (#105-adjacent),
+  // and a skill self-recursion guard (defensive, orthogonal to #31 AC3).
+  cross_version_v144_v145: {
+    versions_probed: 7,                  // v138, v140, v141, v142, v143, v144, v145
+    priority_findings_byte_stable: 21,
+    remediations_observed: 0,
+    runtime_wire_confirmed: 2,           // #113 forced-downgrade, #127 startup-notice
+    runtime_negative: 1,                 // #115 mid-conversation system → informational
+    new_tooling: 2,                      // containerized MITM probe-sandbox, PTY keystroke automation
+    flag_delta_v143_v145: { added: 14, removed: 6, net: 8 },
+    default_true: 18,
+    runtime_probe_queue: 0,              // all runtime-probe-needed issues cleared
+    docs_gap_analysis: "results/docs-gap-analysis-2026-05-20.md",  // server-controlled channels undocumented
+    notes: "All persistence claims use bounded-context grep on semantic literals. Minified reader identifiers rotate per release and are NOT used as cross-version proof."
   }
 });

@@ -1,7 +1,7 @@
 # Claude Code Buddy System — Technical Architecture
 
-**Date**: 2026-04-02 (updated 2026-04-17)
-**Version**: 1.2
+**Date**: 2026-04-02 (updated 2026-05-20)
+**Version**: 1.3
 
 > **Version scope:** This document describes the companion system as it existed in **v2.1.89–v2.1.96**. The native UI module was surgically removed in v2.1.97 (built 2026-04-08). Functions, components, and rendering described below no longer exist in the binary. The `[buddy-reaction-api]` API remains live server-side — our workspace and MCP tools call it directly, bypassing the binary.
 >
@@ -9,7 +9,9 @@
 >
 > **Kairos loop system:** Starting v2.1.101, an autonomous self-continuation mechanism (`ScheduleWakeup` tool, `/loop` slash command, four prompt sentinels) — also architecturally independent from the companion. See `loop-architecture.md` for the full loop technical spec.
 >
-> **v2.1.111/v2.1.112 advances:** Binary investigation through v2.1.112 (build 2026-04-16T18:33:55Z) has characterized 14+ additional systems. See §12 for a summary of new architectural surfaces and the `digest.md` v2.1.111/v2.1.112 investigation section for full detail.
+> **v2.1.111/v2.1.112 advances:** Binary investigation through v2.1.112 (build 2026-04-16T18:33:55Z) characterized 14+ additional systems. See §12 for a summary of new architectural surfaces and the `digest.md` v2.1.111/v2.1.112 investigation section for full detail.
+>
+> **v2.1.118 → v2.1.145 (current):** Investigation continued through **v2.1.145** (build 2026-05-19, npm `latest`). §13 documents the runtime-probe tooling built across this window (containerized MITM probe-sandbox, PTY keystroke automation). §14 documents the **server-flippable control plane** — the server-to-client config channel that became the dominant architectural surface, and the disclosure-asymmetry it creates. Full finding inventory and per-version detail: `digest.md` and the `results/` files.
 
 ---
 
@@ -928,3 +930,124 @@ Format: `~/.claude/file-history/{sessionId}/{sha256(filePath)[0:16]}@v{n}`. Raw 
 | `&lt;flag-name&gt;` | Kill-switch for /fast (Penguin Mode); custom message override |
 | `&lt;flag-name&gt;` | Array of model fragments that block ToolSearch |
 | `&lt;flag-name&gt;` | Agent teams enable gate (default true) |
+
+---
+
+## §13 Runtime-Probe Architecture: Containerized MITM + PTY Automation (Sessions 58–59)
+
+The investigation through v2.1.117 was almost entirely **static** — `strings`, binary diffing, decompilation of minified source. From v2.1.118 onward the bottleneck became *runtime confirmation*: many findings are gated behind a server-controlled feature flag and only fire on a real interactive session. Two pieces of tooling, both under `tools/probe-sandbox/`, closed that gap.
+
+### 13.1 Containerized MITM Probe-Sandbox (Session 58)
+
+A two-service `docker compose` stack on a private bridge network:
+
+```
+            ┌──────────────────────────────────────────────┐
+            │  isolated bridge network                      │
+            │                                               │
+   ┌────────┴─────────┐              ┌────────────────────┐ │
+   │  probe service   │  HTTPS_PROXY │  mitm service      │ │
+   │  Claude Code     │─────────────►│  intercepting      │ │
+   │  (pinned binary, │              │  proxy + per-probe │ │
+   │   real OAuth)    │◄─────────────│  addon (Python)    │ │
+   └──────────────────┘              └─────────┬──────────┘ │
+            │                                  │            │
+            └──────────────────────────────────┼────────────┘
+                                                ▼
+                                       api.anthropic.com
+                                       (TLS re-originated;
+                                        addon sees plaintext)
+```
+
+- **TLS interception** — the probe container trusts the proxy CA via the standard Node/Bun CA-bundle environment variables; the Bun-bundled binary honors both. All `api.anthropic.com` traffic (the messages API, the event-logging batch endpoint, the server-controlled config-eval endpoint, plus the third-party telemetry sink) is visible to the addon as plaintext.
+- **Addon rewrite pattern** — each probe ships a Python addon that hooks the server-controlled config-eval response and **rewrites a feature value in flight**, force-injecting an attacker-chosen flag payload that the server never actually sent. This converts a "what if Anthropic flipped this flag" question into an empirical test. (No per-finding flag names or JSON payload shapes are reproduced in this public document — see the private `results/` files.)
+- **Isolation boundary** — the probe container's filesystem and process space are isolated from the host. Host code is mounted read-only. The **account state is *not* isolated** — the probe uses the real host OAuth bearer, so probes consume real rate-limit budget and any side effects hit the real account. Per-probe cost is tracked.
+
+This stack unblocked the five `runtime-probe-needed` GitHub issues. Session-58 results: `results/runtime-probes-session-58.md`.
+
+### 13.2 PTY Keystroke Automation (Session 59)
+
+The probe-sandbox alone was insufficient for findings gated on the **TUI render path**. `claude --print` and `claude doctor` short-circuit before the Ink React tree mounts — so the startup-notice render, the AutoUpdater check, and any notification-surface render never execute under non-interactive modes. Driving a *real* interactive TUI requires getting past the first-run onboarding (theme picker, trust dialog) without a human at the keyboard.
+
+`tools/probe-sandbox/probes/lib/tui-driver.exp` is an `expect` (Tcl) script that:
+
+1. Spawns interactive `claude` on a pseudo-terminal.
+2. Walks onboarding by sending `Enter` until a REPL-ready marker appears in the raw PTY byte stream.
+3. Sends N scripted user turns; optionally idles (so the startup AutoUpdater check runs).
+4. Exits cleanly via `/exit`.
+
+Two structural gotchas, carried forward as lessons:
+
+- **State-file path.** Claude Code reads its main state from `$HOME/.claude.json` (home root), **not** `$HOME/.claude/.claude.json` (that directory holds only credentials + settings). An earlier theme-picker bypass failed solely because the onboarding-complete seed was written to the wrong path. The fix: the container entrypoint synthesizes a *minimal* `$HOME/.claude.json` with onboarding-complete, a dark theme, and a trusted project entry. It is deliberately minimal — copying the host file's cached config would suppress the very config-eval fetch the addons depend on.
+- **Ready-marker matching.** The Ink TUI renders inter-word spaces as cursor-forward escapes, so a multi-word literal never matches the raw byte stream. The ready-marker regex must be a single contiguous token.
+
+The driver is the reusable foundation for any future TUI-gated probe. Session-59 results: `results/runtime-probes-session-59.md`.
+
+### 13.3 What the Runtime Tooling Confirmed
+
+| Finding | Static-only verdict (pre-probe) | Runtime verdict |
+|---|---|---|
+| #113 forced downgrade | inject lands; AutoUpdater path untested | **wire-confirmed** — the AutoUpdater performed a downgrade to an attacker-chosen older version with no UI prompt |
+| #127 startup-notice injection | static decode of the notification path | **wire-confirmed** — arbitrary text *and* unsanitized ANSI escapes render to the TUI notification surface |
+| #115 mid-conversation system | hypothesised substring-trigger primitive | **negative** — the predicate did not fire on a full TUI with the value injected; relabelled informational |
+| #117 API drift | — | **no drift** — passive monitoring baseline established |
+| #118 pi-passport L1 CI | n=13, LB 0.79 | n=30, **LB 0.905** (high-confidence band) |
+
+All re-verified on v2.1.145: #113 and #127 reproduce identically; consistent with the static byte-stability of all 21 priority literals v143→v145.
+
+---
+
+## §14 Server-Flippable Control Plane (v2.1.118 → v2.1.145)
+
+The dominant architectural shift documented in this window is not a new feature — it is the realization of how much runtime behavior is governed by a single **server-side configuration channel**.
+
+### 14.1 The Server-to-Client Config-Eval Channel
+
+Claude Code resolves feature flags through a remote-evaluation feature-flag service — flag values are computed server-side at Anthropic and the client receives only pre-evaluated results. At startup the client POSTs ≈14 user attributes (device ID, organization UUID, email, subscription type, rate-limit tier, version, platform, …) to a server-controlled config-eval endpoint on `api.anthropic.com`; the response is the per-user evaluated flag set, cached locally with a 6 h refresh.
+
+Flag resolution is a 7-layer chain (highest precedence first):
+
+```
+1. CLAUDE_CODE_DISABLE_* env kill switches (caller-side)
+2. Session-override map        (a feature-flags env var)
+3. Project-local flag overrides
+4. Server-controlled feature cache  ◄── the server-controlled layer
+5. Statsig supplemental gates  (vscode_* only)
+6. Grove policy               (an internal policy endpoint)
+7. Embedded default            (the `default` argument)
+```
+
+The recurring code shape is a one-line gate over an entire subsystem — a single reader call with a flag name and a default. The minified reader identifier **rotates every binary release** (both a boolean 2-arg form and a typed 3-arg form for object- and string-payload flags). Cross-version analysis must therefore anchor on string-pool literals (flag names), never on the minified reader name.
+
+### 14.2 Flags Are Not Just Booleans
+
+The security weight of this channel comes from the **typed payloads**. A flag value can be an object or a string that flows directly into model context, terminal UI, or update behavior. A MITM scaffold (§13.1) rewrites these server config responses in flight to test the injection paths. The confirmed primitives, referred to by finding number:
+
+- **#106 (Critical)** — an empty-default string-flag reaches the messages API as `role:"user"` text, verbatim, with no length cap and no certificate pinning.
+- **#127 (Critical)** — an empty-default string-flag reaches the TUI notification surface with ANSI escapes left unsanitized.
+- **#113 (High)** — a typed-object flag drives the AutoUpdater to force a **downgrade** to an attacker-chosen older version.
+- **#108 (Critical)** — a DEFAULT-TRUE boolean flag governs the sandbox network classifier; flipping it produces fail-open behavior.
+- **#103** — a string-flag supplies the `/team-onboarding` slash-command prompt body.
+- **#105 (High)** — a boolean flag flips on a third-party telemetry sink.
+- **catalogued (v144)** — a typed-object flag carries a server-pushed plugin-name allowlist.
+
+The field-level identifier egress (#110) and the envelope-level identifier leak (#92) ride the *outbound* side of the same `api.anthropic.com` relationship — every telemetry event carries raw session, organization, account, device, and email identifiers, and #110 adds hundreds of raw plugin/skill/marketplace field values. Wire-confirmed and byte-stable through v145.
+
+### 14.3 Why This Is a Security Boundary
+
+A server-side flag flip requires **no binary release and no client-visible audit**. Any of the primitives above can be activated for a single targeted account (the config-eval request carries email, account UUID, and org UUID, enabling per-user targeting) without a changelog entry, a publicly visible code review, or a user-facing setting. The nonessential-traffic kill-switch env var does **not** suppress the config-eval channel or the third-party telemetry sink.
+
+This inverts the trust model that the *companion* system was built to demonstrate (§5). The companion was strictly unidirectional and visibly read-only — a deliberate "trust boundary as feature." The server-flippable control plane is the opposite: a bidirectional channel that can rewrite the client's system prompt, terminal UI, and update behavior, and is invisible to the user.
+
+### 14.4 The Disclosure-Asymmetry Pattern
+
+A 2026-05-20 review of the official Claude Code documentation against the finding inventory (`results/docs-gap-analysis-2026-05-20.md`) found a uniform, one-directional gap:
+
+- **User-triggered data flows are documented honestly** — `/feedback`, the session-quality survey, the transcript-share follow-up, and OpenTelemetry export each have a precise description, retention period, and opt-out.
+- **Every server-controlled path is undocumented** — a doc search for "feature flags" returns nothing. The entire server→client config/control channel, and every primitive that rides it (#103/#106/#108/#113/#115/#127), is absent. The Anthropic-bound default-on metrics channel (#92/#110) is described only *by exclusion* and is silent on the identity metadata it carries. The forced-downgrade path (#113) is not covered by the documented auto-updates opt-out.
+
+The pattern itself is the disclosure-grade observation: a user reading the official data-usage documentation cannot discover that a server-controlled channel can change their client's version, system prompt, and terminal UI, or that a server flip can add a third-party telemetry destination.
+
+---
+
+*§13–§14 added 2026-05-20 (Session 59), reflecting the v2.1.118→v2.1.145 runtime-probe era. Function and flag-reader identifiers are minified and rotate per release — cross-version claims anchor on string-pool literals. Sources: `results/runtime-probes-session-58.md`, `results/runtime-probes-session-59.md`, `results/v2.1.144-145-round-1-flag-delta.md`, `results/docs-gap-analysis-2026-05-20.md`. Finding severities mirror `docs/counts.js`.*
