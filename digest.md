@@ -245,9 +245,9 @@ Per-thread HackerOne anthropic-vdp filing for each of the 22 findings. Standard 
 
 ---
 
-## Phase 8: v2.1.131 → v2.1.145 — Runtime Wire-Confirmation Era
+## Phase 8: v2.1.131 → v2.1.152 — Runtime Wire-Confirmation Era
 
-**Scope**: rolling versions across the v2.1.131 → v2.1.145 release line (current binary v2.1.145, build 2026-05-19). From v2.1.118 onward the investigation shifted from *cataloguing new subsystems* to *runtime wire-confirmation of a stable set of findings*. All flag and reader-identifier names redacted; functional descriptions and finding numbers only.
+**Scope**: rolling versions across the v2.1.131 → v2.1.152 release line (current binary v2.1.152, build 2026-05-26). From v2.1.118 onward the investigation shifted from *cataloguing new subsystems* to *runtime wire-confirmation of a stable set of findings*. All flag and reader-identifier names redacted; functional descriptions and finding numbers only.
 
 ### Methodology evolution: static decode → runtime MITM → PTY automation
 
@@ -263,7 +263,7 @@ Three distinct probing capabilities were built across this window:
 
 The dominant architectural finding of this window: a large and growing fraction of Claude Code's runtime behavior is controlled by **feature flags evaluated server-side at Anthropic**. The client receives pre-evaluated values; the flag-resolution chain has 7 layers (caller-side env kill switches → session-override map → project-local overrides → server-controlled cache → Statsig supplemental → Grove policy → embedded default). The recurring code shape is a single-flag gate over an entire subsystem.
 
-A flag is not only a boolean on/off — many carry **typed object or string payloads** that become part of model context, UI text, or update behavior. The flag readers rotate identifiers per binary release (cross-version analysis anchors on string-pool literals, never minified reader names). Per-version flag deltas net +8 v143→v145; the DEFAULT-TRUE set is stable at 18 and byte-identical v143→v145.
+A flag is not only a boolean on/off — many carry **typed object or string payloads** that become part of model context, UI text, or update behavior. The flag readers rotate identifiers per binary release (cross-version analysis anchors on string-pool literals, never minified reader names). Per-version flag deltas net +8 v143→v145, then +44 v145→v152 (+49/-5 cumulative across v147/v148/v152). The DEFAULT-TRUE set grew 18 → 20 across v145→v152 (two new server-flippable boolean defaults: a workflows-master gate at v147, a daemon-binary-takeover gate at v152).
 
 Subsystems dark-launched or controllable through this channel, catalogued across v118–v145 and referred to by finding number:
 
@@ -284,11 +284,11 @@ Subsystems dark-launched or controllable through this channel, catalogued across
 
 The nonessential-traffic kill-switch env var does **not** suppress the config-eval channel or the third-party telemetry sink.
 
-### Finding status registry (current as of v2.1.145, Session 59)
+### Finding status registry (current as of v2.1.152, Session 61)
 
 Severities mirror `docs/counts.js`. "Wire-confirmed" = observed on captured network traffic, not inferred from static decode.
 
-- **#31 AC3** — *Critical, UNDEFENDED on v145.* The subagent ghost-inbox / attribution-forgery class. v145 added a skill self-recursion guard — this is **orthogonal**: it blocks a forked skill from re-invoking *itself* in its own forked context, and does not touch the inbox-forge path. The relevant transcript-field and inbox-handler anchors are byte-stable v143→v145. AC3 remains an open undefended primitive.
+- **#31 AC3** — *Critical, UNDEFENDED on v152.* The subagent ghost-inbox / attribution-forgery class. v145 added a skill self-recursion guard — this is **orthogonal**: it blocks a forked skill from re-invoking *itself* in its own forked context, and does not touch the inbox-forge path. The relevant transcript-field and inbox-handler anchors are byte-stable v145→v147→v148→v152. AC3 remains an open undefended primitive.
 - **#105** — *High, wire-confirmed.* Anthropic's own third-party telemetry sink; raw envelope identifiers plus a 47–60-field fingerprint. Extends an earlier envelope-leak finding. v144 expands the surface with a new hook-metrics event class.
 - **#106** — *Critical, wire-confirmed.* The Stop-hook reminder override reaches model context verbatim; no cap, no cert pinning. The reader is byte-stable v126→v145.
 - **#108** — *Critical, wire-confirmed (v129).* The permission-classifier fail-open inversion was empirically triggered; the binary log emits a literal `(fail open)` line.
@@ -303,7 +303,9 @@ Older findings (the global-query off-switch, the server-disablable CLAUDE.md inj
 
 ### Persistence chain — no remediation v126 → v145
 
-Each version since v126 has been round-1 flag-diffed and the priority findings cross-checked with bounded-literal grep (string-pool literals are version-stable; minified identifiers rotate and must not be used as cross-version anchors). The result is uniform: **21 priority-finding literals byte-stable v143→v145, zero remediations observed across the chain v126→v145**. Two genuine remediations were noted earlier — a config-auth-loss fix and an OAuth refresh-token state-machine improvement at v138 — neither touched a tracked finding. Apparent string-count drops were confirmed as Bun-bundler dedup / V8 C++ symbol stripping, not silent fixes.
+Each version since v126 has been round-1 flag-diffed and the priority findings cross-checked with bounded-literal grep (string-pool literals are version-stable; minified identifiers rotate and must not be used as cross-version anchors). The result is uniform: **20 testable priority-finding literals byte-stable v145→v147→v148→v152, zero remediations observed across the chain v126→v152**. Two genuine remediations were noted earlier — a config-auth-loss fix and an OAuth refresh-token state-machine improvement at v138 — neither touched a tracked finding. Apparent string-count drops were confirmed as Bun-bundler dedup / V8 C++ symbol stripping, not silent fixes.
+
+**v145 → v152 additions** (no new disclosures filed): a **workflows family** at v147 — a user-invoked multi-phase autonomous task runner with phase tracking + budget/agent caps + journal-respawn (10 new flags including a DEFAULT-TRUE master gate, reuses subagent infra so #31 AC3 surface still applies); a **skills-sync family** at v152 — an org-scoped server-pushed skill content sync delivering per-skill zip archives that the client extracts into the local skills directory (4 new flags, multistore-class defense-in-depth: org auth + path validator + zip-slip-defended extraction + atomic rename; **surface registered with promotion-gate to disclosure-candidate**, requires a crafted-zip MITM probe to verify whether sync'd skills auto-register their own `hooks/hooks.json`); a **daemon binary takeover** at v152 — a DEFAULT-TRUE auto-update of the background daemon binary on host binary version mismatch.
 
 ### The documentation-gap pattern
 

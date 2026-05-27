@@ -1,9 +1,9 @@
 # Claude Code Kairos Loop System — Technical Architecture
 
-**Date**: 2026-04-12 · **Last revised**: 2026-05-20 (session 59, v2.1.145 currency pass)
-**Version**: 1.1
+**Date**: 2026-04-12 · **Last revised**: 2026-05-27 (session 61, v2.1.152 currency pass)
+**Version**: 1.2
 
-> **Version scope:** The Kairos loop system's **dynamic-loop infrastructure landed in v2.1.101** (the smallest delta between v2.1.100 and v2.1.104 — 19 new feature flags, 3 new env vars, the `ScheduleWakeup` tool, and `/loop` slash command). Precursor Kairos markers (brief/cron/durable/dream) already existed in v2.1.98/v2.1.100 — these represent an earlier cron-only Kairos that was superseded when `ScheduleWakeup` was added. v2.1.104 is a rebuild of v2.1.101 with only one new loop-adjacent flag (image-resize failure telemetry) and one env var (agent-rule-disable kill switch) — the loop system is unchanged between 101 and 104. Descriptions below reflect v2.1.101 bundle analysis.
+> **Version scope:** The Kairos loop system's **dynamic-loop infrastructure landed in v2.1.101** (the smallest delta between v2.1.100 and v2.1.104 — 19 new feature flags, 3 new env vars, the `ScheduleWakeup` tool, and `/loop` slash command). Precursor Kairos markers (brief/cron/durable/dream) already existed in v2.1.98/v2.1.100 — these represent an earlier cron-only Kairos that was superseded when `ScheduleWakeup` was added. v2.1.104 is a rebuild of v2.1.101 with only one new loop-adjacent flag (image-resize failure telemetry) and one env var (agent-rule-disable kill switch) — the loop system is unchanged between 101 and 104. **The dream-variant flag was removed in v2.1.147** (Kairos dream-loop retired); remaining Kairos surface byte-stable. Descriptions below reflect v2.1.101 bundle analysis.
 
 ---
 
@@ -286,7 +286,7 @@ Disabling the sentinel-resolution gate while the other two are on produces an in
 | v2.1.104 | 2026-04-12 | Loop system unchanged from v2.1.101. Net additions: an image-resize failure telemetry flag and an agent-rule-disable env var; ~1 MB binary growth attributable to runtime/Bun updates rather than feature code. |
 | v2.1.117 | 2026-04-21 | Sentinel + resolver probe (`results/sentinel-collision-v2.1.117-probe.md`): all four sentinels byte-stable, resolver uses strict-equality matching, two call sites only. Minified identifiers rotated wholesale. |
 | v2.1.131 | 2026-05-06 | Empirical capture (`results/v2.1.131-probe-ff-loop-empirical.md`): loop system byte-stable v101→v131; the dynamic-loop gate resolves **DEFAULT-TRUE** via the server-controlled config-eval channel; dynamic-loop fires empirically active in-session. |
-| v2.1.101 → v2.1.145 | — | Loop surface BYTE-STABLE on string-pool literals across the full chain. Every minified identifier has rotated; no functional change. v2.1.145 (build 2026-05-19) re-verified session 59 — see header Currency note. |
+| v2.1.101 → v2.1.152 | — | Loop surface BYTE-STABLE on string-pool literals across the full chain. Every minified identifier has rotated; no functional change. v2.1.152 (build 2026-05-26) re-verified session 61 — see header Currency note. The dream-variant flag was removed in v2.1.147 (Kairos dream-loop retired). |
 
 ---
 
@@ -304,7 +304,7 @@ Disabling the sentinel-resolution gate while the other two are on produces an in
 
 The Kairos loop was tracked through GitHub issue #8 (empirical `/loop` capture) and closed by an empirical probe on v2.1.131. **In contrast to the advisor**, the loop is *not* dark — the dynamic-loop gate resolves **DEFAULT-TRUE** for all accounts (no server rule needed). Dynamic loops fire empirically in-session; the project's own autonomous sessions run on this mechanism. The `/loop` slash-command gate and the sentinel-resolution gate are present in the binary as conditional gates but were not observed in the config-eval response — they are static/conditional rather than DEFAULT-TRUE.
 
-The v2.1.145 currency pass was static (string-pool literal counts) — the loop system was not re-probed at runtime with the session-58/59 containerized-MITM tooling; the v2.1.131 empirical capture plus the in-session firing evidence stands, and the binary surface is byte-stable across the v101→v145 chain.
+The v2.1.152 currency pass was static (string-pool literal counts) — the loop system was not re-probed at runtime with the session-58/59 containerized-MITM tooling; the v2.1.131 empirical capture plus the in-session firing evidence stands, and the binary surface is byte-stable across the v101→v152 chain.
 
 ### Documentation status
 
@@ -312,4 +312,4 @@ The `/loop` slash command and `ScheduleWakeup` self-pacing are **user-triggered 
 
 ---
 
-*Investigation conducted 2026-04-12; revised 2026-05-20 (session 59). Binary/bundle analysis on v2.1.101 (`cli.js`, readable); cross-version probes on v2.1.117 (sentinel/resolver, model-router) and v2.1.131 (empirical capture); currency re-verified against v2.1.145 (build 2026-05-19) by string-pool literal counts. Loop surface byte-stable v2.1.101 → v2.1.145; every minified identifier has rotated one or more times with no functional change. The dynamic-loop gate confirmed DEFAULT-TRUE; sentinel-collision and empirical-behaviour open questions closed.*
+*Investigation conducted 2026-04-12; revised 2026-05-27 (session 61). Binary/bundle analysis on v2.1.101 (`cli.js`, readable); cross-version probes on v2.1.117 (sentinel/resolver, model-router) and v2.1.131 (empirical capture); currency re-verified against v2.1.152 (build 2026-05-26) by string-pool literal counts. Loop surface byte-stable v2.1.101 → v2.1.152; every minified identifier has rotated one or more times with no functional change. The dream-variant flag was removed in v2.1.147 (Kairos dream-loop retired); the dynamic-loop gate confirmed DEFAULT-TRUE; sentinel-collision and empirical-behaviour open questions closed.*

@@ -13,7 +13,7 @@ Research repository documenting findings about Claude Code's built-in "Buddy" co
 - `advisor-architecture.md` — advisor system spec: tool lifecycle, system prompt, feature flags, telemetry, buddy comparison
 - `config-excerpt.json` — companion config extracted from `~/.claude/backups/` state files
 - `links.md` — 20 reference sources organized by category (official docs, source analysis, reverse engineering, prior art, competitors)
-- `SECURITY-AUDIT.md` — original 14-finding tooling audit (1 CRITICAL, 3 HIGH, 5 MEDIUM, 3 LOW, 1 OBSERVATION). The live security tally has since grown well beyond this: `docs/counts.js` tracks an audit-baseline lineage and a live re-derivation of 12 critical / 30 high / 46 medium / 8 low across 135 repo issues (derived 2026-05-20). `docs/counts.js` is authoritative — do not contradict it.
+- `SECURITY-AUDIT.md` — original 14-finding tooling audit (1 CRITICAL, 3 HIGH, 5 MEDIUM, 3 LOW, 1 OBSERVATION). The live security tally has since grown well beyond this: `docs/counts.js` tracks an audit-baseline lineage and a live re-derivation of 12 critical / 31 high / 46 medium / 8 low across 136 repo issues (derived 2026-05-27). `docs/counts.js` is authoritative — do not contradict it.
 - `README.md` — project overview and per-version status timeline
 - `tools/buddy-config.mjs` — CLI to read/modify companion config (Node.js 18+, zero deps)
 - `tools/version-check.mjs` — pre-flight version compatibility check against installed binary
@@ -41,7 +41,7 @@ Research repository documenting findings about Claude Code's built-in "Buddy" co
 - Only 3 fields persisted in `~/.claude/.claude.json`: name, personality, hatchedAt. All other traits re-derived from hash each session.
 - Shingle is architecturally separate from the main Claude Code agent — strictly unidirectional (observes but cannot write back)
 - 6 reaction triggers: turn, hatch, pet, test-fail, error, large-diff (complete, idle, silence were debunked)
-- Binary at `~/.local/share/claude/versions/`. Version chain probed: v2.1.90/v2.1.92 (companion), v2.1.96–v2.1.100 (advisor), v2.1.101/v2.1.104 (loop system), v2.1.105–v2.1.114 (harness/gate-surface), v2.1.116–v2.1.145 rolling per-version flag-diff (skips: v2.1.120/122/124/125/127/130/134/135/136/137/139). **Current = v2.1.145** (npm `latest`, BUILD 2026-05-19). All 21 priority-finding literals byte-stable v143→v145, no remediation observed.
+- Binary at `~/.local/share/claude/versions/`. Version chain probed: v2.1.90/v2.1.92 (companion), v2.1.96–v2.1.100 (advisor), v2.1.101/v2.1.104 (loop system), v2.1.105–v2.1.114 (harness/gate-surface), v2.1.116–v2.1.152 rolling per-version flag-diff (skips: v2.1.120/122/124/125/127/130/134/135/136/137/139/146/149/150/151). **Current = v2.1.152** (npm `latest`, BUILD 2026-05-26). All 20 testable priority-finding literals byte-stable v145→v147→v148→v152, no remediation observed.
 - Date gate bug: a date-based gate covering Jan–Mar each year disables the companion during those months on any year from 2026 onward
 
 ## Advisor System Context
@@ -71,7 +71,7 @@ Research repository documenting findings about Claude Code's built-in "Buddy" co
 From v2.1.118 onward the investigation's primary focus is the **server-to-client config/control channel** — a path that pushes feature flags and string-typed config to the client at startup. It is undocumented in official Claude Code docs (see `results/docs-gap-analysis-2026-05-20.md`).
 
 - **Flag readers rotate per binary release.** Cosmetic minifier churn — never anchor cross-version checks on reader identifier names. The boolean reader and the typed reader each rotate identifiers across recent releases. Use string-pool literals (flag names, telemetry events, error messages) for cross-version claims, not minified identifiers.
-- **7-layer flag resolution**, ~410 gate reads, 18 DEFAULT-TRUE (15 boolean + 3 typed) — byte-identical v143→v145.
+- **7-layer flag resolution**, ~410 gate reads, **20 DEFAULT-TRUE** at v2.1.152 (17 boolean + 3 typed; v145→v152 added a workflows-master gate v147 and a daemon-binary-takeover gate v152) — byte-identical v143→v145 baseline.
 - **Wire-confirmed server-push injection primitives** (all ride the same server-controlled channel; details in `results/`), referred to by finding number:
   - **#106 CRITICAL** — an empty-default string-flag overrides the hardcoded Stop-hook reminder; reaches the model context as a synthetic user-text message verbatim, no length cap, no cert pinning.
   - **#108 CRITICAL** — a default-TRUE flag, server-flippable safety inversion of the sandbox/auto-mode permission classifier (fail-open).
@@ -79,7 +79,9 @@ From v2.1.118 onward the investigation's primary focus is the **server-to-client
   - **#113 HIGH** — a server-pushed forced-downgrade primitive. Wire-confirmed on an interactive TUI (session-59): the auto-updater performed the downgrade with no user prompt.
   - **#127 CRITICAL** — a server-pushed terminal-notification string. Wire-confirmed on an interactive TUI (session-59): rendered verbatim with unsanitized ANSI escapes and a bare URL (phishing surface).
   - **#105 HIGH** — a server-flippable third-party-logging gate ships envelope identifiers plus a system fingerprint to a third-party processor. Extends an earlier envelope-leak finding.
-- **#31 AC3** (subagent ghost-inbox / attribution-forgery class) **remains UNDEFENDED as of v2.1.145.** A new v145 guard addresses skill self-recursion only, orthogonal to the inbox path.
+- **#31 AC3** (subagent ghost-inbox / attribution-forgery class) **remains UNDEFENDED as of v2.1.152.** A v145 guard addresses skill self-recursion only, orthogonal to the inbox path. Anchor literals byte-stable v145→v147→v148→v152.
+- **#136 HIGH** — a server-pushed plugin-allowlist returns the live OAuth bearer (`ANTHROPIC_AUTH_TOKEN`) for each on-list plugin, which the caller then merges into the env of the spawned plugin's `hooks/hooks.json` subprocess. The credential-return idiom is genuinely new code in v144. Marketplace-name spoofing (Critical promotion path) is closed by a reserved-name validator on the 9 known Anthropic marketplaces; HIGH stays. Filed session-60.
+- **Skills-sync surface** (v152, registered, NOT a new disclosure): an org-scoped server-pushed skill content sync delivers per-skill zip archives that the client extracts into the local skills directory. Multistore-class defense-in-depth (org auth + path validator + zip-slip-defended extraction via a regex that blocks `..` traversal at start/middle/end + size/count limits + atomic rename). Promotion-gate to disclosure-candidate is a crafted-zip runtime probe to confirm whether a sync'd skill's `hooks/hooks.json` auto-registers `command`-type hooks.
 - **Runtime probing.** Findings gated behind the interactive TUI require `tools/probe-sandbox/` + `tui-driver.exp`. `--print` and `claude doctor` short-circuit before the Ink React tree mounts, so downstream gates never fire.
 
 ## Workspace Transcript Access

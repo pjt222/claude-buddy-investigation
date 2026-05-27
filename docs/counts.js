@@ -76,34 +76,37 @@ window.VIZ_COUNTS = Object.freeze({
   //   (2) gh_label_counts = live re-derivation from `gh issue list` severity
   //       labels in the private issue tracker (refreshed each version bump).
   //
-  // by_severity sums to 29 (6+9+10+3+1).
+  // by_severity sums to 30 (6+10+10+3+1).
+  // +#136 (v144, High, server-pushed plugin allowlist injects OAuth bearer
+  //  into plugin hook subprocess env; session-60 gate-b RESOLVED NEGATIVE —
+  //  Critical path closed via reserved marketplace-name validator).
   security: {
-    total: 29,
+    total: 30,
     audit_vulnerabilities: 13,
     audit_observations: 1,
-    post_audit: 15,
+    post_audit: 16,
     by_severity: {
       critical: 6,
-      high: 9,
+      high: 10,
       medium: 10,
       low: 3,
       observation: 1
     },
-    // Live re-derivation from `gh issue list --label <sev>` (run 2026-05-20,
-    // session-59 post-v145 round-1). Counts ALL repo issues with severity
-    // labels, not just curated post-audit additions. Includes informational
-    // disclosure-candidates. Counts byte-stable since 2026-05-18 — no new
-    // issues filed across the v141-v145 cycle (all 21 priority findings
-    // byte-stable v143→v145).
+    // Live re-derivation from `gh issue list --label <sev>` (run 2026-05-27,
+    // session-61 post-v147/v148/v152 round-1). Counts ALL repo issues with
+    // severity labels, not just curated post-audit additions. Includes
+    // informational disclosure-candidates. Delta vs 2026-05-20: high 30→31
+    // (+#136 amber_lattice filed session-60), repo_total 135→136. No new
+    // findings filed in the v145→v152 cycle.
     gh_label_counts: {
       critical: 12,
-      high: 30,
+      high: 31,
       medium: 46,
       low: 8,
-      labeled_total: 96,
+      labeled_total: 97,
       unlabeled_by_severity: 39,
-      repo_total: 135,
-      derived_at: "2026-05-20"
+      repo_total: 136,
+      derived_at: "2026-05-27"
     }
   },
 
@@ -135,7 +138,7 @@ window.VIZ_COUNTS = Object.freeze({
   //   5. Statsig supplemental gates [statsig-gate-fn] (cachedStatsigGates)
   //   6. Grove policy (GET /api/[internal-policy-endpoint])
   //   7. Embedded default ($ parameter fallback)
-  flags: { resolution_layers: 7, gate_reads: 410, default_true: 15 },  // v140: DEFAULT-TRUE (both bool 2-arg + typed 3-arg readers counted) = 15. v138 baseline 16 → v139/v140 = 15 (one MCP-retry flag removed). Reader identifiers rotated v138→v139→v140 — bool reader case-flip v139→v140; typed reader full rotation each release.
+  flags: { resolution_layers: 7, gate_reads: 410, default_true: 20 },  // v152: DEFAULT-TRUE (bool 2-arg + typed 3-arg) = 20 (17 bool + 3 typed). v145 baseline 18 → v147 19 (+workflows-master gate) → v148 19 → v152 20 (+daemon-binary-takeover gate). Reader identifiers continue rotating per release (case-flip recurrence on bool, full rotation on typed).
 
   // ---- Local agents subsystem ----
   agents: {
@@ -222,16 +225,16 @@ window.VIZ_COUNTS = Object.freeze({
   investigation: {
     agents_deployed: "21+",
     waves: 16,
-    current_binary: "2.1.145",   // session-59 (2026-05-20); npm latest
-    latest_session: 59
+    current_binary: "2.1.152",   // session-61 (2026-05-27); npm latest
+    latest_session: 61
   },
 
   // ---- Version coverage ----
   version: {
     start: "v2.1.89",
-    end: "v2.1.145",
-    range: "v2.1.89 \u2192 v2.1.145",  // unicode rightwards arrow
-    skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125", "v2.1.127", "v2.1.130", "v2.1.134", "v2.1.135", "v2.1.136", "v2.1.137", "v2.1.139"]
+    end: "v2.1.152",
+    range: "v2.1.89 \u2192 v2.1.152",  // unicode rightwards arrow
+    skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125", "v2.1.127", "v2.1.130", "v2.1.134", "v2.1.135", "v2.1.136", "v2.1.137", "v2.1.139", "v2.1.146", "v2.1.149", "v2.1.150", "v2.1.151"]
   },
 
   // ---- v126 brief-mode stop-hook GrowthBook content injection ----
@@ -560,5 +563,52 @@ window.VIZ_COUNTS = Object.freeze({
     runtime_probe_queue: 0,              // all runtime-probe-needed issues cleared
     docs_gap_analysis: "results/docs-gap-analysis-2026-05-20.md",  // server-controlled channels undocumented
     notes: "All persistence claims use bounded-context grep on semantic literals. Minified reader identifiers rotate per release and are NOT used as cross-version proof."
+  },
+
+  // ---- Session-61 v145 → v147 / v148 / v152 round-1 (2026-05-27) ----
+  // Three new binaries on disk; four release-number skips (v146/v149/v150/v151
+  // never installed locally). v145 baseline reconstituted from npm pack of the
+  // linux-x64 sub-package (the host install auto-purges previous binaries).
+  // Cumulative tengu-flag delta v145→v152: +49 / −5 (net +44); per-step v145→v147
+  // +20/-3, v147→v148 +0/-1 (only a single-version typo-fix re-roll), v148→v152
+  // +30/-2. Bool reader continues the case-flip recurrence; DEFAULT-TRUE grew
+  // 18→19→19→20 across the chain (two new defaults: a workflows-master gate
+  // at v147, a daemon-binary-takeover gate at v152). ALL 20 testable priority
+  // literals byte-stable across the 4-binary chain — NO REMEDIATION.
+  //
+  // Three new capability families decoded — no new disclosures filed:
+  //   - workflows family (10 flags v147): user-invoked multi-phase autonomous
+  //     task runner with phase tracking + budget/agent caps + journal-respawn.
+  //     Reuses subagent infra — #31 AC3 surface still applies.
+  //   - skills-sync family (4 flags v152): org-scoped server-pushed skill
+  //     content sync via an organisation-skills API path returning per-skill
+  //     zip archives. Multistore-class defense-in-depth: org auth + path
+  //     validator (rejects ../absolute/parent-escape) + zip-slip-defended
+  //     extraction via a regex that blocks `..` traversal at start/middle/end
+  //     + size/count limits + atomic rename. Surface REGISTERED with
+  //     promotion-gate to disclosure-candidate: requires crafted-zip MITM
+  //     probe to verify whether sync'd skills auto-register their own
+  //     hooks/hooks.json (the multistore-vs-amber-lattice severity
+  //     discriminator).
+  //   - daemon binary takeover (DEFAULT-TRUE gate, v152): auto-update of the
+  //     background daemon binary when host binary version differs. Not a
+  //     security-posture inversion.
+  cross_version_v147_v152: {
+    versions_probed: 3,                  // v147, v148, v152 (v146/v149/v150/v151 skipped on disk)
+    baseline: "v2.1.145",
+    priority_findings_byte_stable: 20,
+    remediations_observed: 0,
+    new_disclosures_filed: 0,
+    runtime_wire_confirmed: 0,           // no probes this cycle — no wire-confirmable new primitive surfaced
+    flag_delta_v145_v147: { added: 20, removed: 3, net: 17 },
+    flag_delta_v147_v148: { added: 0, removed: 1, net: -1 },
+    flag_delta_v148_v152: { added: 30, removed: 2, net: 28 },
+    flag_delta_cumulative_v145_v152: { added: 49, removed: 5, net: 44 },
+    default_true_v145: 18,
+    default_true_v147: 19,
+    default_true_v148: 19,
+    default_true_v152: 20,
+    new_capabilities_decoded: 3,
+    skills_sync_severity: "defense-working (multistore-class) — surface registered with promotion-gate to disclosure-candidate, requires crafted-zip MITM probe to verify whether sync'd skill hooks/hooks.json auto-registers command-type hooks"
   }
 });
