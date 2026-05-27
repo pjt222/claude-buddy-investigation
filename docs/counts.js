@@ -76,31 +76,36 @@ window.VIZ_COUNTS = Object.freeze({
   //   (2) gh_label_counts = live re-derivation from `gh issue list` severity
   //       labels in the private issue tracker (refreshed each version bump).
   //
-  // by_severity sums to 30 (6+10+10+3+1).
-  // +#136 (v144, High, server-pushed plugin allowlist injects OAuth bearer
-  //  into plugin hook subprocess env; session-60 gate-b RESOLVED NEGATIVE —
-  //  Critical path closed via reserved marketplace-name validator).
+  // by_severity sums to 30 (8+8+10+3+1).
+  // session-61 docker-session promotions (2026-05-27):
+  //   - #113 HIGH → CRITICAL (run-to-completion wire-confirmed on v2.1.152:
+  //     the auto-updater + npm install actually replaces the on-disk
+  //     @anthropic-ai/claude-code package with the attacker-chosen older
+  //     version; post-probe `claude --version` reports the downgraded value)
+  //   - #136 HIGH → CRITICAL (gate-a wire-confirmed on v2.1.152: a passive
+  //     MITM capture observed the production server pushing a non-empty
+  //     30-plugin server-allowlist by default to a standard first-party
+  //     Pro account — the Anthropic-marketplace official plugins, including
+  //     12 LSP language-server adapters)
   security: {
     total: 30,
     audit_vulnerabilities: 13,
     audit_observations: 1,
     post_audit: 16,
     by_severity: {
-      critical: 6,
-      high: 10,
+      critical: 8,
+      high: 8,
       medium: 10,
       low: 3,
       observation: 1
     },
     // Live re-derivation from `gh issue list --label <sev>` (run 2026-05-27,
-    // session-61 post-v147/v148/v152 round-1). Counts ALL repo issues with
-    // severity labels, not just curated post-audit additions. Includes
-    // informational disclosure-candidates. Delta vs 2026-05-20: high 30→31
-    // (+#136 amber_lattice filed session-60), repo_total 135→136. No new
-    // findings filed in the v145→v152 cycle.
+    // session-61 docker-session close). Re-derived DIRECTLY from gh, NOT
+    // arithmetic. Counts ALL repo issues with severity labels, not just
+    // curated post-audit additions.
     gh_label_counts: {
-      critical: 12,
-      high: 31,
+      critical: 14,
+      high: 29,
       medium: 46,
       low: 8,
       labeled_total: 97,
