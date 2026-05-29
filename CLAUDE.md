@@ -13,7 +13,7 @@ Research repository documenting findings about Claude Code's built-in "Buddy" co
 - `advisor-architecture.md` — advisor system spec: tool lifecycle, system prompt, feature flags, telemetry, buddy comparison
 - `config-excerpt.json` — companion config extracted from `~/.claude/backups/` state files
 - `links.md` — 20 reference sources organized by category (official docs, source analysis, reverse engineering, prior art, competitors)
-- `SECURITY-AUDIT.md` — original 14-finding tooling audit (1 CRITICAL, 3 HIGH, 5 MEDIUM, 3 LOW, 1 OBSERVATION). The live security tally has since grown well beyond this: `docs/counts.js` tracks an audit-baseline lineage and a live re-derivation of 12 critical / 31 high / 46 medium / 8 low across 136 repo issues (derived 2026-05-27). `docs/counts.js` is authoritative — do not contradict it.
+- `SECURITY-AUDIT.md` — original 14-finding tooling audit (1 CRITICAL, 3 HIGH, 5 MEDIUM, 3 LOW, 1 OBSERVATION). The live security tally has since grown well beyond this: `docs/counts.js` tracks an audit-baseline lineage and a live re-derivation of 14 critical / 29 high / 46 medium / 8 low across 136 repo issues (re-derived 2026-05-29). `docs/counts.js` is authoritative — do not contradict it.
 - `README.md` — project overview and per-version status timeline
 - `tools/buddy-config.mjs` — CLI to read/modify companion config (Node.js 18+, zero deps)
 - `tools/version-check.mjs` — pre-flight version compatibility check against installed binary
@@ -41,13 +41,13 @@ Research repository documenting findings about Claude Code's built-in "Buddy" co
 - Only 3 fields persisted in `~/.claude/.claude.json`: name, personality, hatchedAt. All other traits re-derived from hash each session.
 - Shingle is architecturally separate from the main Claude Code agent — strictly unidirectional (observes but cannot write back)
 - 6 reaction triggers: turn, hatch, pet, test-fail, error, large-diff (complete, idle, silence were debunked)
-- Binary at `~/.local/share/claude/versions/`. Version chain probed: v2.1.90/v2.1.92 (companion), v2.1.96–v2.1.100 (advisor), v2.1.101/v2.1.104 (loop system), v2.1.105–v2.1.114 (harness/gate-surface), v2.1.116–v2.1.152 rolling per-version flag-diff (skips: v2.1.120/122/124/125/127/130/134/135/136/137/139/146/149/150/151). **Current = v2.1.152** (npm `latest`, BUILD 2026-05-26). All 20 testable priority-finding literals byte-stable v145→v147→v148→v152, no remediation observed.
+- Binary at `~/.local/share/claude/versions/`. Version chain probed: v2.1.90/v2.1.92 (companion), v2.1.96–v2.1.100 (advisor), v2.1.101/v2.1.104 (loop system), v2.1.105–v2.1.114 (harness/gate-surface), v2.1.116–v2.1.156 rolling per-version flag-diff (skips: v2.1.120/122/124/125/127/130/134/135/136/137/139/146/149/150/151/154/155). **Current = v2.1.156** (npm `latest`, BUILD 2026-05-28). 15 of 16 priority-finding literals byte-stable v152→v153→v156; the forced-downgrade telemetry (#113) expanded to a 2nd call site (same primitive); #115 (mid-conversation-system predicate) REMEDIATED + closed (flag + mechanism removed v156). v156 ships Opus 4.8 (`claude-opus-4-8`), an "ultracode" max-effort mode, and a workflows keyword opt-in; DEFAULT-TRUE boolean 17→19 (+2 decoded UX/startup gates).
 - Date gate bug: a date-based gate covering Jan–Mar each year disables the companion during those months on any year from 2026 onward
 
 ## Advisor System Context
 
 - The advisor (tool name `advisor_20260301`) is a server-side Messages API tool — NOT a separate endpoint like the buddy reaction API
-- Valid advisor models: `["opus", "sonnet"]` — `"sonnet"` resolves to `claude-sonnet-4-6`; `"opus"` resolves to `claude-opus-4-7` for tier-eligible accounts, `claude-opus-4-6` fallback otherwise. See `advisor-architecture.md` §3.
+- Valid advisor models: `["opus", "sonnet"]` — `"sonnet"` resolves to `claude-sonnet-4-6`; `"opus"` resolves to `claude-opus-4-8` for tier-eligible accounts (new v2.1.156), `claude-opus-4-7` non-eligible fallback, `claude-opus-4-6` deeper fallback. See `advisor-architecture.md` §3.
 - Feature gate: composed of a feature-disable env-var check, a first-party auth check, and an advisor feature flag
 - CLI flag: `--advisor <model>` (hidden until flag rolls out)
 - Slash command: `/advisor [opus|sonnet|off]` (hidden until flag rolls out)
@@ -79,7 +79,7 @@ From v2.1.118 onward the investigation's primary focus is the **server-to-client
   - **#113 HIGH** — a server-pushed forced-downgrade primitive. Wire-confirmed on an interactive TUI (session-59): the auto-updater performed the downgrade with no user prompt.
   - **#127 CRITICAL** — a server-pushed terminal-notification string. Wire-confirmed on an interactive TUI (session-59): rendered verbatim with unsanitized ANSI escapes and a bare URL (phishing surface).
   - **#105 HIGH** — a server-flippable third-party-logging gate ships envelope identifiers plus a system fingerprint to a third-party processor. Extends an earlier envelope-leak finding.
-- **#31 AC3** (subagent ghost-inbox / attribution-forgery class) **remains UNDEFENDED as of v2.1.152.** A v145 guard addresses skill self-recursion only, orthogonal to the inbox path. Anchor literals byte-stable v145→v147→v148→v152.
+- **#31 AC3** (subagent ghost-inbox / attribution-forgery class) **remains UNDEFENDED as of v2.1.156.** A v145 guard addresses skill self-recursion only, orthogonal to the inbox path. Anchor literals byte-stable v145→v156.
 - **#136 HIGH** — a server-pushed plugin-allowlist returns the live OAuth bearer (`ANTHROPIC_AUTH_TOKEN`) for each on-list plugin, which the caller then merges into the env of the spawned plugin's `hooks/hooks.json` subprocess. The credential-return idiom is genuinely new code in v144. Marketplace-name spoofing (Critical promotion path) is closed by a reserved-name validator on the 9 known Anthropic marketplaces; HIGH stays. Filed session-60.
 - **Skills-sync surface** (v152, registered, NOT a new disclosure): an org-scoped server-pushed skill content sync delivers per-skill zip archives that the client extracts into the local skills directory. Multistore-class defense-in-depth (org auth + path validator + zip-slip-defended extraction via a regex that blocks `..` traversal at start/middle/end + size/count limits + atomic rename). Promotion-gate to disclosure-candidate is a crafted-zip runtime probe to confirm whether a sync'd skill's `hooks/hooks.json` auto-registers `command`-type hooks.
 - **Runtime probing.** Findings gated behind the interactive TUI require `tools/probe-sandbox/` + `tui-driver.exp`. `--print` and `claude doctor` short-circuit before the Ink React tree mounts, so downstream gates never fire.

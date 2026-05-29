@@ -237,9 +237,9 @@ window.VIZ_COUNTS = Object.freeze({
   // ---- Version coverage ----
   version: {
     start: "v2.1.89",
-    end: "v2.1.152",
-    range: "v2.1.89 \u2192 v2.1.152",  // unicode rightwards arrow
-    skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125", "v2.1.127", "v2.1.130", "v2.1.134", "v2.1.135", "v2.1.136", "v2.1.137", "v2.1.139", "v2.1.146", "v2.1.149", "v2.1.150", "v2.1.151"]
+    end: "v2.1.156",
+    range: "v2.1.89 \u2192 v2.1.156",  // unicode rightwards arrow
+    skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125", "v2.1.127", "v2.1.130", "v2.1.134", "v2.1.135", "v2.1.136", "v2.1.137", "v2.1.139", "v2.1.146", "v2.1.149", "v2.1.150", "v2.1.151", "v2.1.154", "v2.1.155"]
   },
 
   // ---- v126 brief-mode stop-hook GrowthBook content injection ----
@@ -615,5 +615,44 @@ window.VIZ_COUNTS = Object.freeze({
     default_true_v152: 20,
     new_capabilities_decoded: 3,
     skills_sync_severity: "defense-working (multistore-class) — surface registered with promotion-gate to disclosure-candidate, requires crafted-zip MITM probe to verify whether sync'd skill hooks/hooks.json auto-registers command-type hooks"
+  },
+
+  // ---- Session-62 v152→v153→v156 round-1 flag-delta (2026-05-29) ----
+  // v2.1.156 = npm latest (BUILD 2026-05-28); v153 (BUILD 2026-05-27); v154/v155 skipped.
+  // Net +21/-12 flags v152→v156. The boolean reader rotated identifiers again.
+  // NO new disclosure-grade injection primitives. 15 of 16 priority literals byte-stable;
+  // the forced-downgrade telemetry (#113) expanded to a 2nd call site (same primitive,
+  // still CRITICAL), plus a new daemon version-fallback telemetry event in the same subsystem.
+  // #115 (the mid-conversation-system substring-trigger mechanism) REMEDIATED: flag + mechanism
+  //   removed from the binary in v156 (not renamed) → GH #115 CLOSED. Was informational, so the
+  //   security tally is UNCHANGED.
+  // New product capabilities: Opus 4.8 (claude-opus-4-8; tier-eligible accounts resolve "opus"
+  //   to 4-8, 4-7 as non-eligible fallback), an "ultracode" max-effort mode (top tier of the
+  //   effort ladder + dynamic-workflow-by-default, client-side toggle with no server override),
+  //   and a workflows keyword opt-in.
+  // +2 DEFAULT-TRUE boolean defaults — both decoded to UX/startup (a terminal-render gate and a
+  //   startup-sequencing gate), not safety inversions. 5 new codenames all benign (one extends
+  //   the known auto-mode classifier-model override; one is the built-in Claude-Code-docs skill).
+  // Live label counts re-derived 2026-05-29: 14C/29H/46M/8L/136 — UNCHANGED.
+  // Result: results/v2.1.153-156-round-1-flag-delta.md.
+  cross_version_v153_v156: {
+    versions_probed: 2,                  // v153, v156 (v154/v155 skipped)
+    baseline: "v2.1.152",
+    priority_findings_byte_stable: 15,   // 15 of 16 (#113 forced-downgrade telemetry expanded)
+    remediations_observed: 1,            // #115 mechanism removed v156
+    new_disclosures_filed: 0,
+    runtime_wire_confirmed: 0,           // static-only cycle; ultracode runtime not security-warranted
+    flag_delta_v152_v153: { added: 8, removed: 4, net: 4 },
+    flag_delta_v153_v156: { added: 15, removed: 10, net: 5 },
+    flag_delta_cumulative_v152_v156: { added: 21, removed: 12, net: 9 },
+    default_true_bool_v152: 17,
+    default_true_bool_v153: 17,
+    default_true_bool_v156: 19,
+    findings: {
+      "115": "REMEDIATED + CLOSED — mid-conversation-system substring flag + mechanism removed v156 (not renamed); was informational, tally unchanged",
+      "113": "EXPANDED (not remediated) — forced-downgrade telemetry gained a 2nd call site + a new daemon version-fallback telemetry event; severity unchanged (CRITICAL)"
+    },
+    new_capabilities_decoded: ["Opus 4.8 (claude-opus-4-8)", "ultracode max-effort mode", "workflows keyword opt-in"],
+    gh_label_counts_reverified_2026_05_29: { critical: 14, high: 29, medium: 46, low: 8, total: 136 }  // unchanged
   }
 });

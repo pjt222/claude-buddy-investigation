@@ -234,8 +234,8 @@ flowchart LR
         fd_canary --> fd_floor
         fd_ac3 --> fd_wrappers
     end
-    %% ===== AA — v138 Mid-Conversation System Predicate (Medium info) =====
-    subgraph MIDCONV["AA — Mid-Conversation System Predicate (v2.1.138 Med info)"]
+    %% ===== AA — Mid-Conversation System Predicate (REMEDIATED v2.1.156) =====
+    subgraph MIDCONV["AA — Mid-Conversation System Predicate (REMEDIATED v2.1.156)"]
         direction TB
         mc_env["Env-var override path"]:::gap
         mc_cache["Cached eval-SDK string source"]:::gap
@@ -282,7 +282,7 @@ flowchart LR
         ps_tui["PTY keystroke automation<br/>seeds a minimal per-user config file<br/>walks onboarding past the theme picker"]:::ours
         ps_113["#113 probe — inject the forced-downgrade flag<br/>the auto-updater performed the downgrade<br/>to an attacker-chosen older version, no prompt<br/>WIRE-CONFIRMED v143 + v145"]:::risk
         ps_127["#127 probe — inject the startup-notice flag<br/>payload renders verbatim to the TUI notification<br/>ANSI escape UNSANITIZED; bare URL rendered<br/>WIRE-CONFIRMED v143 + v145"]:::risk
-        ps_115["#115 probe — inject the mid-conversation-system flag<br/>the predicate never fires on --print OR TUI<br/>baseline vs canary byte-identical<br/>NEGATIVE → finding relabeled informational"]:::baseline
+        ps_115["#115 probe — inject the mid-conversation-system flag<br/>the predicate never fires on --print OR TUI<br/>baseline vs canary byte-identical<br/>NEGATIVE → informational; REMEDIATED v156:<br/>flag + mechanism removed from binary → CLOSED"]:::baseline
         ps_compose --> ps_creds
         ps_creds --> ps_addon
         ps_addon --> ps_tui

@@ -519,6 +519,8 @@ A typed server-pushed flag (server-controlled plugin-name allowlist) feeds a cre
 ---
 
 > **Out of post-audit scope** (relabeled `informational`, not in the audit-baseline tally): **#115** — a server-flippable mid-conversation-system substring-on-conversation-content predicate (v2.1.138). **Runtime-confirmed NEGATIVE and relabeled `disclosure-candidate` → `informational` (session-59).** Session-58 saw the predicate not fire on `--print`; session-59 drove a full interactive two-turn TUI with the canary injected into the flag AND present in the conversation body — the predicate still did not fire, and the beta-header set was byte-identical between the baseline and canary turns. The probe was re-run with a *valid model id* as the injected value to rule out a model-validator rejecting a synthetic canary — the beta-header diff was still null. The substring-trigger primitive as hypothesised is **not exercisable** by config-value injection on v2.1.143/v2.1.145, independent of input class and mode. The static decode stays catalogued; the runtime primitive is confirmed not exercisable, so the finding is no longer a disclosure candidate.
+>
+> **REMEDIATED + CLOSED in v2.1.156 (session-62, 2026-05-29).** The mid-conversation-system substring flag and its entire mechanism are gone from the binary across v152→v153→v156 — and **removed, not renamed**: no substring/includes-style predicate flag appears in the v153→v156 additions. GH #115 closed `completed`. Since #115 was already out-of-scope `informational`, the audit-baseline tally and the live label counts are unchanged.
 
 ---
 
