@@ -9,14 +9,14 @@ flowchart LR
         mtls["mTLS envs (v2.1.101)<br/>CERT_STORE / CLIENT_CERT/KEY"]:::gap
         sdkrefresh["SDK OAuth refresh callback<br/>oauth-sdk-refresh-event"]:::gap
         flags["[feature-flag] feature flags — 7-layer resolution<br/>GrowthBook flagResolverA()/flagResolverB()/flagResolverC() + Statsig statsigResolver()<br/>grove /api/[internal-policy-endpoint]<br/>session/project/env overrides"]:::core
-        envkill["&lt;feature-disable-env-var&gt; kill switches"]:::core
+        envkill["[env-flag]* env kill switches"]:::core
         settings["~/.claude/settings.json<br/>~/.claude/.claude.json"]:::core
     end
     %% ===== Core Runtime A =====
     subgraph CORE["A — Core Runtime (per-turn loop)"]
         direction TB
         startup["Startup bootstrap<br/>getStartupInfo family"]:::core
-        model_router["Model router modelRouterSelect() / resolveModelSpec(spec,mainLoop,override,permMode)<br/>opus-4-7 / opus-4-6 / sonnet-4-6 / haiku<br/>xhigh_effort→4-7 / max_effort→4-6<br/>CLAUDE_CODE_SUBAGENT_MODEL override<br/>[1m] tier suffix: useOneMillionCtx()&&!suppressTierSuffix()<br/>inherit path via inheritModelSpec()"]:::core
+        model_router["Model router modelRouterSelect() / resolveModelSpec(spec,mainLoop,override,permMode)<br/>opus-4-7 / opus-4-6 / sonnet-4-6 / haiku<br/>xhigh_effort→4-7 / max_effort→4-6<br/>[env-flag] override<br/>[1m] tier suffix: useOneMillionCtx()&&!suppressTierSuffix()<br/>inherit path via inheritModelSpec()"]:::core
         msgs_api["Messages API<br/>POST /v1/messages"]:::core
         turn_loop["Per-turn loop<br/>(ordering unverified)"]:::gap
         stream_handler["Streaming handler<br/>[advisor-response-type] / tool_result"]:::core
@@ -59,7 +59,7 @@ flowchart LR
         direction TB
         mcp_config["mcpServers key<br/>in .claude.json"]:::core
         mcp_client["MCP client mcpClient()<br/>8 transports: stdio/sse/sse-ide<br/>ws/ws-ide/http/claudeai-proxy/sdk"]:::core
-        mcp_sandbox["mcpClient() allowlist<br/>CLAUDE_CODE_SANDBOXED + MCP_ALLOWLIST_ENV"]:::core
+        mcp_sandbox["mcpClient() allowlist<br/>[env-flag] + MCP_ALLOWLIST_ENV"]:::core
         mcp_bff["Registry BFF<br/>/mcp-registry/v0/servers"]:::core
         mcp_oauth["per-server OAuth (6 events)<br/>browser redirect → token → refresh"]:::core
         mcp_tools["MCP tools → tools array"]:::core
@@ -118,177 +118,82 @@ flowchart LR
         plugin_load["Plugin loader<br/>skills+agents+hooks+mcp+lsp+monitors"]:::core
         plugin_hints["Hint system<br/>&lt;claude-code-hint&gt;"]:::core
         plugin_cli["claude plugin install|enable|disable<br/>list|update|marketplace"]:::core
-        official_marketplace["Official MCP marketplace<br/>auto-installer (v2.1.112)<br/>&lt;feature-disable-env-var&gt;<br/>[marketplace-autoinstall-gate]<br/>states: policy_blocked / already_installed / git_unavailable"]:::core
+        official_marketplace["Official MCP marketplace<br/>auto-installer (v2.1.112)<br/>[env-flag]<br/>[marketplace-autoinstall-gate]<br/>states: policy_blocked / already_installed / git_unavailable"]:::core
     end
     %% ===== P — v2.1.111+ New Systems =====
     subgraph NEW111["P — v2.1.111+ Systems"]
         direction TB
         opus47_launch["Opus 4.7 launch modal<br/>opus47-launch-shown<br/>opus47LaunchSeenCount"]:::core
         relay_chain["relay_chain_v1 flag<br/>strips parallel-Bash instructions<br/>from Bash tool description"]:::core
-        cobalt_ridge["cobalt_ridge flag<br/>PowerShell tool on Windows<br/>&lt;powershell-tool-env-var&gt;"]:::core
+        cobalt_ridge["cobalt_ridge flag<br/>PowerShell tool on Windows<br/>[env-flag]"]:::core
         velvet_moth["velvet_moth / memory survey<br/>trigger: /memor(y|ies)/ regex<br/>co-event: [memory-survey-co-event]"]:::core
         proxy_auth["Corporate proxy auth<br/>PROXY_URL / PROXY_HOST<br/>PROXY_AUTH_HELPER + TTL<br/>trustAccepted / timed out"]:::core
-        gb_sys_prompt["GrowthBook system prompt<br/>SYSTEM_PROMPT_GB_FEATURE<br/>remote-mode only: CLAUDE_CODE_REMOTE"]:::core
+        gb_sys_prompt["GrowthBook system prompt<br/>SYSTEM_PROMPT_GB_FEATURE<br/>remote-mode only: [env-flag]"]:::core
     end
     %% ===== K — TUI Renderer =====
     subgraph TUI["K — TUI Renderer (three-tier)"]
         direction TB
-        tui_fullscreen["Tier 1: Ink Flexbox<br/>fullscreenGate()=true<br/>[ink-flexbox-gate] / CLAUDE_CODE_NO_FLICKER<br/>OSC 8 hyperlinks"]:::core
-        tui_decstbm["Tier 2: decstbmRenderer DECSTBM renderer<br/>[decstbm-gate] / CLAUDE_CODE_DECSTBM<br/>scroll-region + nativeHistory[10K]<br/>syncViewport / tickPump / draw<br/>gate: TTY + not-tmux-CC + decstbmCapabilityCheck + not-Zellij + not-fullscreen"]:::gap
+        tui_fullscreen["Tier 1: Ink Flexbox<br/>fullscreenGate()=true<br/>[ink-flexbox-gate] / [env-flag]<br/>OSC 8 hyperlinks"]:::core
+        tui_decstbm["Tier 2: decstbmRenderer DECSTBM renderer<br/>[decstbm-gate] / [env-flag]<br/>scroll-region + nativeHistory[10K]<br/>syncViewport / tickPump / draw<br/>gate: TTY + not-tmux-CC + decstbmCapabilityCheck + not-Zellij + not-fullscreen"]:::gap
         tui_minimal["Tier 3: minimal Fragment<br/>(fallback)"]:::core
         tui_fullscreen -->|"fullscreenGate()=false"| tui_decstbm
         tui_decstbm -->|"decstbmGate()=false"| tui_minimal
     end
-    %% ===== R — v119 Background Daemon =====
-    subgraph DAEMON["R — Background Daemon (v2.1.119 — ~30 events; daemon-CLI subset hardcoded-OFF)"]
+    %% ===== R — Background Daemon (v2.1.119) =====
+    subgraph DAEMON["R — Background Daemon (v2.1.119 — 30 events)"]
         direction TB
-        daemon_qqh["isDaemonCliEnabled gate<br/>HARDCODED false — blocks daemon list/install/status<br/>'daemon run' subcommand BYPASSES; service install BLOCKED"]:::removed
-        daemon_czh["isAgentsFleetEnabled gate<br/>(server-flippable feature gate)<br/>gates --bg/--background/logs/attach/kill/respawn/rm<br/>current cohort defaults false"]:::gap
-        daemon_dispatch_chain["Auto-spawn dispatch chain (when fleet-enabled):<br/>--bg → spawnBackgroundFork → fork chain<br/>→ spawn `daemon run --origin auto`"]:::core
-        daemon_sparewarm["Spare-worker pre-warm via React useEffect<br/>auto-spawns on every Agents Fleet mount<br/>(component hidden when gate false)"]:::gap
+        daemon_qqh["qqH() = return false (HARDCODED)<br/>isDaemonCliEnabled gate<br/>blocks 'claude daemon list/install/status/etc'<br/>'claude daemon run' BYPASSES<br/>'claude service install' BLOCKED"]:::removed
+        daemon_czh["CZH() = k$('[feature-flag]',false)<br/>isAgentsFleetEnabled gate (GrowthBook)<br/>gates --bg/--background/logs/attach/kill/respawn/rm<br/>SERVER-FLIPPABLE without binary release<br/>current cohort: NOT PRESENT → defaults false"]:::gap
+        daemon_dispatch_chain["Auto-spawn dispatch chain (fleet-enabled):<br/>claude --bg → mz8() spawnBackgroundFork<br/>→ b3H → J_5 → TN6 → C3H<br/>→ spawn claude daemon run --origin auto"]:::core
+        daemon_sparewarm["Sz8() spare-worker pre-warm<br/>useEffect on Agents Fleet component mount<br/>auto-spawns on every session render<br/>(also gated by CZH — component hidden if false)"]:::gap
         daemon_gate["allow_remote_control<br/>managed-policy kill-switch<br/>fail-closed upstream"]:::core
-        daemon_dialog["Remote-control dialog gate<br/>!remoteDialogSeen && OAuth<br/>useEffect: remoteDialogSeen=true on MOUNT<br/>(non-interactive skips dialog)"]:::gap
-        daemon_spawn["Two install paths<br/>A: spawn-fork (detached unref)<br/>B: systemd-user / launchd<br/>service-installer registers autostart"]:::core
-        daemon_env["Env redact (spawn-fork only)<br/>strips OAuth token + token-FD on Linux/Win<br/>INHERITS both on macOS (filed disclosure)"]:::gap
-        daemon_persist["Self-restart-on-upgrade<br/>binary-target watch<br/>systemd Restart=always RestartSec=1<br/>WantedBy=default.target (autostart)"]:::core
-        daemon_zombie["Zombie recovery<br/>PID-0 probe + 2s wait + respawn"]:::core
-        daemon_sock_dir["Socket root /tmp/cc-daemon-&lt;uid&gt;/&lt;hash&gt;<br/>uid-ownership check; chmod 0o700<br/>refuses to bind on foreign-uid dir"]:::core
-        daemon_sock_ctl["control.sock — supervisor RPC (15 ops)<br/>ping/nudge/lease/dispatch/list/kill/<br/>reply/subscribe/attach/resize/permission-response"]:::core
-        daemon_pipekey["pipe-key file (16-hex)<br/>Windows: embedded in pipe name (auth)<br/>Linux: file unused (FS perms = auth)"]:::gap
-        daemon_dispatch_schema["Dispatch schema accepts arbitrary env Record<br/>source: shell|slash|fleet|respawn<br/>isolation: none|worktree"]:::gap
-        daemon_frame["DCS escape framing for PTY-compatible IPC"]:::core
+        daemon_fn["Fn() resolver<br/>managedPolicy.remoteControlAtStartup<br/>?? userSettings.remoteControlAtStartup<br/>(project-scope NOT consulted)"]:::core
+        daemon_dialog["r74() dialog gate<br/>!remoteDialogSeen && NT() && OAuth<br/>(non-interactive skips dialog)<br/>dialog component i74 — title 'Remote Control'<br/>useEffect: remoteDialogSeen=true on MOUNT"]:::gap
+        daemon_spawn["Two install paths<br/>A: spawn-fork claude daemon run<br/>--origin auto (detached .unref())<br/>B: systemd-user / launchd<br/>--origin service; com.anthropic.claude-daemon"]:::core
+        daemon_env["K_5() env redact (spawn-fork only)<br/>clears INVOCATION_ID always<br/>strips OAuth token + OAUTH_TOKEN_FILE_DESCRIPTOR<br/>on Linux/Windows if refresh token in keychain<br/>INHERITS both on macOS (#101)"]:::gap
+        daemon_worker["LY4() main loop<br/>spawnMode: same-dir | worktree<br/>staleCheckIntervalMs / idleGraceMs"]:::core
+        daemon_lock["Single-instance lock<br/>daemon.json + process.kill(pid,0)<br/>ESRCH=proceed, reachable=exit"]:::core
+        daemon_persist["[feature-flag]<br/>JG6() binary-target watch<br/>systemd Restart=always RestartSec=1<br/>WantedBy=default.target (autostart)"]:::core
+        daemon_zombie["Zombie recovery<br/>[feature-flag]<br/>PID-0 probe + 2s wait + respawn"]:::core
+        daemon_sock_dir["Socket root /tmp/cc-daemon-&lt;uid&gt;/&lt;sha256(cfg-dir)[:8]&gt;<br/>_18() uid-ownership check<br/>chmod 0o700 enforced<br/>refuses to bind on foreign-uid dir"]:::core
+        daemon_sock_ctl["control.sock — supervisor RPC<br/>15 ops: ping/nudge/lease/dispatch/list/has/kill<br/>reply/subscribe/attach/resize/ensure-spare<br/>permission-response/respawn-stale/await-ack"]:::core
+        daemon_sock_rv["rv/&lt;short&gt;.sock — per-worker rendezvous"]:::core
+        daemon_sock_pty["pty/&lt;short&gt;.sock — per-worker PTY passthrough"]:::core
+        daemon_pipekey["~/.claude/daemon/pipe.key (16-hex)<br/>Windows: embedded in pipe name (auth)<br/>Linux: file created but UNUSED<br/>(fs perms on sock dir = auth)"]:::gap
+        daemon_dispatch_schema["dispatch schema Y18<br/>env: Record&lt;string,string&gt; (arbitrary env)<br/>source: shell|slash|fleet|respawn<br/>isolation: none|worktree"]:::gap
+        daemon_frame["DCS escape framing<br/>\\x1B_cc-detach-msg;...\\x1B\\\\<br/>PTY-compatible IPC"]:::core
     end
-    %% ===== S — v121 Harbor MCP Channels (runtime-confirmed) =====
-    subgraph HARBOR["S — Harbor MCP Channels (v2.1.121 — runtime-confirmed; v126 unchanged)"]
+    %% ===== S — Harbor MCP Channels (v2.1.121, runtime-confirmed #102 + #104) =====
+    subgraph HARBOR["S — Harbor MCP Channels (v2.1.121 #102 + #104 — runtime-confirmed; v126 unchanged)"]
         direction TB
-        harbor_gate["Master harbor gate<br/>(server-flippable; current cohort: TRUE)"]:::core
-        harbor_ledger["Channel-ledger flag (4 entries)<br/>discord/telegram/fakechat/imessage<br/>per-cohort flippable"]:::core
-        harbor_perms["Channel-permissions sub-gate<br/>(server-flippable; current cohort: TRUE)<br/>gates React hook → channelPermissionCallbacks"]:::core
+        harbor_gate["kTH() = G$('[feature-flag]',false)<br/>master gate (v126: rotated T$→G$)<br/>current cohort: TRUE"]:::core
+        harbor_ledger["hA8() = G$('[feature-flag]',[])<br/>4 entries: discord/telegram/fakechat/imessage<br/>GrowthBook-flippable per cohort"]:::core
+        harbor_perms["Rr7() = G$('[feature-flag]',false)<br/>current cohort: TRUE<br/>gates Ur7() React hook → channelPermissionCallbacks"]:::core
         harbor_policy["Enterprise policy gate<br/>policySettings.channelsEnabled<br/>+ allowedChannelPlugins allowlist"]:::core
         harbor_dev["CLI flag bypass<br/>--dangerously-load-development-channels"]:::gap
-        harbor_cap["MCP server capability:<br/>experimental[claude/channel]<br/>+ experimental[claude/channel/permission]<br/>both required for channel-permissions reach"]:::core
-        harbor_check["Gate function with 7 skip kinds<br/>capability/disabled/auth/policy/<br/>session/marketplace/allowlist"]:::core
-        harbor_inj["Channel injection finding (1):<br/>content wrapped as &lt;channel source=...&gt;...&lt;/channel&gt;<br/>round-12 model-defended; round-13 content-escape weakness"]:::gap
-        harbor_authz["Channel-permissions finding (2):<br/>tool-use ID + name + description + input_preview<br/>TUI-mode runtime-confirmed; logged as source.type:'user'"]:::gap
-        harbor_tui_only["TUI-only constraint:<br/>React provider mounts the permissions hook<br/>--print/SDK paths IMMUNE (probe-confirmed)"]:::core
+        harbor_cap["MCP server capability<br/>experimental[claude/channel]<br/>+ experimental[claude/channel/permission]<br/>both required for #104"]:::core
+        harbor_check["Vw$() gate w/ 7 skip kinds<br/>capability/disabled/auth/policy/<br/>session/marketplace/allowlist"]:::core
+        harbor_inj["#102 — channel injection<br/>vw$() wraps content as<br/>&lt;channel source=&quot;...&quot;&gt;...&lt;/channel&gt;<br/>round-12: model-defended<br/>round-13: content-escape weakness"]:::gap
+        harbor_authz["#104 — channel permissions<br/>Cr7(toolUseID) → 5-char base-25 ID<br/>tool_name+description+input_preview<br/>round-14c: TUI-mode runtime-confirmed<br/>logged as source.type:'user' (laundered)"]:::gap
+        harbor_tui_only["#104 TUI-only constraint<br/>SA8 React provider mounts Ur7<br/>--print/SDK paths IMMUNE<br/>(round-14b probe-j confirmed)"]:::core
     end
-    %% ===== T — v126 Brief Stop-Hook GrowthBook Injection (Critical) =====
-    subgraph BRIEFINJ["T — Brief Stop-Hook GrowthBook Injection (v2.1.126 Critical)"]
+    %% ===== T — Brief Stop-Hook GrowthBook Injection (v2.1.126 #106 CRITICAL) =====
+    subgraph BRIEFINJ["T — Brief Stop-Hook GrowthBook Injection (v2.1.126 #106 CRITICAL)"]
         direction TB
-        brief_gate["[brief-mode-entry-flag]<br/>brief-mode entry switch<br/>server-flippable, no user opt-in"]:::core
-        brief_text_flag["[brief-mode-stop-hook-flag]<br/>empty-default GrowthBook string-flag<br/>OVERRIDES hardcoded reminder text"]:::gap
-        brief_inj["Empirical: canary reaches model context<br/>as synthetic user-text VERBATIM<br/>(no client-side sanitisation)<br/>Upper bound: 64KB no-cap (round-7N)"]:::gap
-        brief_no_pin["No certificate pinning at eval channel<br/>(round-5 negative finding)<br/>network-MITM threat realistic"]:::gap
-        brief_targeting["Per-account targeting via existing<br/>GrowthBook eval-request envelope<br/>(account/email/org/subscription/device)"]:::core
+        brief_gate["eZ('[feature-flag]',!1,FI_)<br/>brief-mode entry switch<br/>server-flippable, no user opt-in"]:::core
+        brief_text_flag["G$('[feature-flag]','')<br/>byte 117293158 — string-default reader<br/>EMPTY DEFAULT (overrides hardcoded UI_)"]:::gap
+        brief_inj["#106 — round-3 mitm-injection<br/>canary 145B → /v1/messages role:'user' verbatim<br/>round-7N empirical: 65,596B reaches verbatim<br/>NO CLIENT-SIDE LENGTH CAP"]:::gap
+        brief_no_pin["#106 round-5: no cert pinning<br/>UNABLE_TO_VERIFY_LEAF_SIGNATURE uniform<br/>network-MITM threat realistic"]:::gap
+        brief_targeting["per-account targeting<br/>accountUUID + email + organizationUUID<br/>+ subscriptionType + deviceID<br/>POST /api/eval/sdk-* envelope"]:::core
     end
-    %% ===== U — v126 Datadog Third-Party Processor Extension =====
-    subgraph DATADOG["U — Datadog 3rd-Party Processor (v2.1.126 High; extends earlier envelope-leak)"]
+    %% ===== U — Datadog Third-Party Processor (v2.1.126 #105 High; extends #92) =====
+    subgraph DATADOG["U — Datadog Third-Party Processor (v2.1.126 #105 — extends #92)"]
         direction TB
-        dd_gate["[datadog-event-logging-flag]<br/>gate flag (default off)<br/>this account: server-flipped ON"]:::gap
-        dd_endpoint["http-intake.logs.us5.datadoghq.com<br/>/api/v2/logs<br/>+ public ingest key (hardcoded)"]:::gap
-        dd_allowlist["Event allow-list: 110 events<br/>(subset of all telemetry events)"]:::core
-        dd_body["Body: ddsource/ddtags(23-field)/<br/>message/service/hostname/env<br/>+ all event fields verbatim"]:::gap
-        dd_pii["Empirical PII in body:<br/>session_id (every event)<br/>subscription_type (search-indexed)<br/>last_session_id (cross-session correlation)<br/>+ 47 system fingerprint fields"]:::gap
-    end
-    %% ===== V — v128 ShareOnboardingGuide unauth-public share URL (Critical) =====
-    subgraph SHAREONBOARD["V — ShareOnboardingGuide unauth-public share URL (v2.1.128 Critical)"]
-        direction TB
-        share_gate["[share-tool-gate]<br/>GrowthBook string-flag (default false)<br/>server-flipped ON this account"]:::gap
-        share_tool["ShareOnboardingGuide tool<br/>model-invocable (no disableModelInvocation)<br/>reads ONBOARDING.md from cwd<br/>64KB file-size cap"]:::gap
-        share_endpoint["[organization-onboarding-endpoint]<br/>POST = create (mode:check NOT idempotent-read)<br/>PUT = update<br/>NO DELETE in v128 binary"]:::gap
-        share_url["[onboarding-share-url-pattern]<br/>12-char mixed-case short_code<br/>UNAUTH-PUBLIC (round-3 anon-incognito test)<br/>cross-org content-leak via single URL"]:::gap
-        share_msg_inject["Tool result injects model-directive<br/>(Close with: '...' instruction)<br/>same channel class as brief stop-hook"]:::gap
-    end
-    %% ===== W — v128 iron_gate fail-open inversion (Med-High) =====
-    subgraph IRONGATE["W — Sandbox classifier fail-closed inversion (v2.1.128 Med-High)"]
-        direction TB
-        iron_classifier["Sandbox network classifier<br/>auto-mode call-site"]:::core
-        iron_flag["[iron-gate-flag]<br/>default TRUE = deny when classifier unavailable<br/>server flip false → ALLOW (fail-open)"]:::gap
-        iron_decision["Effective decision when classifier unavailable<br/>flag-driven (fail-closed by default; inverts on flip)"]:::gap
-    end
-    %% ===== X — v128 harbor_prism PR-status path-switcher (Med info) =====
-    subgraph HARBORPRISM["X — PR-status path-switcher (v2.1.128 Med info)"]
-        direction TB
-        prism_flag["[harbor-prism-flag]<br/>string-flag (default false)<br/>per-account decision-routing"]:::core
-        prism_off["OFF path: local `gh pr view --json ...`<br/>ground truth"]:::core
-        prism_on["ON path: direct GitHub API/GraphQL fetch from binary<br/>(NOT Anthropic-intermediary, uses gh-CLI auth)"]:::gap
-    end
-    %% ===== Y — v129 _PROTO_ destructure-rename field-level leak (High) =====
-    subgraph PROTOLEAK["Y — _PROTO_ destructure-rename leak (v2.1.129 High)"]
-        direction TB
-        proto_emitters["13 active emitters in v129<br/>(plugin install/uninstall/enable/disable/update_command,<br/>plugin_hint_*, plugin_folder_shadowed, plugin_name_collision,<br/>skill_loaded, skill_tool_invocation, slash_command_forked,<br/>input_command)<br/>Each adds _PROTO_plugin_name / _PROTO_skill_name /<br/>_PROTO_marketplace_name to event.additional"]:::gap
-        proto_egress["Egress site at [proto-egress-offset]<br/>destructures _PROTO_* into local vars<br/>then re-attaches as top-level event fields:<br/>plugin_name / skill_name / marketplace_name"]:::gap
-        proto_endpoint["1P telemetry endpoint:<br/>api.anthropic.com/api/event_logging/v2/batch<br/>Top-level fields (raw): skill_name, plugin_name,<br/>marketplace_name, device_id, email, auth"]:::gap
-        proto_redactor["Sibling redactor jyH() at [proto-redactor-offset]<br/>strips remaining _PROTO_* in residual j object<br/>but does NOT block the destructured raw values<br/>that are explicitly re-attached at egress"]:::core
-        proto_dormant["_PROTO_code → repl_code slot present at destructure<br/>but no emitter populates it in v123/v126/v128/v129<br/>(forward-compat slot — escalate watch if v130+ adds setter)"]:::core
-    end
-    %% ===== Z — v138 Forced-Downgrade + AC3 Skip-Persist Bypass =====
-    subgraph FORCED_DG["Z — Forced-Downgrade + AC3 Partial-Defense (v2.1.138 HIGH ×2)"]
-        direction TB
-        fd_reader["Server-pushed forced-downgrade primitive<br/>typed eval-SDK reader (object variant)<br/>returns {maxVersion, forceDowngradeEnabled}"]:::gap
-        fd_canary["Sister flag: bidirectional version-pin<br/>(server controls upgrade ceiling AND<br/>downgrade floor via same eval-SDK channel)"]:::gap
-        fd_floor["User mitigation: settings.json<br/>minimumVersion floor<br/>(default undefined; most users vulnerable)"]:::core
-        fd_ac3["Ghost-inbox transcript-replay AC3 partial defense<br/>Skip-persistence path adds null bypass<br/>Trigger: --no-session-persistence (--print only)<br/>+ SDK option<br/>+ env CLAUDE_CODE_SKIP_PROMPT_HISTORY"]:::gap
-        fd_wrappers["Round-3 SDK wrapper survey:<br/>97 third-party repos use the bypass flag<br/>~71% sampled default UNCONDITIONALLY<br/>(a third of public ecosystem still vulnerable)"]:::gap
-        fd_reader --> fd_floor
-        fd_canary --> fd_floor
-        fd_ac3 --> fd_wrappers
-    end
-    %% ===== AA — Mid-Conversation System Predicate (REMEDIATED v2.1.156) =====
-    subgraph MIDCONV["AA — Mid-Conversation System Predicate (REMEDIATED v2.1.156)"]
-        direction TB
-        mc_env["Env-var override path"]:::gap
-        mc_cache["Cached eval-SDK string source"]:::gap
-        mc_live["Live eval-SDK fallback"]:::gap
-        mc_predicate["3-source substring-on-conversation predicate<br/>extracts conversation transcript;<br/>if any of 3 sources match → true"]:::gap
-        mc_betahdr["Caller 1: beta-headers assembler<br/>predicate true → push API beta-header<br/>(API feature gate via eval-SDK string)"]:::gap
-        mc_sysprompt["Caller 2: system-prompt assembler<br/>predicate result flows into prompt build path"]:::gap
-        mc_env --> mc_predicate
-        mc_cache --> mc_predicate
-        mc_live --> mc_predicate
-        mc_predicate --> mc_betahdr
-        mc_predicate --> mc_sysprompt
-    end
-    %% ===== AB — v138 BYOC Datadog Killswitch (partial third-party-leak remediation) =====
-    subgraph BYOC_DD["AB — BYOC Datadog Killswitch (v2.1.138 partial remediation, BYOC subset only)"]
-        direction TB
-        byoc_predicate["BYOC environment-kind predicate<br/>+ env-var killswitch check"]:::core
-        byoc_scope["Customer-segment killswitch only<br/>(BYOC contract surface; main consumer<br/>Pro/Max remains exposed when third-party<br/>logging gate server-flipped on)"]:::gap
-        byoc_predicate --> byoc_scope
-    end
-    %% ===== AC — v140 TUI Notification ANSI/OSC8 Injection (Critical, wire-confirmed) =====
-    subgraph STARTUP_NOTICE["AC — TUI Startup-Notice Injection (v2.1.140 Critical — wire-confirmed PTY-mounted MITM)"]
-        direction TB
-        sn_default["Default state on wire:<br/>empty value, off=true, source=defaultValue<br/>(dormant by default)"]:::baseline
-        sn_inject["Server inject via eval-SDK channel:<br/>startup-notice flag value = attacker payload"]:::risk
-        sn_render["Ink notification component renders<br/>value verbatim wrapped in yellow SGR<br/>(no sanitization)"]:::gap
-        sn_ansi["ANSI escape phase:<br/>raw escape sequences pass through<br/>to TUI stdout unchanged"]:::risk
-        sn_osc8["OSC 8 hyperlink phase:<br/>terminal hyperlink with attacker URL +<br/>visible label = mouse-clickable<br/>in modern terminals (iTerm2, WezTerm,<br/>Kitty, Windows Terminal, etc.)"]:::risk
-        sn_cap["Width cap ~75 visible chars;<br/>ANSI escapes are zero-width and survive cap"]:::gap
-        sn_markdown["Markdown rendered as literal text<br/>(defensive; no link parsing)"]:::baseline
-        sn_default --> sn_inject
-        sn_inject --> sn_render
-        sn_render --> sn_ansi
-        sn_render --> sn_osc8
-        sn_render --> sn_cap
-        sn_render --> sn_markdown
-    end
-    %% ===== AD — Runtime-Probe Harness (sessions 55-59, 2026-05; two findings wire-confirmed) =====
-    subgraph PROBESANDBOX["AD — Runtime-Probe Harness (probe-sandbox + PTY automation, sessions 55-59)"]
-        direction TB
-        ps_compose["tools/probe-sandbox/<br/>two-service docker compose<br/>intercepting proxy + claude-code<br/>egress forced through the proxy on an isolated bridge"]:::ours
-        ps_creds["Bearer creds RO-mounted from host<br/>container-local writable copy<br/>TTL gate (refuses near-expiry probes)"]:::ours
-        ps_addon["Proxy addon force-injects feature-flag<br/>values into server config-eval responses<br/>(round-trips compressed bodies)"]:::ours
-        ps_tui["PTY keystroke automation<br/>seeds a minimal per-user config file<br/>walks onboarding past the theme picker"]:::ours
-        ps_113["#113 probe — inject the forced-downgrade flag<br/>the auto-updater performed the downgrade<br/>to an attacker-chosen older version, no prompt<br/>WIRE-CONFIRMED v143 + v145"]:::risk
-        ps_127["#127 probe — inject the startup-notice flag<br/>payload renders verbatim to the TUI notification<br/>ANSI escape UNSANITIZED; bare URL rendered<br/>WIRE-CONFIRMED v143 + v145"]:::risk
-        ps_115["#115 probe — inject the mid-conversation-system flag<br/>the predicate never fires on --print OR TUI<br/>baseline vs canary byte-identical<br/>NEGATIVE → informational; REMEDIATED v156:<br/>flag + mechanism removed from binary → CLOSED"]:::baseline
-        ps_compose --> ps_creds
-        ps_creds --> ps_addon
-        ps_addon --> ps_tui
-        ps_tui --> ps_113
-        ps_tui --> ps_127
-        ps_tui --> ps_115
+        dd_gate["G$('[feature-flag]',!1)<br/>RMK gate fn CMK()<br/>this account: source:'force', value:true"]:::gap
+        dd_endpoint["http-intake.logs.us5.datadoghq.com<br/>/api/v2/logs<br/>hardcoded byte 111788522<br/>public ingest key BM1=pubea5604...05bc"]:::gap
+        dd_allowlist["QM1 allowlist — 110 events<br/>[feature-flag]/init/exit/timer/<br/>api_*/sdk_*/oauth_*/bg_*/daemon_*/<br/>tool_use_*/team_mem_*/voice_*"]:::core
+        dd_body["body shape:<br/>ddsource:nodejs, ddtags(23-field dM1),<br/>message, service, hostname, env<br/>+ all event fields verbatim (IMK rename)"]:::gap
+        dd_pii["round-7M empirical PII in body:<br/>session_id ×8/8 events<br/>subscription_type ×8/8 (search-indexed)<br/>last_session_id (cross-session correlation)<br/>+ 47 system fingerprint fields"]:::gap
     end
     %% ===== Q — Our Tooling =====
     subgraph OURS["Q — Our Tooling"]
@@ -298,28 +203,150 @@ flowchart LR
         workspace_mcp["workspace-mcp transcript"]:::ours
         mempalace["mempalace-sync"]:::ours
     end
-    %% ===== Q1 — Pi-Passport (research tooling — billing-tier classifier evasion via OAuth bearer; batched as #111) =====
-    %% Multi-perspective audit 2026-05-10 (7 reviewers, opaque-team) — all Critical/High items closed in 6 follow-up commits same day.
-    subgraph PIPASS["Q1 — Pi-Passport [research tooling, hardened postQ3Q4 2026-05-10]"]
+    %% ===== Q1 — Pi-Passport (OAuth-bypass + gate-evasion harness — OUR research tooling) =====
+    %% Post-Q3Q4 review (2026-05-10) — 7-reviewer multi-perspective audit + empirical falsification
+    subgraph PIPASS["Q1 — Pi-Passport (third-party gate evasion + Claude-Code bypass) [hardened postQ3Q4 2026-05-10]"]
         direction TB
         pp_creds["~/.claude/.credentials.json<br/>OAuth bearer + refreshToken<br/>(stolen-token threat surface)"]:::ours
-        pp_refresh["OAuth refresh helper<br/>POST <oauth-token-endpoint><br/>multi-candidate client_id ladder<br/>+ client_id discovery primitive when ladder exhausts"]:::ours
-        pp_launcher["Shell launcher (env-strip allowlist)<br/>+E1 absolute paths for all dep binaries (closed)<br/>+E1 hardcoded minimal PATH (closed)<br/>+S1 integer guard before bash arithmetic (closed)"]:::ours
-        pp_canary["First-call canary against real system blocks<br/>L_N → 400 → bump to L_(N+1)<br/>cap at maxLevel<br/>+R2 refuses initialLevel>maxLevel (closed)"]:::ours
-        pp_sanitizer["Sanitiser hook (in-place mutation)<br/>before_provider_request<br/>L1 light → L4 nuclear ladder<br/>+drift detector (extracted module + tests)<br/>+nuclear-mode opt-in gate (LEVEL=4 needs second env var)"]:::ours
-        pp_refresh_flow["Mid-session OAuth refresh<br/>single-flight + background scheduler<br/>+clock-skew defense (server Date header is canonical)<br/>+TZ-stress test matrix (UTC / Asia/Tokyo / etc.)"]:::ours
-        pp_drift_watch["Anthropic-API drift watcher<br/>Sunset / Deprecation / version-error body types<br/>+Pi-API runtime event-shape sentinel<br/>(once-per-process dedup)"]:::ours
-        pp_classifier["Classifier corpus + rule-fallback<br/>~41 labelled samples (PASS:BLOCKED 37:4 skew)<br/>gate requires density+structure (not keyword OR-rule)"]:::ours
-        pp_test_suite["Test suite: 41 → 54 → 82 → 95 → 107 → 112<br/>unit + integration + TZ-stress<br/>typecheck clean across hardening batch"]:::ours
+        pp_refresh["refresh-token.mjs<br/>POST platform.claude.com/v1/oauth/token<br/>client_id 9d1c250a-... (binary's<br/>secondary CLIENT_ID; primary fails)<br/>+S2 randomBytes tmp / +S3 redirect:error<br/>+S4 UUID-validate --client-id"]:::ours
+        pp_launcher["evade-pi.sh<br/>+E1 absolute paths for jq/node/pi/timeout<br/>+E1 minimal hardcoded PATH in env-i<br/>+S1 require_uint() before arith<br/>defaults: opus-4-7 / thinking high"]:::ours
+        pp_canary["First-call canary<br/>Pi's REAL system blocks<br/>L_N → 400 → bump to L_(N+1)<br/>cap at maxLevel<br/>+R2 refuses initialLevel>maxLevel"]:::ours
+        pp_sanitizer["Sanitizer hook (applyEvasion in-place)<br/>before_provider_request<br/>L1: \\bpi\\b → 'the agent'<br/>L2: docs/.md links<br/>L3: ## /path.md + packages<br/>L4: nuclear (replace block 2)<br/>D1 byte-delta read-back warning"]:::ours
+        pp_banner["suppress-banner.mjs<br/>warnings.anthropicExtraUsage=false<br/>(Pi's banner is misleading post-evade)<br/>+R6 preserves source mode 0o600"]:::ours
+        pp_anthropic_api["anthropic-api.ts (A8)<br/>Single source for ANTHROPIC_VERSION,<br/>OAUTH_BETA, CANARY_MODEL<br/>+S3 redirect:error default"]:::ours
+        pp_runner["classifier/node/runner.mjs<br/>Shared loadOauth/classifyOutcome/<br/>writeFileAtomic + GATE_PATTERN<br/>+R4 user:inference scope check<br/>+R5 single-source GATE_PATTERN"]:::ours
+        pp_classifier["Classifier corpus + rule-fallback<br/>41 samples (22 mitm + 19 sensitivity)<br/>gate requires density+structure,<br/>not keyword OR-rule<br/>Path A executed: model.rds deleted,<br/>glm() retired, (?m) regex fixed"]:::ours
+        pp_test_suite["54-test suite (was 41)<br/>+9 R7 index handler integration<br/>+4 R2/R5 unit"]:::ours
     end
-    %% ===== Q2 — Anthropic Third-Party-App Classifier (server-side billing-tier gate) =====
-    subgraph TPGATE["Q2 — Anthropic billing-tier classifier (server-side)"]
+    %% ===== Q2 — Anthropic Third-Party-App Classifier (third-party-app gate research) =====
+    subgraph TPGATE["Q2 — Anthropic Third-Party-App Classifier"]
         direction TB
         tp_input["Inspects system[].text content<br/>(not headers / TLS / SDK identity)"]:::gap
-        tp_features["Feature scoring<br/>density + structural patterns<br/>+ total block size"]:::gap
+        tp_features["Feature scoring<br/>{pi, docs, .md, packages}<br/>+ density + structural patterns<br/>+ total block size"]:::gap
         tp_verdict["200 = plan-billing<br/>400 = 'extra usage'<br/>cached on identical body"]:::gap
         tp_input --> tp_features --> tp_verdict
     end
+    %% ===== V — v128 ShareOnboardingGuide unauth-public share URL (#107 HIGH) =====
+    subgraph SHAREONBOARD["V — ShareOnboardingGuide unauth-public share URL (v2.1.128 #107 HIGH; round-3 incognito → CRITICAL contradicted by round-4 scrapling)"]
+        direction TB
+        share_gate["G$('[feature-flag]',!1)<br/>GrowthBook string-flag (default false)<br/>this account: server-flipped ON"]:::gap
+        share_tool["ShareOnboardingGuide tool<br/>model-invocable (no disableModelInvocation)<br/>reads ONBOARDING.md from cwd<br/>64KB file-size cap"]:::gap
+        share_endpoint["POST /api/organizations/{orgUUID}/claude_code/onboarding<br/>mode:check is NOT idempotent-read<br/>PUT = update; NO DELETE in v128 binary"]:::gap
+        share_url["https://claude.ai/claude-code/onboard/{12-char-short-code}<br/>UNAUTH-PUBLIC (round-3 anon-incognito test)<br/>round-4 scrapling no-cookies → /login redirect<br/>severity reverted CRITICAL → HIGH; promotion-gate open"]:::gap
+        share_msg_inject["Tool result injects model-directive<br/>(Close with: '...' instruction)<br/>same channel class as brief stop-hook"]:::gap
+    end
+    %% ===== W — v128 iron_gate sandbox classifier fail-closed → fail-open inversion (#108 CRITICAL via probe-v2 MITM) =====
+    subgraph IRONGATE["W — Sandbox classifier fail-closed inversion (v2.1.128 #108 — PROMOTED CRITICAL via probe-v2 MITM 2026-05-06)"]
+        direction TB
+        iron_classifier["Sandbox network classifier (L48 / p78)<br/>+ auto-mode permission classifier (0x70c79b8)<br/>2 call sites; site-2 wire-confirmed"]:::core
+        iron_flag["G$('[feature-flag]',!0)<br/>DEFAULT-TRUE = deny when classifier unavailable<br/>server flip false → ALLOW (fail-open)"]:::gap
+        iron_decision["Probe-v2 empirical: literal binary log line<br/>'Auto mode classifier unavailable, falling<br/>back to normal permission handling (fail open)'<br/>fires under documented attack input"]:::gap
+        iron_x_neg["Probe-x interactive 5-min TUI session<br/>site-1 NEVER invoked despite all preconditions met<br/>(0 SandboxNetworkAccess classifier requests)"]:::core
+    end
+    %% ===== X — v128 harbor_prism PR-status path-switcher (#109 Med info) =====
+    subgraph HARBORPRISM["X — PR-status path-switcher (v2.1.128 #109 Med info)"]
+        direction TB
+        prism_flag["G$('[feature-flag]','off')<br/>string-flag (default 'off')<br/>per-account decision-routing"]:::core
+        prism_off["OFF path: local `gh pr view --json ...`<br/>ground truth"]:::core
+        prism_on["ON path: direct GitHub API/GraphQL fetch from binary<br/>(qV7/Ak_ chain — React-component-only)<br/>requires interactive TUI in PR-context branch<br/>--print mode does NOT trigger"]:::gap
+        prism_z_tui["Probe-z-tui: flag-injection PROVEN<br/>via rewrites.jsonl experiment-flip<br/>but canonical /ultrareview path-switcher branch UNRESOLVED<br/>(generic prompts → LLM picks gh pr view regardless)"]:::core
+    end
+    %% ===== Y — v129 _PROTO_ destructure-rename field-level leak (#110 PROMOTED CRITICAL via probe-r MITM) =====
+    subgraph PROTOLEAK["Y — _PROTO_ destructure-rename leak (v2.1.129 #110 — PROMOTED CRITICAL via probe-r MITM 2026-05-06)"]
+        direction TB
+        proto_emitters["13 active emitters in v129<br/>(plugin install/uninstall/enable/disable/update_command,<br/>plugin_hint_*, plugin_folder_shadowed, plugin_name_collision,<br/>skill_loaded, skill_tool_invocation, slash_command_forked,<br/>input_command)<br/>Each adds _PROTO_plugin_name / _PROTO_skill_name /<br/>_PROTO_marketplace_name to event.additional"]:::gap
+        proto_egress["Egress site destructures _PROTO_* into local vars<br/>then re-attaches as TOP-LEVEL event fields:<br/>plugin_name / skill_name / marketplace_name"]:::gap
+        proto_endpoint["1P telemetry endpoint:<br/>api.anthropic.com/api/event_logging/v2/batch<br/>Top-level fields (raw): skill_name, plugin_name,<br/>marketplace_name, device_id, email, auth"]:::gap
+        proto_redactor["Sibling redactor jyH() strips remaining _PROTO_*<br/>in residual j object but does NOT block<br/>the destructured raw values explicitly re-attached at egress"]:::core
+        proto_wire["Probe-r empirical wire capture:<br/>356 raw skill_name (355 unique)<br/>+ 9 plugin_name (2 unique: caveman, rust-analyzer-lsp)<br/>+ 9 marketplace_name (2 unique: caveman, claude-plugins-official)<br/>on 2 event_logging batches from a single bootstrap"]:::gap
+        proto_dormant["_PROTO_code → repl_code slot present at destructure<br/>but no emitter populates it in v123/v126/v128/v129/v131/v132/v138<br/>(forward-compat slot — escalate watch if setter ever added)"]:::core
+    end
+    %% ===== Z — v138 Forced-Downgrade + AC3 Skip-Persist Bypass (#113 + #114 HIGH) =====
+    subgraph FORCED_DG["Z — Forced-Downgrade + AC3 Partial-Defense (v2.1.138 #113 + #114 HIGH)"]
+        direction TB
+        fd_reader["mo('[feature-flag]',{})<br/>typed eval-SDK reader (object form;<br/>alongside scalar reader J$)"]:::gap
+        fd_parse["vP7() returns {maxVersion, forceDowngradeEnabled}<br/>RL6.parse(external semver)<br/>vM$() = startup downgrade decision"]:::gap
+        fd_canary["Sister: Ek_() reads [feature-flag] semver<br/>same eval-SDK channel<br/>bidirectional version-pin (server controls<br/>both upgrade ceiling AND downgrade floor)"]:::gap
+        fd_floor["User mitigation: settings.json<br/>minimumVersion floor via q7H(Z) check<br/>(default undefined; most users vulnerable)"]:::core
+        fd_ac3["#114 insertMessageChain: M=null bypass<br/>shouldSkipPersistence chain:<br/>uDH() → tI() OR env [env-flag]<br/>tI() reads Q$.sessionPersistenceDisabled<br/>Trigger: --no-session-persistence (--print only)<br/>+ SDK persistSession:false<br/>+ env [env-flag]"]:::gap
+        fd_wrappers["Round-3 SDK wrapper survey:<br/>97 third-party repos use --no-session-persistence<br/>5/7 sampled default UNCONDITIONALLY<br/>(lcm/claudebox/chunkhound/dyad/raptor)<br/>~71% of public ecosystem on bypass-vulnerable path"]:::gap
+        fd_reader --> fd_parse --> fd_floor
+        fd_canary --> fd_parse
+        fd_ac3 --> fd_wrappers
+    end
+    %% ===== AA — v138 Mid-Conversation System Predicate (#115 — REMEDIATED v2.1.156) =====
+    subgraph MIDCONV["AA — Mid-Conversation System Predicate (#115 — REMEDIATED v2.1.156)"]
+        direction TB
+        mc_env["[env-flag]<br/>(env override path)"]:::gap
+        mc_cache["clientDataCache?.[feature-flag]<br/>(cached GrowthBook string)"]:::gap
+        mc_live["J$('[feature-flag]','')<br/>(live eval-SDK fallback)"]:::gap
+        mc_predicate["hQ$(H) predicate:<br/>extracts conversation $ via C7(H);<br/>if any of 3 sources match $.includes() → true"]:::gap
+        mc_betahdr["Caller 1: Wt8 beta-headers assembler<br/>if predicate true → push JB$ beta-header<br/>(API feature gate via eval-SDK string)"]:::gap
+        mc_sysprompt["Caller 2: hG system-prompt assembler<br/>predicate result K flows into prompt build path"]:::gap
+        mc_env --> mc_predicate
+        mc_cache --> mc_predicate
+        mc_live --> mc_predicate
+        mc_predicate --> mc_betahdr
+        mc_predicate --> mc_sysprompt
+    end
+    %% ===== AB — v138 BYOC Datadog Killswitch (partial #105 remediation) =====
+    subgraph BYOC_DD["AB — BYOC Datadog Killswitch (v2.1.138 partial #105 remediation, BYOC subset only)"]
+        direction TB
+        byoc_predicate["_PK() predicate:<br/>process.env.[env-flag]==='byoc'<br/>&& !EH(env.[env-flag])"]:::core
+        byoc_scope["Customer-segment killswitch only<br/>(BYOC contract surface; main consumer<br/>Pro/Max remains exposed when<br/>[feature-flag] server-flipped on)"]:::gap
+        byoc_predicate --> byoc_scope
+    end
+    %% ===== AC — v140 TUI Notification ANSI/OSC8 Injection (#127 CRITICAL) =====
+    subgraph STARTUP_NOTICE["AC — TUI Startup-Notice Injection (v2.1.140 #127 CRITICAL — wire-confirmed probe-HH + probe-JJ)"]
+        direction TB
+        sn_default["Default state on wire:<br/>{value:&#39;&#39;, on:false, off:true, source:&#39;defaultValue&#39;}<br/>(dormant for this account)"]:::baseline
+        sn_inject["Server inject via /api/eval/sdk-&lt;id&gt;:<br/>[feature-flag].value = &lt;attacker payload&gt;"]:::risk
+        sn_render["Ink notification component renders<br/>value verbatim wrapped in yellow SGR<br/>(no sanitization)"]:::gap
+        sn_ansi["probe-HH ansi phase:<br/>x1b[31m...x1b[39m passes through<br/>raw to TUI stdout"]:::risk
+        sn_osc8["probe-JJ OSC 8 phase:<br/>x1b]8;id=auto;&lt;evil-url&gt; BEL +<br/>visible label = mouse-clickable<br/>hyperlink in iTerm2 / WezTerm /<br/>Kitty / Windows Terminal / etc."]:::risk
+        sn_cap["Width cap ~75 visible chars;<br/>ANSI escapes zero-width and survive cap"]:::gap
+        sn_markdown["Markdown rendered as literal text<br/>(defensive; no link parsing)"]:::baseline
+        sn_default --> sn_inject
+        sn_inject --> sn_render
+        sn_render --> sn_ansi
+        sn_render --> sn_osc8
+        sn_render --> sn_cap
+        sn_render --> sn_markdown
+    end
+    %% ===== AD — Runtime-Probe Harness (sessions 55-59, 2026-05; #113/#127 wire-confirmed) =====
+    subgraph PROBESANDBOX["AD — Runtime-Probe Harness (probe-sandbox + PTY automation, sessions 55-59)"]
+        direction TB
+        ps_compose["tools/probe-sandbox/<br/>two-service docker compose<br/>mitm (mitmdump 12.2.2) + probe (claude-code)<br/>egress forced through mitm:8080 on probenet"]:::ours
+        ps_creds["Bearer creds RO-mounted from host<br/>container-local writable copy<br/>TTL gate ≥1h (refuses near-expiry probes)"]:::ours
+        ps_addon["MITM addon force-injects GrowthBook<br/>flag values into /api/eval/sdk-* responses<br/>(get_text/set_text for gzip/zstd round-trip)"]:::ours
+        ps_tui["probes/lib/tui-driver.exp<br/>expect-driven PTY keystroke automation<br/>seeds minimal $HOME/.claude.json<br/>walks onboarding past theme picker"]:::ours
+        ps_113["#113 probe — inject [feature-flag]<br/>{external:2.1.137, external_force_downgrade:true}<br/>→ [feature-flag] fired<br/>{from:2.1.143, to:2.1.137}; Auto-updating… rendered<br/>WIRE-CONFIRMED v143 + v145"]:::risk
+        ps_127["#127 probe — inject [feature-flag]<br/>payload renders verbatim to TUI notification<br/>ANSI SGR escape UNSANITIZED; bare URL rendered<br/>WIRE-CONFIRMED v143 + v145"]:::risk
+        ps_115["#115 probe — inject [feature-flag]<br/>predicate hQ$() never fires on --print OR TUI<br/>beta-headers byte-identical baseline vs canary<br/>NEGATIVE → informational; REMEDIATED v156:<br/>flag+mechanism removed (fennel_kite 3/3/0) → CLOSED"]:::baseline
+        ps_compose --> ps_creds
+        ps_creds --> ps_addon
+        ps_addon --> ps_tui
+        ps_tui --> ps_113
+        ps_tui --> ps_127
+        ps_tui --> ps_115
+    end
+    %% ===== AE — v158 Plugins-Sync Headless MCP Register (#140 HIGH; promotion-gate → CRITICAL pending runtime trust-prompt-bypass) =====
+    subgraph PLUGINSYNC["AE — Plugins-Sync Headless stdio-MCP Register (v2.1.158 #140 HIGH — no consent prompt in sync caller; asymmetric to skills-sync hooks:void 0)"]
+        direction TB
+        psync_gate["Hx8() = CH(process.env.[env-flag])<br/>env-gated, DEFAULT OFF<br/>session init: if(Hx8()) PT9()<br/>(NOT GrowthBook server-push)"]:::baseline
+        psync_list["EBz()/YT9() desired-state fetch<br/>GET /api/oauth/organizations/:orgUUID/<br/>plugins/list-plugins?enabled_only=true<br/>auth:'teleport-org' (org admin → member trust path)"]:::gap
+        psync_dl["yBz download<br/>GET .../plugins/{name}/download<br/>arraybuffer, maxContentLength kBz<br/>nflagResolverA() name sanitizer + path-traversal reject<br/>512MB cap SBz=536870912<br/>manifest → ~/.claude/plugins/synced/manifest.json"]:::gap
+        psync_register["tH() MCP-register (NO consent in caller)<br/>k$() builds server map incl. type==='stdio' (subprocess)<br/>mH(lH,{authoritative:!1,caller:vH}) headless refresh<br/>'Headless MCP refresh: added=N'<br/>timeout LT9 default 10s → plugins_sync_mcp_timeout"]:::risk
+        psync_asym["Asymmetry: skills-sync sibling lIz()<br/>hardcodes hooks:void 0 (×2 in v158)<br/>→ synced skills CANNOT auto-register hooks;<br/>plugin leg has NO equivalent suppression"]:::gap
+        psync_gate --> psync_list
+        psync_list --> psync_dl
+        psync_dl --> psync_register
+        psync_register --> psync_asym
+    end
+    %% ===== Plugins-Sync edges (AE, v2.1.158 #140) =====
+    startup -. "if(Hx8()) PT9()" .-> psync_gate
+    psync_register -. "headless mH refresh<br/>{authoritative:!1}" .-> mcp_client
+    psync_dl -. "synced plugins" .-> plugin_load
     %% ===== Edges =====
     oauth --> firstparty
     firstparty --> orguuid
@@ -433,48 +460,77 @@ flowchart LR
     flags -. "[decstbm-gate]" .-> tui_decstbm
     startup --> tui_fullscreen
     tel_team --> tel_transport
-    %% ===== Brief Stop-Hook injection edges (T) =====
-    flags -. "[brief-mode-entry-flag]" .-> brief_gate
-    flags -. "[brief-mode-stop-hook-flag]" .-> brief_text_flag
+    %% ===== Daemon edges (R, v2.1.119) =====
+    daemon_qqh -. "blocks manual subcmds<br/>except 'run'" .-> daemon_spawn
+    flags -. "[feature-flag]<br/>(GrowthBook)" .-> daemon_czh
+    daemon_czh -- "if true: allow --bg" --> daemon_dispatch_chain
+    daemon_dispatch_chain --> daemon_spawn
+    daemon_czh -- "if true: mount fleet UI" --> daemon_sparewarm
+    daemon_sparewarm -. "spare-worker pre-warm" .-> daemon_spawn
+    flags -. "allow_remote_control" .-> daemon_gate
+    daemon_gate --> daemon_fn
+    daemon_fn --> daemon_dialog
+    daemon_dialog -- "consent" --> daemon_spawn
+    daemon_spawn --> daemon_env
+    daemon_env --> daemon_worker
+    daemon_worker --> daemon_lock
+    daemon_spawn --> daemon_persist
+    daemon_spawn --> daemon_zombie
+    daemon_worker --> daemon_sock_dir
+    daemon_sock_dir --> daemon_sock_ctl
+    daemon_sock_dir --> daemon_sock_rv
+    daemon_sock_dir --> daemon_sock_pty
+    daemon_spawn -. "creates" .-> daemon_pipekey
+    daemon_sock_ctl -. "DCS wrap" .-> daemon_frame
+    daemon_sock_ctl -. "op: dispatch" .-> daemon_dispatch_schema
+    daemon_sock_ctl -- "inbound triggers" --> turn_loop
+    remote_trigger -. "outbound create<br/>[feature-flag]" .-> daemon_sock_ctl
+    daemon_worker --> tel_ext
+    %% ===== Harbor edges (S, v2.1.119 #102) =====
+    flags -. "[feature-flag]" .-> harbor_gate
+    flags -. "[feature-flag]" .-> harbor_ledger
+    flags -. "[feature-flag]" .-> harbor_perms
+    harbor_gate --> harbor_cap
+    harbor_ledger --> harbor_check
+    harbor_check --> harbor_cap
+    harbor_perms --> harbor_authz
+    harbor_perms --> harbor_tui_only
+    harbor_policy -. "team/enterprise override" .-> harbor_cap
+    harbor_dev -. "bypass allowlist" .-> harbor_cap
+    harbor_cap --> harbor_inj
+    harbor_cap --> harbor_authz
+    mcp_client -. "experimental capability" .-> harbor_cap
+    %% ===== Brief Stop-Hook GrowthBook injection edges (T, v2.1.126 #106) =====
+    flags -. "[feature-flag]" .-> brief_gate
+    flags -. "[feature-flag]" .-> brief_text_flag
     brief_targeting --> flags
     brief_gate --> brief_text_flag
     brief_text_flag --> brief_inj
     brief_inj --> msgs_api
     brief_no_pin -. "MITM realistic" .-> brief_text_flag
-    %% ===== Datadog 3rd-party processor edges (U) =====
-    flags -. "[datadog-event-logging-flag]" .-> dd_gate
+    %% ===== Datadog third-party processor edges (U, v2.1.126 #105) =====
+    flags -. "[feature-flag]" .-> dd_gate
     dd_gate --> dd_allowlist
     dd_allowlist --> dd_body
     dd_body --> dd_endpoint
     dd_body --> dd_pii
-    %% ===== ShareOnboardingGuide unauth-public share URL edges (V) =====
-    flags -. "[share-tool-gate]" .-> share_gate
-    share_gate --> share_tool
-    share_tool --> share_endpoint
-    share_endpoint --> share_url
-    share_tool --> share_msg_inject
-    share_msg_inject -. "model-directive injected" .-> msgs_api
-    %% ===== iron_gate sandbox classifier inversion edges (W) =====
-    flags -. "[iron-gate-flag]" .-> iron_flag
-    iron_classifier -. "classifier unavailable branch" .-> iron_flag
-    iron_flag --> iron_decision
-    %% ===== harbor_prism PR-status path-switcher edges (X) =====
-    flags -. "[harbor-prism-flag]" .-> prism_flag
-    prism_flag --> prism_off
-    prism_flag --> prism_on
-    %% ===== Pi-Passport edges (Q1 → Q2) — research tooling drives the server-side billing-tier classifier =====
-    pp_creds --> pp_launcher
-    pp_launcher --> pp_canary
+    %% ===== Pi-Passport edges (V + W, 2026-05-07 #111 hardening) =====
+    pp_creds -- "read accessToken" --> pp_launcher
+    pp_creds -- "read refreshToken" --> pp_refresh
+    pp_refresh -. "atomic write" .-> pp_creds
+    pp_launcher -- "exec pi -e ./index.ts" --> pp_canary
     pp_canary --> pp_sanitizer
-    pp_sanitizer --> tp_input
-    pp_refresh_flow --> pp_creds
-    pp_refresh --> pp_creds
-    pp_drift_watch -. "monitors" .-> tp_verdict
-    %% ===== Runtime-Probe Harness edges (AD) — the probe harness drives the harness's own input surfaces =====
-    ps_addon -. "rewrites config-eval response" .-> flags
+    pp_sanitizer -- "POST /v1/messages" --> tp_input
+    pp_sanitizer -. "OAuth bearer<br/>BYPASSES Claude Code binary" .-> msgs_api
+    tp_verdict -. "200 = locked level" .-> pp_canary
+    pp_classifier -. "R GLM filter (overfit on N=41)" .-> pp_sanitizer
+    pp_banner -. "writes ~/.pi/agent/settings.json" .-> pp_launcher
+    %% ===== Runtime-Probe Harness edges (AD, sessions 55-59) =====
+    ps_addon -. "rewrites eval-SDK response" .-> flags
     ps_113 -. "wire-confirms" .-> fd_reader
     ps_127 -. "wire-confirms" .-> sn_inject
     ps_115 -. "runtime-negative" .-> mc_predicate
+
     classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
     classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
     classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px

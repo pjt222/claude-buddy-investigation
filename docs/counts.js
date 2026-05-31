@@ -105,13 +105,13 @@ window.VIZ_COUNTS = Object.freeze({
     // curated post-audit additions.
     gh_label_counts: {
       critical: 14,
-      high: 29,
-      medium: 46,
-      low: 8,
-      labeled_total: 97,
+      high: 31,
+      medium: 47,
+      low: 9,
+      labeled_total: 101,
       unlabeled_by_severity: 39,
-      repo_total: 136,
-      derived_at: "2026-05-27"
+      repo_total: 140,
+      derived_at: "2026-05-31"
     }
   },
 
@@ -143,7 +143,7 @@ window.VIZ_COUNTS = Object.freeze({
   //   5. Statsig supplemental gates [statsig-gate-fn] (cachedStatsigGates)
   //   6. Grove policy (GET /api/[internal-policy-endpoint])
   //   7. Embedded default ($ parameter fallback)
-  flags: { resolution_layers: 7, gate_reads: 410, default_true: 20 },  // v152: DEFAULT-TRUE (bool 2-arg + typed 3-arg) = 20 (17 bool + 3 typed). v145 baseline 18 → v147 19 (+workflows-master gate) → v148 19 → v152 20 (+daemon-binary-takeover gate). Reader identifiers continue rotating per release (case-flip recurrence on bool, full rotation on typed).
+  flags: { resolution_layers: 7, gate_reads: 410, default_true: 22 },  // v158: CORRECTED 20→22 — the scalar was stale since v152 (frozen at 17 boolean + 3 typed); re-derived directly from the v158 binary = 19 boolean + 3 typed = 22, byte-stable in COUNT v156→v158. The v156 cycle raised the boolean count 17→19 in prose but never bumped this scalar. v156→v158 boolean composition shift: one new UI default added, one boolean flipped to default-false → net flat at 19. Reader identifiers continue rotating per release (case-flip recurrence on boolean, full rotation on typed).
 
   // ---- Local agents subsystem ----
   agents: {
@@ -237,9 +237,9 @@ window.VIZ_COUNTS = Object.freeze({
   // ---- Version coverage ----
   version: {
     start: "v2.1.89",
-    end: "v2.1.156",
-    range: "v2.1.89 \u2192 v2.1.156",  // unicode rightwards arrow
-    skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125", "v2.1.127", "v2.1.130", "v2.1.134", "v2.1.135", "v2.1.136", "v2.1.137", "v2.1.139", "v2.1.146", "v2.1.149", "v2.1.150", "v2.1.151", "v2.1.154", "v2.1.155"]
+    end: "v2.1.158",
+    range: "v2.1.89 \u2192 v2.1.158",  // unicode rightwards arrow
+    skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125", "v2.1.127", "v2.1.130", "v2.1.134", "v2.1.135", "v2.1.136", "v2.1.137", "v2.1.139", "v2.1.146", "v2.1.149", "v2.1.150", "v2.1.151", "v2.1.154", "v2.1.155", "v2.1.157"]
   },
 
   // ---- v126 brief-mode stop-hook GrowthBook content injection ----
@@ -654,5 +654,26 @@ window.VIZ_COUNTS = Object.freeze({
     },
     new_capabilities_decoded: ["Opus 4.8 (claude-opus-4-8)", "ultracode max-effort mode", "workflows keyword opt-in"],
     gh_label_counts_reverified_2026_05_29: { critical: 14, high: 29, medium: 46, low: 8, total: 136 }  // unchanged
+  },
+
+  // ---- Session-63 v156→v158 round-1 (2026-05-31). v2.1.157 skipped (never published latest). ----
+  cross_version_v156_v158: {
+    versions_probed: 1,                  // v158 (v157 skipped)
+    baseline: "v2.1.156",
+    priority_findings_byte_stable: "all",
+    remediations_observed: 0,            // no prior finding touched
+    new_disclosures_filed: 1,            // #140 (HIGH)
+    runtime_wire_confirmed: 0,           // static-only cycle; #140 promotion-gate probe queued (runtime-probe-needed)
+    flag_delta: { added: 17, removed: 2, net: 15 },
+    default_true_total: 22,              // re-derived from v158 binary: 19 boolean + 3 typed; byte-stable COUNT v156→v158
+    default_true_bool: 19,               // NET FLAT v156→v158 (one new UI default added, one boolean flipped to default-false)
+    default_true_typed: 3,
+    findings: {
+      "140": "NEW (HIGH) — the v158-new plugin-sync leg headlessly registers an org's synced plugins' MCP servers (including subprocess-spawning ones) via a non-authoritative refresh with no consent prompt in the sync caller; asymmetric to the skills-sync sibling which deliberately suppresses hook registration. Gated by an environment-variable opt-in (default off) plus org auth — not server-flippable. Promotion-gate to CRITICAL = a runtime confirmation that the headless refresh bypasses the normal MCP first-use trust prompt for org-synced subprocess servers; chains #136 + #110"
+    },
+    scope_correction: "the server-pushed sync framework predates v158 (the skills-sync env-gate is present in v156); only the plugin leg is v158-new",
+    benign_decoded: ["a new loop reschedule trigger (the 7-day age-out bound stays intact — not a persistence-bypass)", "a clamped byte-stream idle-timeout (cannot be zeroed)"],
+    rule: "DEFAULT-TRUE re-derived directly from the binary (19 boolean + 3 typed = 22); the top-level flags.default_true scalar was stale-by-2 since v152 and is corrected to 22 above",
+    gh_label_counts_rederived_2026_05_31: { critical: 14, high: 31, medium: 47, low: 9, total: 140 }  // +2H incl. #140 + pi-passport backlog
   }
 });

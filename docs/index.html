@@ -23,11 +23,11 @@
         <h1>Claude Code: Hidden Systems</h1>
         <p class="subtitle">A multi-agent investigation into the Buddy Companion, Advisor Strategy, Kairos Loops, Teams, Skills, Local Agents, CCR Cloud-Runner, Reactive Compaction, and the wider harness &mdash; discovered, documented, decoded.</p>
         <div class="hero-meta">
-          <span class="tag"><span data-count="version.range">v2.1.89 &rarr; v2.1.152</span></span>
+          <span class="tag"><span data-count="version.range">v2.1.89 &rarr; v2.1.158</span></span>
           <span class="tag"><span data-count="subsystems.total">18</span> Subsystems</span>
           <span class="tag"><span data-count="investigation.agents_deployed">21+</span> Agents</span>
           <span class="tag">MITM + hook captures</span>
-          <span class="tag"><span data-count="security.total">30</span> Security Findings</span>
+          <span class="tag"><span data-count="security.total">29</span> Security Findings</span>
           <span class="tag">May 2026</span>
         </div>
 
@@ -51,7 +51,7 @@
             <div class="nav-card-icon">&#129520;</div>
             <div class="nav-card-body">
               <h3>Wider Harness</h3>
-              <p><span data-count="subsystems.wider_harness">16</span> subsystems: Kairos loops, teams &amp; ghost-inbox (Critical), <span data-count="skills.bundled">41</span> bundled skills, local agents, <span data-count="hooks.event_types">27</span>-type hook landscape, <span data-count="flags.resolution_layers">7</span>-layer flag matrix, CCR cloud-runner + sub-surfaces, reactive compaction, <span data-count="mcp.total_events">42</span>-event MCP client, <span data-count="plugins.total_events">22</span>-event plugin system, auto-dream memory scheduler, background daemon, Harbor MCP channels, and <span data-count="providers.total">6</span>-provider registry. Plus the full <span data-count="security.total">30</span>-finding security catalogue.</p>
+              <p><span data-count="subsystems.wider_harness">16</span> subsystems: Kairos loops, teams &amp; ghost-inbox (Critical), <span data-count="skills.bundled">41</span> bundled skills, local agents, <span data-count="hooks.event_types">27</span>-type hook landscape, <span data-count="flags.resolution_layers">7</span>-layer flag matrix, CCR cloud-runner + sub-surfaces, reactive compaction, <span data-count="mcp.total_events">42</span>-event MCP client, <span data-count="plugins.total_events">22</span>-event plugin system, auto-dream memory scheduler, background daemon, Harbor MCP channels, and <span data-count="providers.total">6</span>-provider registry. Plus the full <span data-count="security.total">29</span>-finding security catalogue.</p>
             </div>
           </a>
         </div>
@@ -92,7 +92,7 @@
           <span class="stat-label">Flag Resolution Layers</span>
         </div>
         <div class="stat-card">
-          <span class="stat-number" data-count="security.total">30</span>
+          <span class="stat-number" data-count="security.total">29</span>
           <span class="stat-label">Security Findings</span>
         </div>
       </div>
@@ -388,7 +388,7 @@
               <div class="timeline-date">2026-05-20</div>
             </div>
             <div class="timeline-dot"></div>
-            <div class="timeline-label">Cross-version re-probe: #113 + #127 reproduce; #136 amber-allowlist OAuth-bearer egress filed High</div>
+            <div class="timeline-label">Cross-version re-probe: #113 + #127 reproduce; #136 amber_lattice filed High</div>
             <span class="tl-badge">no remediation</span>
           </div>
           <div class="timeline-connector"></div>
@@ -398,7 +398,7 @@
               <div class="timeline-date">2026-05-27</div>
             </div>
             <div class="timeline-dot"></div>
-            <div class="timeline-label">v145→v147/v148/v152 round-1: workflows family + skills-sync (multistore-class) + daemon-binary-takeover decoded; 0 new disclosures</div>
+            <div class="timeline-label">v145&rarr;v147/v148/v152 round-1: workflows + skills-sync (multistore-class) + daemon-takeover decoded; 0 new disclosures</div>
             <span class="tl-badge">20 byte-stable</span>
           </div>
           <div class="timeline-connector"></div>
@@ -408,8 +408,18 @@
               <div class="timeline-date">2026-05-29</div>
             </div>
             <div class="timeline-dot"></div>
-            <div class="timeline-label">v152→v153/v156 round-1: Opus 4.8 + ultracode + workflows-keyword land; #115 mid-conversation predicate REMEDIATED+closed; #113 forced-downgrade expanded to a 2nd call site; 0 new disclosures</div>
+            <div class="timeline-label">v152&rarr;v153/v156 round-1: Opus 4.8 + ultracode + workflows-keyword land; #115 fennel_kite REMEDIATED+closed; #113 forced-downgrade expanded 2&rarr;4; 0 new disclosures</div>
             <span class="tl-badge">#115 remediated</span>
+          </div>
+          <div class="timeline-connector"></div>
+          <div class="timeline-node subsystems-era">
+            <div class="timeline-caption-top">
+              <div class="timeline-version">v2.1.158</div>
+              <div class="timeline-date">2026-05-31</div>
+            </div>
+            <div class="timeline-dot"></div>
+            <div class="timeline-label">v156&rarr;v158 round-1: stability + plugins-sync leg lands (+17/-2 flags); #140 HIGH &mdash; org-synced plugins headlessly register stdio MCP servers, no consent prompt in sync caller (asymmetric to skills-sync hooks-suppress); DEFAULT-TRUE bool net-flat 19 (+coordinator-ui-flag, &minus;render-gate-flag flip; total 22); 0 new server-push primitives</div>
+            <span class="tl-badge">#140 HIGH</span>
           </div>
         </div>
       </div>
@@ -1409,7 +1419,7 @@ omitted per redaction policy (Tier 1).</code>
           </a>
           <a href="#subsys-security" class="strategy-card" style="border-top:3px solid var(--critical); text-decoration:none;">
             <h3>Security Catalogue</h3>
-            <p>All <span data-count="security.total">30</span> findings enumerated as cards: <span data-count="security.by_severity.critical">6</span> Critical, <span data-count="security.by_severity.high">10</span> High, <span data-count="security.by_severity.observation">1</span> Observation, <span data-count="security.by_severity.medium">10</span> Medium, <span data-count="security.by_severity.low">3</span> Low. <span data-count="security.audit_vulnerabilities">13</span> vulnerabilities + <span data-count="security.audit_observations">1</span> observation from the audit + <span data-count="security.post_audit">16</span> post-audit additions (#31 AC3, mithril-probe harness, v126–v140 cross-version chain).</p>
+            <p>All <span data-count="security.total">29</span> findings enumerated as cards: <span data-count="security.by_severity.critical">6</span> Critical, <span data-count="security.by_severity.high">9</span> High, <span data-count="security.by_severity.observation">1</span> Observation, <span data-count="security.by_severity.medium">10</span> Medium, <span data-count="security.by_severity.low">3</span> Low. <span data-count="security.audit_vulnerabilities">13</span> vulnerabilities + <span data-count="security.audit_observations">1</span> observation from the audit + <span data-count="security.post_audit">15</span> post-audit additions (#31 AC3, mithril-probe harness, v126–v140 cross-version chain).</p>
           </a>
         </div>
       </section>
@@ -1838,7 +1848,7 @@ omitted per redaction policy (Tier 1).</code>
       <!-- Security Findings Catalogue -->
       <section id="subsys-security" class="section">
         <h2><span class="system-label subsystems">Security</span> Findings Catalogue</h2>
-        <p class="section-intro">Full enumeration of the security audit. <span data-count="security.audit_vulnerabilities">13</span> vulnerabilities + <span data-count="security.audit_observations">1</span> observation from <code>SECURITY-AUDIT.md</code> + <span data-count="security.post_audit">16</span> post-audit additions (#31 AC3, mithril harness, v126–v140 chain) = <strong><span data-count="security.total">30</span> items</strong> total. Source: <code>SECURITY-AUDIT.md</code> + <code>results/skill-subagent-inbox-test-2026-04-14-empirical.md</code> + GH Issues. Live GH-label re-derivation: <strong><span data-count="security.gh_label_counts.labeled_total">97</span></strong> severity-labeled across <strong><span data-count="security.gh_label_counts.repo_total">136</span></strong> repo issues (<span data-count="security.gh_label_counts.critical">12</span>C / <span data-count="security.gh_label_counts.high">31</span>H / <span data-count="security.gh_label_counts.medium">46</span>M / <span data-count="security.gh_label_counts.low">8</span>L).</p>
+        <p class="section-intro">Full enumeration of the security audit. <span data-count="security.audit_vulnerabilities">13</span> vulnerabilities + <span data-count="security.audit_observations">1</span> observation from <code>SECURITY-AUDIT.md</code> + <span data-count="security.post_audit">15</span> post-audit additions (#31 AC3, mithril harness, v126–v140 chain) = <strong><span data-count="security.total">29</span> items</strong> total. Source: <code>SECURITY-AUDIT.md</code> + <code>results/skill-subagent-inbox-test-2026-04-14-empirical.md</code> + GH Issues. Live GH-label re-derivation: <strong><span data-count="security.gh_label_counts.labeled_total">101</span></strong> severity-labeled across <strong><span data-count="security.gh_label_counts.repo_total">140</span></strong> repo issues (<span data-count="security.gh_label_counts.critical">14</span>C / <span data-count="security.gh_label_counts.high">31</span>H / <span data-count="security.gh_label_counts.medium">47</span>M / <span data-count="security.gh_label_counts.low">9</span>L).</p>
         <div class="strategy-grid">
           <div class="strategy-card" style="border-left:4px solid var(--critical);">
             <h3>C1 &middot; Command Injection <span class="tag sev-critical">Critical</span></h3>
@@ -2147,7 +2157,7 @@ omitted per redaction policy (Tier 1).</code>
         <p class="section-intro">
           Full structural map of the Claude Code harness — <span data-count="subsystems.total">18</span> subsystems across the
           Startup Spine, Core Runtime, and all satellite clusters. Clusters A–AC; version scope
-          <span data-count="version.range">v2.1.89 → v2.1.156</span>.
+          <span data-count="version.range">v2.1.89 → v2.1.158</span>.
           Node styles: <strong>blue border</strong> = verified, <strong>red dashed</strong> = gap, <strong>grey dashed</strong> = removed, <strong>violet</strong> = our tooling.
         </p>
 
@@ -2246,7 +2256,7 @@ omitted per redaction policy (Tier 1).</code>
       <div class="footer-content">
         <p class="footer-title">Claude Code Hidden Systems Investigation</p>
         <p>Conducted using <a href="https://github.com/pjt222/agent-almanac/blob/main/skills/unleash-the-agents/SKILL.md"><strong>unleash-the-agents</strong></a> and <a href="https://github.com/pjt222/agent-almanac/blob/main/teams/synoptic-mind.md"><strong>synoptic-mind</strong></a> teams</p>
-        <p><span data-count="investigation.agents_deployed">21+</span> agents &bull; <span data-count="investigation.waves">16</span> waves &bull; Security audit (<span data-count="security.audit_vulnerabilities">13</span> vulns + <span data-count="security.audit_observations">1</span> obs + <span data-count="security.post_audit">16</span> post-audit; <span data-count="security.gh_label_counts.labeled_total">97</span> live GH) &bull; <span data-count="subsystems.total">18</span> subsystems &bull; MITM + hook capture &bull; <span data-count="version.start">v2.1.89</span>&ndash;<span data-count="version.end">v2.1.156</span></p>
+        <p><span data-count="investigation.agents_deployed">21+</span> agents &bull; <span data-count="investigation.waves">16</span> waves &bull; Security audit (<span data-count="security.audit_vulnerabilities">13</span> vulns + <span data-count="security.audit_observations">1</span> obs + <span data-count="security.post_audit">16</span> post-audit; <span data-count="security.gh_label_counts.labeled_total">101</span> live GH) &bull; <span data-count="subsystems.total">18</span> subsystems &bull; MITM + hook capture &bull; <span data-count="version.start">v2.1.89</span>&ndash;<span data-count="version.end">v2.1.158</span></p>
         <div class="footer-links">
           <a href="https://github.com/pjt222/claude-buddy-investigation">Source</a>
         </div>
