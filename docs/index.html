@@ -23,7 +23,7 @@
         <h1>Claude Code: Hidden Systems</h1>
         <p class="subtitle">A multi-agent investigation into the Buddy Companion, Advisor Strategy, Kairos Loops, Teams, Skills, Local Agents, CCR Cloud-Runner, Reactive Compaction, and the wider harness &mdash; discovered, documented, decoded.</p>
         <div class="hero-meta">
-          <span class="tag"><span data-count="version.range">v2.1.89 &rarr; v2.1.158</span></span>
+          <span class="tag"><span data-count="version.range">v2.1.89 &rarr; v2.1.160</span></span>
           <span class="tag"><span data-count="subsystems.total">18</span> Subsystems</span>
           <span class="tag"><span data-count="investigation.agents_deployed">21+</span> Agents</span>
           <span class="tag">MITM + hook captures</span>
@@ -420,6 +420,16 @@
             <div class="timeline-dot"></div>
             <div class="timeline-label">v156&rarr;v158 round-1: stability + plugins-sync leg lands (+17/-2 flags); #140 HIGH &mdash; org-synced plugins headlessly register stdio MCP servers, no consent prompt in sync caller (asymmetric to skills-sync hooks-suppress); DEFAULT-TRUE bool net-flat 19 (+coordinator-ui-flag, &minus;render-gate-flag flip; total 22); 0 new server-push primitives</div>
             <span class="tl-badge">#140 HIGH</span>
+          </div>
+          <div class="timeline-connector"></div>
+          <div class="timeline-node subsystems-era">
+            <div class="timeline-caption-top">
+              <div class="timeline-version">v2.1.160</div>
+              <div class="timeline-date">2026-06-02</div>
+            </div>
+            <div class="timeline-dot"></div>
+            <div class="timeline-label">v158&rarr;v159/v160 round-1: v159 trivial; v160 major release (+2.16MB, ~1.76MB new code) &mdash; the flag-name-only diff (+13/-0) hid a Cowork/CCR-v2 remote-environment Bridge (runner-side; egress-gateway allow-policy unverified &rarr; watch W2) + a two-stage auto-mode classifier (fail-CLOSED = safety strengthening, opposite of #108) + 39 new client env-var literals. No new finding filed; DEFAULT-TRUE 22 unchanged. Rule: the non-flag diff (env vars / client-cache keys / endpoints) now mandatory per release</div>
+            <span class="tl-badge">no new finding</span>
           </div>
         </div>
       </div>
@@ -2156,8 +2166,8 @@ omitted per redaction policy (Tier 1).</code>
         <h2>Harness Architecture Flow</h2>
         <p class="section-intro">
           Full structural map of the Claude Code harness — <span data-count="subsystems.total">18</span> subsystems across the
-          Startup Spine, Core Runtime, and all satellite clusters. Clusters A–AC; version scope
-          <span data-count="version.range">v2.1.89 → v2.1.158</span>.
+          Startup Spine, Core Runtime, and all satellite clusters. Clusters A–AF; version scope
+          <span data-count="version.range">v2.1.89 → v2.1.160</span>.
           Node styles: <strong>blue border</strong> = verified, <strong>red dashed</strong> = gap, <strong>grey dashed</strong> = removed, <strong>violet</strong> = our tooling.
         </p>
 
@@ -2256,7 +2266,7 @@ omitted per redaction policy (Tier 1).</code>
       <div class="footer-content">
         <p class="footer-title">Claude Code Hidden Systems Investigation</p>
         <p>Conducted using <a href="https://github.com/pjt222/agent-almanac/blob/main/skills/unleash-the-agents/SKILL.md"><strong>unleash-the-agents</strong></a> and <a href="https://github.com/pjt222/agent-almanac/blob/main/teams/synoptic-mind.md"><strong>synoptic-mind</strong></a> teams</p>
-        <p><span data-count="investigation.agents_deployed">21+</span> agents &bull; <span data-count="investigation.waves">16</span> waves &bull; Security audit (<span data-count="security.audit_vulnerabilities">13</span> vulns + <span data-count="security.audit_observations">1</span> obs + <span data-count="security.post_audit">16</span> post-audit; <span data-count="security.gh_label_counts.labeled_total">101</span> live GH) &bull; <span data-count="subsystems.total">18</span> subsystems &bull; MITM + hook capture &bull; <span data-count="version.start">v2.1.89</span>&ndash;<span data-count="version.end">v2.1.158</span></p>
+        <p><span data-count="investigation.agents_deployed">21+</span> agents &bull; <span data-count="investigation.waves">16</span> waves &bull; Security audit (<span data-count="security.audit_vulnerabilities">13</span> vulns + <span data-count="security.audit_observations">1</span> obs + <span data-count="security.post_audit">16</span> post-audit; <span data-count="security.gh_label_counts.labeled_total">101</span> live GH) &bull; <span data-count="subsystems.total">18</span> subsystems &bull; MITM + hook capture &bull; <span data-count="version.start">v2.1.89</span>&ndash;<span data-count="version.end">v2.1.160</span></p>
         <div class="footer-links">
           <a href="https://github.com/pjt222/claude-buddy-investigation">Source</a>
         </div>

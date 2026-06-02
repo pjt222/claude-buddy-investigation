@@ -237,8 +237,8 @@ window.VIZ_COUNTS = Object.freeze({
   // ---- Version coverage ----
   version: {
     start: "v2.1.89",
-    end: "v2.1.158",
-    range: "v2.1.89 \u2192 v2.1.158",  // unicode rightwards arrow
+    end: "v2.1.160",
+    range: "v2.1.89 \u2192 v2.1.160",  // unicode rightwards arrow
     skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125", "v2.1.127", "v2.1.130", "v2.1.134", "v2.1.135", "v2.1.136", "v2.1.137", "v2.1.139", "v2.1.146", "v2.1.149", "v2.1.150", "v2.1.151", "v2.1.154", "v2.1.155", "v2.1.157"]
   },
 
@@ -675,5 +675,35 @@ window.VIZ_COUNTS = Object.freeze({
     benign_decoded: ["a new loop reschedule trigger (the 7-day age-out bound stays intact — not a persistence-bypass)", "a clamped byte-stream idle-timeout (cannot be zeroed)"],
     rule: "DEFAULT-TRUE re-derived directly from the binary (19 boolean + 3 typed = 22); the top-level flags.default_true scalar was stale-by-2 since v152 and is corrected to 22 above",
     gh_label_counts_rederived_2026_05_31: { critical: 14, high: 31, medium: 47, low: 9, total: 140 }  // +2H incl. #140 + pi-passport backlog
+  },
+
+  // ---- Session-65 v158→v159→v160 round-1 (2026-06-02). Both published+installed. ----
+  cross_version_v158_v160: {
+    versions_probed: 2,                  // v159 (trivial), v160 (major)
+    baseline: "v2.1.158",
+    remediations_observed: 0,
+    new_disclosures_filed: 0,            // net-defensive / defended / local-dev; remote-bridge logged as runtime-probe target W2
+    runtime_wire_confirmed: 0,
+    flag_delta_v158_v159: { added: 1, removed: 1, net: 0 },   // trivial: a model-codename string flag in, an image-resize telemetry rename out
+    flag_delta_v159_v160: { added: 13, removed: 0, net: 13 },
+    binary_size_delta: { v158_v159: "+20KB", v159_v160: "+2.16MB" },
+    size_reconciliation: "the v160 +2.16MB = ~400KB new strings + ~1.76MB new code; the bundled runtime is byte-identical across the two builds → feature growth, not a runtime bump",
+    new_env_literals_count: 39,          // new client env-var literals added to the pre-existing accessor registry, 0 removed
+    default_true_total: 22,              // UNCHANGED, re-derived DIRECTLY from the v160 binary (boolean set byte-identical to v158)
+    default_true_bool: 19,
+    default_true_typed: 3,
+    headline_subsystems: ["Cowork/CCR-v2 remote-environment bridge (runner-side)", "two-stage auto-mode safety classifier (fail-CLOSED)"],
+    classifier_verdict: "SAFETY STRENGTHENING — two-stage + fail-closed (blocks on uncertainty/unavailability), the opposite of the #108 single-stage fail-open inversion; a server flag still steers the permission classifier's model/staging but the gate stays fail-closed (watch W1). A separate per-surface disable knob governs the status-SUMMARY classifier, NOT the permission gate — no permission fail-open.",
+    bridge_verdict: "large networked+credentialed surface, but RUNNER-SIDE ONLY (activates as a cloud remote environment, not the local CLI); its egress component is a CONNECT proxy whose allow/deny policy is UNVERIFIED (a captured CIDR list is a standard no-proxy BYPASS list, NOT an SSRF denylist — corrected mid-session); the session-ingress token sits in a secrets store. Below the local-reachability bar that #140 cleared → runtime-probe target W2, not a finding.",
+    watch_items: {
+      W1: "the auto-mode PERMISSION classifier's model/staging is server-steerable; confirm a pushed weak/odd model cannot weaken the fail-closed gate",
+      W2: "the remote-environment bridge's egress-gateway allow/deny policy + ingress-bearer steering — runs in the cloud env, likely needs an actual remote session or vendor-side review, not local MITM",
+      W3: "a mid-conversation-system env override — trace consumer, confirm it is dev/test-gated (it sits beside mock/override knobs)",
+      W4: "a new authenticated-service bearer env — decode the service + base URL + what the bearer authenticates to",
+      W5: "a new sub-agent-output security-warning surface — assess vs the #31 attribution-forgery class (likely an output content-check, orthogonal to inbox attribution)"
+    },
+    benign_decoded: ["an interactive-only composer model-routing triad (model catalog-bounded, disabled in non-interactive mode)", "a first-party model-refusal recovery (user-prompted path; auto path untraced — not asserting 'never silent')", "bounded daemon respawn-on-idle-stale resilience", "a remote-session transcript persistence-sync (inherent to remote-session reattach, not covert local exfil)"],
+    methodology_rule: "a flag-name-only diff under-reads feature releases — the non-flag diff (client env vars, server-pushed client-cache keys, new API endpoints, runtime version) is now mandatory per release; reconcile the binary-size delta against the strings-byte delta to separate new code from new strings from a runtime bump",
+    gh_label_counts_unchanged_2026_06_02: { critical: 14, high: 31, medium: 47, low: 9, total: 140 }  // no issue filed/closed this cycle
   }
 });
