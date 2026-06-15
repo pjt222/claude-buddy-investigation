@@ -105,13 +105,13 @@ window.VIZ_COUNTS = Object.freeze({
     // curated post-audit additions.
     gh_label_counts: {
       critical: 14,
-      high: 31,
-      medium: 47,
-      low: 9,
-      labeled_total: 101,
+      high: 35,
+      medium: 53,
+      low: 11,
+      labeled_total: 113,
       unlabeled_by_severity: 39,
-      repo_total: 140,
-      derived_at: "2026-05-31"
+      repo_total: 152,
+      derived_at: "2026-06-15"
     }
   },
 
@@ -143,7 +143,7 @@ window.VIZ_COUNTS = Object.freeze({
   //   5. Statsig supplemental gates [statsig-gate-fn] (cachedStatsigGates)
   //   6. Grove policy (GET /api/[internal-policy-endpoint])
   //   7. Embedded default ($ parameter fallback)
-  flags: { resolution_layers: 7, gate_reads: 410, default_true: 22 },  // v158: CORRECTED 20→22 — the scalar was stale since v152 (frozen at 17 boolean + 3 typed); re-derived directly from the v158 binary = 19 boolean + 3 typed = 22, byte-stable in COUNT v156→v158. The v156 cycle raised the boolean count 17→19 in prose but never bumped this scalar. v156→v158 boolean composition shift: one new UI default added, one boolean flipped to default-false → net flat at 19. Reader identifiers continue rotating per release (case-flip recurrence on boolean, full rotation on typed).
+  flags: { resolution_layers: 7, gate_reads: 410, default_true: 28 },  // v161-177 (session-67): 25 boolean + 3 typed, re-derived directly from the v177 binary. Boolean default-true moved 19→25 across v161-177 in four steps (a memory-bulk-export gate + a terminal-render gate at v161, a daemon attach-upgrade gate at v162, an autonomy-mode prompt nudge + an act-don't-rederive nudge at v169, an MCP stateless-init skip at v174) — ALL benign feature/perf/prompt-nudge gates, NONE a safety-gate inversion. Typed 3 unchanged. PRIOR v158: CORRECTED 20→22 (the scalar was stale since v152, frozen at 17 boolean + 3 typed; re-derived from the v158 binary = 19 boolean + 3 typed). Reader identifiers continue rotating per release (case-flip recurrence on boolean, full rotation on typed).
 
   // ---- Local agents subsystem ----
   agents: {
@@ -237,7 +237,7 @@ window.VIZ_COUNTS = Object.freeze({
   // ---- Version coverage ----
   version: {
     start: "v2.1.89",
-    end: "v2.1.160",
+    end: "v2.1.177",
     range: "v2.1.89 \u2192 v2.1.160",  // unicode rightwards arrow
     skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125", "v2.1.127", "v2.1.130", "v2.1.134", "v2.1.135", "v2.1.136", "v2.1.137", "v2.1.139", "v2.1.146", "v2.1.149", "v2.1.150", "v2.1.151", "v2.1.154", "v2.1.155", "v2.1.157"]
   },
@@ -705,5 +705,39 @@ window.VIZ_COUNTS = Object.freeze({
     benign_decoded: ["an interactive-only composer model-routing triad (model catalog-bounded, disabled in non-interactive mode)", "a first-party model-refusal recovery (user-prompted path; auto path untraced — not asserting 'never silent')", "bounded daemon respawn-on-idle-stale resilience", "a remote-session transcript persistence-sync (inherent to remote-session reattach, not covert local exfil)"],
     methodology_rule: "a flag-name-only diff under-reads feature releases — the non-flag diff (client env vars, server-pushed client-cache keys, new API endpoints, runtime version) is now mandatory per release; reconcile the binary-size delta against the strings-byte delta to separate new code from new strings from a runtime bump",
     gh_label_counts_unchanged_2026_06_02: { critical: 14, high: 31, medium: 47, low: 9, total: 140 }  // no issue filed/closed this cycle
+  },
+
+  // ---- Session-67 v161-177 retro-audit (2026-06-15) ----
+  // All 16 published versions v161→v177 acquired + diffed via an in-repo toolset (fetch each
+  // version's per-platform native binary, strings-dump, decode from the minified bundle). Upstream
+  // source tag + bundled runtime IDENTICAL across the range (every binary = rebuild of one tag).
+  cross_version_v161_v177: {
+    versions_probed: 16,                 // v161..v177; two versions never published to npm (skipped)
+    baseline: "v2.1.160",
+    remediations_observed: 0,
+    new_disclosures_filed: 2,            // #151 High, #152 Low (both static-confirmed; runtime wire-confirm deferred)
+    runtime_wire_confirmed: 0,
+    default_true_total: 28,              // 25 boolean + 3 typed, re-derived DIRECTLY from the v177 binary
+    default_true_bool: 25,               // 19→25 across the range, four steps — ALL benign, NONE a safety-gate inversion
+    default_true_typed: 3,               // unchanged
+    default_true_safety_set_changed: false,
+    size_unreconciled_versions: 4,       // four releases grew >5x faster than the strings delta (hidden code regions): an egress-proxy expansion (runner-side), a refusal-fallback state machine (benign), an artifact-deploy publish subsystem (user-invoked), a remote-recap subsystem (runner-side) + the credential-helper path
+    major_releases: {
+      "first": "a refusal-fallback / partial-stream-retraction state machine + an expanded SDK user-dialog control channel — benign, fail-closed",
+      "second": "an artifact/frame-deploy publish subsystem (a user-invoked, auth-required, default-off, plan-gated outbound content publish) → runtime-probe watch-item"
+    },
+    findings: {
+      "#151": { sev: "High", area: "plugin-autoupdate", mech: "a server-flippable flag re-enables the git credential helper during the background plugin-marketplace auto-update fetch; default-off suppresses the helper (safe), a flip runs the user's configured helper against an arbitrary marketplace git host (only a backslash-in-host is blocked). Locally reachable (a background timer, NOT gated to the cloud runner). The #136/#140 plugin-credential family; High pending runtime wire-confirmation." },
+      "#152": { sev: "Low", area: "edit/write guard", mech: "a server-flippable flag skips the Edit/Write read-before-write guard; data-integrity only, NO permission reach (verified not co-located with the accept-edits permission gate)." }
+    },
+    watch_items: {
+      credential_helper: "#151 live — flip the flag, register a marketplace on a controlled git host with a credential helper configured, observe whether the helper hands a credential to the non-first-party host (a positive result promotes #151 to Critical)",
+      guard_skip: "#152 live — flip the flag, verify Edit/Write proceeds on an un-read file, re-confirm no permission-gate interaction",
+      artifact_publish: "the artifact/frame-deploy publish subsystem — confirm body bounds + plan-gate enforcement at runtime",
+      tool_load: "a server-pushed list controls which builtin tools load eagerly vs deferred — confirm it cannot surface a tool past an invocation-time gate",
+      remote_recap: "a cloud-runner away-summary sender — inspect the summary for identity metadata at the bridge boundary"
+    },
+    methodology_note: "the non-flag diff surfaced BOTH findings (a credential-helper flag + new publish endpoints) that the flag-name-only diff under-read; the size-reconciliation flagged four hidden-code regions, three runner-side/benign and one (a notable release) containing the locally-reachable credential-helper path",
+    derived_at: "2026-06-15"
   }
 });

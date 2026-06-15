@@ -1,8 +1,8 @@
 # Claude Code Harness — Integrated Flow Map (Public)
 
-**Scope**: composite structural map across v2.1.89 – v2.1.156. Tier-2 abstraction — role-level node labels, generic edge semantics. Exact function names, feature-flag identifiers, internal endpoint paths, and result-file references are redacted. Claude Desktop is out of scope; only Claude Code (WSL/binary) is mapped.
+**Scope**: composite structural map across v2.1.89 – v2.1.177. Tier-2 abstraction — role-level node labels, generic edge semantics. Exact function names, feature-flag identifiers, internal endpoint paths, and result-file references are redacted. Claude Desktop is out of scope; only Claude Code (WSL/binary) is mapped.
 
-**Last updated**: 2026-05-29 (session 62). Brought forward to v2.1.156: marked #115 (mid-conversation-system predicate) REMEDIATED — flag + mechanism removed from the binary in v156. Prior (2026-05-20, session 59) brought it to v2.1.145: added abstracted finding-status and cross-version-persistence summaries for the runtime-probe campaign (sessions 55–59), which wire-confirmed two findings on an interactive TUI and cleared the runtime-probe queue. Earlier additions retained: clusters for the v2.1.138 forced-downgrade primitive, the ghost-inbox AC3 partial defense, the mid-conversation system predicate, and the third-party-logging killswitch, plus the pi-passport research-tooling subsystem (post-hardening) and the server-side billing-tier classifier it exercises.
+**Last updated**: 2026-06-15 (session 67). Brought forward to v2.1.177: added two abstract finding rows — #151 (a server-flippable git-credential-helper re-enable on the background plugin-marketplace auto-update fetch, High) and #152 (a server-flippable skip of the Edit/Write read-before-write guard, Low) — from the v161-177 retro-audit; the v160 Cowork remote-environment bridge + two-stage classifier and the v158 plugin-sync leg (#140) remain abstracted at the spine level. Prior, 2026-05-29 (session 62), brought it to v2.1.156: marked #115 (mid-conversation-system predicate) REMEDIATED — flag + mechanism removed from the binary in v156. Prior (2026-05-20, session 59) brought it to v2.1.145: added abstracted finding-status and cross-version-persistence summaries for the runtime-probe campaign (sessions 55–59), which wire-confirmed two findings on an interactive TUI and cleared the runtime-probe queue. Earlier additions retained: clusters for the v2.1.138 forced-downgrade primitive, the ghost-inbox AC3 partial defense, the mid-conversation system predicate, and the third-party-logging killswitch, plus the pi-passport research-tooling subsystem (post-hardening) and the server-side billing-tier classifier it exercises.
 
 > **Version-composite disclaimer**: the three side-systems (buddy companion, advisor tool, Kairos self-continuation loop) were **never simultaneously live** in any single running build — the native buddy UI was removed mid-2.1 before the advisor feature-flag rolled out or the loop shipped. Read the diagram as a *structural map* of the harness's architectural surfaces, not as a snapshot of one installation.
 
@@ -354,9 +354,13 @@ Several diagram clusters carry live security findings. After the sessions 55–5
 | #107 — a content-sharing tool with an unauth-public share URL | High | static; an earlier incognito test was contradicted by a later scrapling redirect-to-login result |
 | #109 — a PR-status path-switcher | Med-info | flag-injection proven; canonical path-switcher branch unresolved |
 | #115 — a mid-conversation-system substring predicate | REMEDIATED v2.1.156 (closed) | runtime-negative — the predicate never fired on `--print` or TUI; flag + mechanism removed from the binary in v156 |
-| #31 AC3 — subagent ghost-inbox / attribution forgery | Critical | still undefended — the v145 skill self-recursion guard is orthogonal |
+| #31 AC3 — subagent ghost-inbox / attribution forgery | Critical | still undefended (through v177) — the v145 skill self-recursion guard is orthogonal; a v176 forged-turn detector is telemetry-only |
+| #151 — a server-flippable git-credential-helper re-enable on the background plugin-marketplace auto-update fetch | High | static (v174); locally reachable, not cloud-runner-gated; #136/#140 family; runtime wire-confirm pending |
+| #152 — a server-flippable skip of the Edit/Write read-before-write guard | Low | static (v166); data-integrity only, no permission reach |
 
-**The runtime-probe queue is empty.** All five `runtime-probe-needed` issues closed across sessions 58–59 using a containerized MITM probe-sandbox plus PTY keystroke automation that drives the interactive TUI past onboarding so TUI-gated code paths can be exercised.
+**The runtime-probe queue (sessions 58–59) is empty;** the v161-177 retro-audit (session 67) re-opened it with two static findings (#151/#152) plus three watch-items (artifact-publish, tool-load, remote-recap) awaiting runtime confirmation.
+
+**Original note:** All five `runtime-probe-needed` issues closed across sessions 58–59 using a containerized MITM probe-sandbox plus PTY keystroke automation that drives the interactive TUI past onboarding so TUI-gated code paths can be exercised.
 
 ---
 
