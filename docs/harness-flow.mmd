@@ -71,7 +71,7 @@ flowchart LR
         hook_pipeline["Hook subprocess pipeline<br/>SessionStart / PreToolUse / PostToolUse<br/>UserPromptSubmit / Stop / SubagentStop / Notification"]:::gap
         skill_loader["Skill loader<br/>~/.claude/skills + almanac"]:::core
         dream_nightly["/dream nightly<br/>SessionStart consolidation"]:::gap
-        ma_agents["POST /v1/agents (doc-only,<br/>no live call-sites)"]:::gap
+        ma_agents["POST [agents-endpoint] (doc-only,<br/>no live call-sites)"]:::gap
         async_stall["Async agent stall watchdog<br/>[agent-stall-gate]<br/>default 600s (CLAUDE_ASYNC_AGENT_STALL_TIMEOUT_MS)<br/>aborts + marks task failed"]:::core
     end
     %% ===== I — State =====
@@ -90,16 +90,16 @@ flowchart LR
         tel_ext["plugin-events-22<br/>auto-dream-events-5<br/>[feature-flag]+file_{21}<br/>[feature-flag]+streaming_{7}+post_{9}"]:::core
         tel_v111["opus47-launch-shown<br/>ptl-surfaced<br/>velvet-moth-event<br/>unknown-command-suggestion"]:::core
         tel_team["Team telemetry (v2.1.112)<br/>16 events (was 0)<br/>team-events"]:::core
-        tel_transport["Ingest: /api/event_logging/v2/batch<br/>+ Datadog /api/v2/logs"]:::core
+        tel_transport["Ingest: [event-logging-endpoint]<br/>+ Datadog [logs-endpoint]"]:::core
     end
     %% ===== L — CCR =====
     subgraph CCR["L — CCR Cloud-Runner"]
         direction TB
         ccr_gate["Gate: [ccr-gate]<br/>+ [remote-session-gate]<br/>+ allow_remote_sessions"]:::core
-        teleport["Teleport (17 events)<br/>POST /v1/sessions"]:::core
-        bridge["Bridge (30 events)<br/>POST /v1/environments/bridge"]:::core
-        ultrareview["Ultrareview (5 events)<br/>GET /v1/ultrareview/preflight<br/>SDK: {subtype:ultrareview_launch}"]:::core
-        autofix_pr["Autofix-PR (2 events)<br/>POST /v1/code/github/subscribe-pr"]:::core
+        teleport["Teleport (17 events)<br/>POST /v1/sessions/..."]:::core
+        bridge["Bridge (30 events)<br/>POST /v1/environments/..."]:::core
+        ultrareview["Ultrareview (5 events)<br/>GET [ultrareview-endpoint]<br/>SDK: {subtype:ultrareview_launch}"]:::core
+        autofix_pr["Autofix-PR (2 events)<br/>POST [ccr-pr-endpoint]"]:::core
         remote_trigger["RemoteTrigger tool<br/>[remote-session-gate] gate<br/>ccr-triggers-2026-01-30<br/>actions: list/get/create/update/run"]:::core
         cobalt_lantern["[github-token-sync-gate]<br/>GitHub token-sync CCR access"]:::core
     end
@@ -143,7 +143,7 @@ flowchart LR
     subgraph DAEMON["R — Background Daemon (v2.1.119 — 30 events)"]
         direction TB
         daemon_qqh["qqH() = return false (HARDCODED)<br/>isDaemonCliEnabled gate<br/>blocks 'claude daemon list/install/status/etc'<br/>'claude daemon run' BYPASSES<br/>'claude service install' BLOCKED"]:::removed
-        daemon_czh["CZH() = k$('[feature-flag]',false)<br/>isAgentsFleetEnabled gate (GrowthBook)<br/>gates --bg/--background/logs/attach/kill/respawn/rm<br/>SERVER-FLIPPABLE without binary release<br/>current cohort: NOT PRESENT → defaults false"]:::gap
+        daemon_czh["CZH() = serverMapBuilder('[feature-flag]',false)<br/>isAgentsFleetEnabled gate (GrowthBook)<br/>gates --bg/--background/logs/attach/kill/respawn/rm<br/>SERVER-FLIPPABLE without binary release<br/>current cohort: NOT PRESENT → defaults false"]:::gap
         daemon_dispatch_chain["Auto-spawn dispatch chain (fleet-enabled):<br/>claude --bg → mz8() spawnBackgroundFork<br/>→ b3H → J_5 → TN6 → C3H<br/>→ spawn claude daemon run --origin auto"]:::core
         daemon_sparewarm["Sz8() spare-worker pre-warm<br/>useEffect on Agents Fleet component mount<br/>auto-spawns on every session render<br/>(also gated by CZH — component hidden if false)"]:::gap
         daemon_gate["allow_remote_control<br/>managed-policy kill-switch<br/>fail-closed upstream"]:::core
@@ -168,14 +168,14 @@ flowchart LR
         direction TB
         harbor_gate["kTH() = G$('[feature-flag]',false)<br/>master gate (v126: rotated T$→G$)<br/>current cohort: TRUE"]:::core
         harbor_ledger["hA8() = G$('[feature-flag]',[])<br/>4 entries: discord/telegram/fakechat/imessage<br/>GrowthBook-flippable per cohort"]:::core
-        harbor_perms["Rr7() = G$('[feature-flag]',false)<br/>current cohort: TRUE<br/>gates Ur7() React hook → channelPermissionCallbacks"]:::core
+        harbor_perms["Rr7() = G$('[feature-flag]',false)<br/>current cohort: TRUE<br/>gates pluginSyncHelper() React hook → channelPermissionCallbacks"]:::core
         harbor_policy["Enterprise policy gate<br/>policySettings.channelsEnabled<br/>+ allowedChannelPlugins allowlist"]:::core
         harbor_dev["CLI flag bypass<br/>--dangerously-load-development-channels"]:::gap
         harbor_cap["MCP server capability<br/>experimental[claude/channel]<br/>+ experimental[claude/channel/permission]<br/>both required for #104"]:::core
         harbor_check["Vw$() gate w/ 7 skip kinds<br/>capability/disabled/auth/policy/<br/>session/marketplace/allowlist"]:::core
         harbor_inj["#102 — channel injection<br/>vw$() wraps content as<br/>&lt;channel source=&quot;...&quot;&gt;...&lt;/channel&gt;<br/>round-12: model-defended<br/>round-13: content-escape weakness"]:::gap
         harbor_authz["#104 — channel permissions<br/>Cr7(toolUseID) → 5-char base-25 ID<br/>tool_name+description+input_preview<br/>round-14c: TUI-mode runtime-confirmed<br/>logged as source.type:'user' (laundered)"]:::gap
-        harbor_tui_only["#104 TUI-only constraint<br/>SA8 React provider mounts Ur7<br/>--print/SDK paths IMMUNE<br/>(round-14b probe-j confirmed)"]:::core
+        harbor_tui_only["#104 TUI-only constraint<br/>SA8 React provider mounts pluginSyncHelper<br/>--print/SDK paths IMMUNE<br/>(round-14b probe-j confirmed)"]:::core
     end
     %% ===== T — Brief Stop-Hook GrowthBook Injection (v2.1.126 #106 CRITICAL) =====
     subgraph BRIEFINJ["T — Brief Stop-Hook GrowthBook Injection (v2.1.126 #106 CRITICAL)"]
@@ -184,13 +184,13 @@ flowchart LR
         brief_text_flag["G$('[feature-flag]','')<br/>byte 117293158 — string-default reader<br/>EMPTY DEFAULT (overrides hardcoded UI_)"]:::gap
         brief_inj["#106 — round-3 mitm-injection<br/>canary 145B → /v1/messages role:'user' verbatim<br/>round-7N empirical: 65,596B reaches verbatim<br/>NO CLIENT-SIDE LENGTH CAP"]:::gap
         brief_no_pin["#106 round-5: no cert pinning<br/>UNABLE_TO_VERIFY_LEAF_SIGNATURE uniform<br/>network-MITM threat realistic"]:::gap
-        brief_targeting["per-account targeting<br/>accountUUID + email + organizationUUID<br/>+ subscriptionType + deviceID<br/>POST /api/eval/sdk-* envelope"]:::core
+        brief_targeting["per-account targeting<br/>accountUUID + email + organizationUUID<br/>+ subscriptionType + deviceID<br/>POST [config-channel-endpoint]* envelope"]:::core
     end
     %% ===== U — Datadog Third-Party Processor (v2.1.126 #105 High; extends #92) =====
     subgraph DATADOG["U — Datadog Third-Party Processor (v2.1.126 #105 — extends #92)"]
         direction TB
         dd_gate["G$('[feature-flag]',!1)<br/>RMK gate fn CMK()<br/>this account: source:'force', value:true"]:::gap
-        dd_endpoint["http-intake.logs.us5.datadoghq.com<br/>/api/v2/logs<br/>hardcoded byte 111788522<br/>public ingest key BM1=pubea5604...05bc"]:::gap
+        dd_endpoint["http-intake.logs.us5.datadoghq.com<br/>[logs-endpoint]<br/>hardcoded byte 111788522<br/>public ingest key BM1=pubea5604...05bc"]:::gap
         dd_allowlist["QM1 allowlist — 110 events<br/>[feature-flag]/init/exit/timer/<br/>api_*/sdk_*/oauth_*/bg_*/daemon_*/<br/>tool_use_*/team_mem_*/voice_*"]:::core
         dd_body["body shape:<br/>ddsource:nodejs, ddtags(23-field dM1),<br/>message, service, hostname, env<br/>+ all event fields verbatim (IMK rename)"]:::gap
         dd_pii["round-7M empirical PII in body:<br/>session_id ×8/8 events<br/>subscription_type ×8/8 (search-indexed)<br/>last_session_id (cross-session correlation)<br/>+ 47 system fingerprint fields"]:::gap
@@ -208,7 +208,7 @@ flowchart LR
     subgraph PIPASS["Q1 — Pi-Passport (third-party gate evasion + Claude-Code bypass) [hardened postQ3Q4 2026-05-10]"]
         direction TB
         pp_creds["~/.claude/.credentials.json<br/>OAuth bearer + refreshToken<br/>(stolen-token threat surface)"]:::ours
-        pp_refresh["refresh-token.mjs<br/>POST platform.claude.com/v1/oauth/token<br/>client_id 9d1c250a-... (binary's<br/>secondary CLIENT_ID; primary fails)<br/>+S2 randomBytes tmp / +S3 redirect:error<br/>+S4 UUID-validate --client-id"]:::ours
+        pp_refresh["refresh-token.mjs<br/>POST platform.claude.com[oauth-token-endpoint]<br/>client_id 9d1c250a-... (binary's<br/>secondary CLIENT_ID; primary fails)<br/>+S2 randomBytes tmp / +S3 redirect:error<br/>+S4 UUID-validate --client-id"]:::ours
         pp_launcher["evade-pi.sh<br/>+E1 absolute paths for jq/node/pi/timeout<br/>+E1 minimal hardcoded PATH in env-i<br/>+S1 require_uint() before arith<br/>defaults: opus-4-7 / thinking high"]:::ours
         pp_canary["First-call canary<br/>Pi's REAL system blocks<br/>L_N → 400 → bump to L_(N+1)<br/>cap at maxLevel<br/>+R2 refuses initialLevel>maxLevel"]:::ours
         pp_sanitizer["Sanitizer hook (applyEvasion in-place)<br/>before_provider_request<br/>L1: \\bpi\\b → 'the agent'<br/>L2: docs/.md links<br/>L3: ## /path.md + packages<br/>L4: nuclear (replace block 2)<br/>D1 byte-delta read-back warning"]:::ours
@@ -231,7 +231,7 @@ flowchart LR
         direction TB
         share_gate["G$('[feature-flag]',!1)<br/>GrowthBook string-flag (default false)<br/>this account: server-flipped ON"]:::gap
         share_tool["ShareOnboardingGuide tool<br/>model-invocable (no disableModelInvocation)<br/>reads ONBOARDING.md from cwd<br/>64KB file-size cap"]:::gap
-        share_endpoint["POST /api/organizations/{orgUUID}/claude_code/onboarding<br/>mode:check is NOT idempotent-read<br/>PUT = update; NO DELETE in v128 binary"]:::gap
+        share_endpoint["POST [onboarding-endpoint]<br/>mode:check is NOT idempotent-read<br/>PUT = update; NO DELETE in v128 binary"]:::gap
         share_url["https://claude.ai/claude-code/onboard/{12-char-short-code}<br/>UNAUTH-PUBLIC (round-3 anon-incognito test)<br/>round-4 scrapling no-cookies → /login redirect<br/>severity reverted CRITICAL → HIGH; promotion-gate open"]:::gap
         share_msg_inject["Tool result injects model-directive<br/>(Close with: '...' instruction)<br/>same channel class as brief stop-hook"]:::gap
     end
@@ -256,7 +256,7 @@ flowchart LR
         direction TB
         proto_emitters["13 active emitters in v129<br/>(plugin install/uninstall/enable/disable/update_command,<br/>plugin_hint_*, plugin_folder_shadowed, plugin_name_collision,<br/>skill_loaded, skill_tool_invocation, slash_command_forked,<br/>input_command)<br/>Each adds _PROTO_plugin_name / _PROTO_skill_name /<br/>_PROTO_marketplace_name to event.additional"]:::gap
         proto_egress["Egress site destructures _PROTO_* into local vars<br/>then re-attaches as TOP-LEVEL event fields:<br/>plugin_name / skill_name / marketplace_name"]:::gap
-        proto_endpoint["1P telemetry endpoint:<br/>api.anthropic.com/api/event_logging/v2/batch<br/>Top-level fields (raw): skill_name, plugin_name,<br/>marketplace_name, device_id, email, auth"]:::gap
+        proto_endpoint["1P telemetry endpoint:<br/>api.anthropic.com[event-logging-endpoint]<br/>Top-level fields (raw): skill_name, plugin_name,<br/>marketplace_name, device_id, email, auth"]:::gap
         proto_redactor["Sibling redactor jyH() strips remaining _PROTO_*<br/>in residual j object but does NOT block<br/>the destructured raw values explicitly re-attached at egress"]:::core
         proto_wire["Probe-r empirical wire capture:<br/>356 raw skill_name (355 unique)<br/>+ 9 plugin_name (2 unique: caveman, rust-analyzer-lsp)<br/>+ 9 marketplace_name (2 unique: caveman, claude-plugins-official)<br/>on 2 event_logging batches from a single bootstrap"]:::gap
         proto_dormant["_PROTO_code → repl_code slot present at destructure<br/>but no emitter populates it in v123/v126/v128/v129/v131/v132/v138<br/>(forward-compat slot — escalate watch if setter ever added)"]:::core
@@ -265,7 +265,7 @@ flowchart LR
     subgraph FORCED_DG["Z — Forced-Downgrade + AC3 Partial-Defense (v2.1.138 #113 + #114 HIGH)"]
         direction TB
         fd_reader["mo('[feature-flag]',{})<br/>typed eval-SDK reader (object form;<br/>alongside scalar reader J$)"]:::gap
-        fd_parse["vP7() returns {maxVersion, forceDowngradeEnabled}<br/>RL6.parse(external semver)<br/>vM$() = startup downgrade decision"]:::gap
+        fd_parse["vP7() returns {maxVersion, forceDowngradeEnabled}<br/>RL6.parse(external semver)<br/>vflagReader() = startup downgrade decision"]:::gap
         fd_canary["Sister: Ek_() reads [feature-flag] semver<br/>same eval-SDK channel<br/>bidirectional version-pin (server controls<br/>both upgrade ceiling AND downgrade floor)"]:::gap
         fd_floor["User mitigation: settings.json<br/>minimumVersion floor via q7H(Z) check<br/>(default undefined; most users vulnerable)"]:::core
         fd_ac3["#114 insertMessageChain: M=null bypass<br/>shouldSkipPersistence chain:<br/>uDH() → tI() OR env [env-flag]<br/>tI() reads Q$.sessionPersistenceDisabled<br/>Trigger: --no-session-persistence (--print only)<br/>+ SDK persistSession:false<br/>+ env [env-flag]"]:::gap
@@ -300,7 +300,7 @@ flowchart LR
     subgraph STARTUP_NOTICE["AC — TUI Startup-Notice Injection (v2.1.140 #127 CRITICAL — wire-confirmed probe-HH + probe-JJ)"]
         direction TB
         sn_default["Default state on wire:<br/>{value:&#39;&#39;, on:false, off:true, source:&#39;defaultValue&#39;}<br/>(dormant for this account)"]:::baseline
-        sn_inject["Server inject via /api/eval/sdk-&lt;id&gt;:<br/>[feature-flag].value = &lt;attacker payload&gt;"]:::risk
+        sn_inject["Server inject via [config-channel-endpoint]&lt;id&gt;:<br/>[feature-flag].value = &lt;attacker payload&gt;"]:::risk
         sn_render["Ink notification component renders<br/>value verbatim wrapped in yellow SGR<br/>(no sanitization)"]:::gap
         sn_ansi["probe-HH ansi phase:<br/>x1b[31m...x1b[39m passes through<br/>raw to TUI stdout"]:::risk
         sn_osc8["probe-JJ OSC 8 phase:<br/>x1b]8;id=auto;&lt;evil-url&gt; BEL +<br/>visible label = mouse-clickable<br/>hyperlink in iTerm2 / WezTerm /<br/>Kitty / Windows Terminal / etc."]:::risk
@@ -318,7 +318,7 @@ flowchart LR
         direction TB
         ps_compose["tools/probe-sandbox/<br/>two-service docker compose<br/>mitm (mitmdump 12.2.2) + probe (claude-code)<br/>egress forced through mitm:8080 on probenet"]:::ours
         ps_creds["Bearer creds RO-mounted from host<br/>container-local writable copy<br/>TTL gate ≥1h (refuses near-expiry probes)"]:::ours
-        ps_addon["MITM addon force-injects GrowthBook<br/>flag values into /api/eval/sdk-* responses<br/>(get_text/set_text for gzip/zstd round-trip)"]:::ours
+        ps_addon["MITM addon force-injects GrowthBook<br/>flag values into [config-channel-endpoint]* responses<br/>(get_text/set_text for gzip/zstd round-trip)"]:::ours
         ps_tui["probes/lib/tui-driver.exp<br/>expect-driven PTY keystroke automation<br/>seeds minimal $HOME/.claude.json<br/>walks onboarding past theme picker"]:::ours
         ps_113["#113 probe — inject [feature-flag]<br/>{external:2.1.137, external_force_downgrade:true}<br/>→ [feature-flag] fired<br/>{from:2.1.143, to:2.1.137}; Auto-updating… rendered<br/>WIRE-CONFIRMED v143 + v145"]:::risk
         ps_127["#127 probe — inject [feature-flag]<br/>payload renders verbatim to TUI notification<br/>ANSI SGR escape UNSANITIZED; bare URL rendered<br/>WIRE-CONFIRMED v143 + v145"]:::risk
@@ -333,10 +333,10 @@ flowchart LR
     %% ===== AE — v158 Plugins-Sync Headless MCP Register (#140 HIGH; promotion-gate → CRITICAL pending runtime trust-prompt-bypass) =====
     subgraph PLUGINSYNC["AE — Plugins-Sync Headless stdio-MCP Register (v2.1.158 #140 HIGH — no consent prompt in sync caller; asymmetric to skills-sync hooks:void 0)"]
         direction TB
-        psync_gate["Hx8() = CH(process.env.[env-flag])<br/>env-gated, DEFAULT OFF<br/>session init: if(Hx8()) PT9()<br/>(NOT GrowthBook server-push)"]:::baseline
-        psync_list["EBz()/YT9() desired-state fetch<br/>GET /api/oauth/organizations/:orgUUID/<br/>plugins/list-plugins?enabled_only=true<br/>auth:'teleport-org' (org admin → member trust path)"]:::gap
+        psync_gate["pluginSyncGate() = CH(process.env.[env-flag])<br/>env-gated, DEFAULT OFF<br/>session init: if(pluginSyncGate()) pluginSyncTrigger()<br/>(NOT GrowthBook server-push)"]:::baseline
+        psync_list["EBz()/YT9() desired-state fetch<br/>GET [org-oauth-endpoint]:orgUUID/<br/>plugins/list-plugins?enabled_only=true<br/>auth:'teleport-org' (org admin → member trust path)"]:::gap
         psync_dl["yBz download<br/>GET .../plugins/{name}/download<br/>arraybuffer, maxContentLength kBz<br/>nflagResolverA() name sanitizer + path-traversal reject<br/>512MB cap SBz=536870912<br/>manifest → ~/.claude/plugins/synced/manifest.json"]:::gap
-        psync_register["tH() MCP-register (NO consent in caller)<br/>k$() builds server map incl. type==='stdio' (subprocess)<br/>mH(lH,{authoritative:!1,caller:vH}) headless refresh<br/>'Headless MCP refresh: added=N'<br/>timeout LT9 default 10s → plugins_sync_mcp_timeout"]:::risk
+        psync_register["tH() MCP-register (NO consent in caller)<br/>serverMapBuilder() builds server map incl. type==='stdio' (subprocess)<br/>mH(lH,{authoritative:!1,caller:vH}) headless refresh<br/>'Headless MCP refresh: added=N'<br/>timeout LT9 default 10s → plugins_sync_mcp_timeout"]:::risk
         psync_asym["Asymmetry: skills-sync sibling lIz()<br/>hardcodes hooks:void 0 (×2 in v158)<br/>→ synced skills CANNOT auto-register hooks;<br/>plugin leg has NO equivalent suppression"]:::gap
         psync_gate --> psync_list
         psync_list --> psync_dl
@@ -344,17 +344,17 @@ flowchart LR
         psync_register --> psync_asym
     end
     %% ===== Plugins-Sync edges (AE, v2.1.158 #140) =====
-    startup -. "if(Hx8()) PT9()" .-> psync_gate
+    startup -. "if(pluginSyncGate()) pluginSyncTrigger()" .-> psync_gate
     psync_register -. "headless mH refresh<br/>{authoritative:!1}" .-> mcp_client
     psync_dl -. "synced plugins" .-> plugin_load
 
     subgraph COWORKBRIDGE["AF — Cowork/CCR-v2 Remote-Environment Bridge + Two-Stage Classifier (v2.1.160 — no finding; runner-side; watch W1/W2)"]
         direction TB
         cb_gate["Bridge activation (RUNNER-SIDE only)<br/>[env-flag]==='bridge'<br/>|| IS_COWORK || [env-flag]<br/>(cloud env, NOT local CLI)"]:::baseline
-        cb_api["Bridge lease/work protocol<br/>POST /v1/environments/.../bridge/reconnect<br/>DELETE /v1/environments/bridge/ (deregister)<br/>POST /v1/sessions/.../archive<br/>POST .../work/.../heartbeat (lease_extended)"]:::baseline
-        cb_token["Session-ingress auth<br/>sessionIngressToken in secrets store ($p8)<br/>CLAUDE_BRIDGE_OAUTH_TOKEN<br/>sessionIngressUrl &larr; KH.api_base_url<br/>runner token /run/ccr/session_token"]:::gap
+        cb_api["Bridge lease/work protocol<br/>POST /v1/environments/...<br/>DELETE /v1/environments/... (deregister)<br/>POST /v1/sessions/...<br/>POST .../work/.../heartbeat (lease_extended)"]:::baseline
+        cb_token["Session-ingress auth<br/>[ingress-token] in secrets store (secretsRead)<br/>[env-flag]<br/>[ingress-url] &larr; [config].[base-url-key]<br/>runner token [runner-token-path]"]:::gap
         cb_egress["[egress-gateway] CONNECT proxy (127.0.0.1)<br/>^CONNECT\\s+(\\S+)\\s+HTTP — 405 non-CONNECT<br/>ALLOW/DENY POLICY UNVERIFIED → W2<br/>(169.254 literal = NO_PROXY bypass list,<br/>NOT an SSRF denylist — corrected)"]:::gap
-        cb_classifier["Two-stage auto-mode classifier (DEFENSE)<br/>vI7()=[feature-flag].twoStageClassifier ?? true<br/>stage1+stage2, FAIL-CLOSED<br/>'blocking it for safety' — opposite of #108<br/>+ sub-agent-output 'SECURITY WARNING' surface (W5)"]:::baseline
+        cb_classifier["Two-stage auto-mode classifier (DEFENSE)<br/>twoStageClassifierGate()=[feature-flag].twoStageClassifier ?? true<br/>stage1+stage2, FAIL-CLOSED<br/>'blocking it for safety' — opposite of #108<br/>+ sub-agent-output 'SECURITY WARNING' surface (W5)"]:::baseline
         cb_watch["Watch W1: server steers permission-classifier<br/>model/staging via [feature-flag].model<br/>+ [feature-flag] (fail-closed today)"]:::gap
         cb_gate --> cb_api
         cb_api --> cb_token
@@ -362,10 +362,32 @@ flowchart LR
         cb_gate --> cb_classifier
         cb_classifier --> cb_watch
     end
+    subgraph PLUGINCRED["AG — Plugin-Autoupdate Git Credential-Helper Re-enable (v2.1.174 #151 HIGH — server-flippable; local, NOT CCR-gated; #136/#140 family; → W-CREDHELPER)"]
+        direction TB
+        pc_gate["Background plugin autoupdate pluginAutoupdate()<br/>gated autoUpdaterEnabledGate()=autoUpdaterEnabled() && !FORCE_AUTOUPDATE_PLUGINS<br/>LOCAL auto-updater (NOT REMOTE/bridge/IS_COWORK)<br/>background timer, no user interaction"]:::baseline
+        pc_flag["flagReader('[feature-flag]',!1)<br/>GrowthBook server-push, DEFAULT FALSE<br/>[credential-helper-flag]:!_ → default true = SAFE<br/>(git -c credential.helper= suppresses helper)"]:::gap
+        pc_flip["SERVER FLIP TRUE → [credential-helper-flag]=false<br/>→ user's git credential helper RUNS during<br/>automatic 'git fetch origin' (marketplaceFetch→gitFetchWrapper→p6)"]:::risk
+        pc_host["Marketplace git host scope = arbitrary<br/>Hg6: new URL(H.url).hostname<br/>marketplaceHostValidator blocks ONLY backslash-host (UNC/traversal)<br/>extraKnownMarketplaces = managed/enterprise config"]:::risk
+        pc_gate --> pc_flag
+        pc_flag --> pc_flip
+        pc_flip --> pc_host
+    end
+    subgraph VELVETGUARD["AH — Read-Before-Edit/Write Guard Skip (v2.1.166 #152 LOW — data-integrity only, no permission reach; → W-VELVET)"]
+        direction TB
+        vg_flag["flagReader('[feature-flag]',!1) (Edit)<br/>flagReader('[feature-flag]',!1) (Write)<br/>GrowthBook cachedGrowthBookFeatures, DEFAULT FALSE<br/>same channel as #108/#113"]:::gap
+        vg_skip["SERVER FLIP TRUE → guardSkipped=true<br/>skips 'File has not been read yet' guard<br/>→ Edit/Write proceeds on un-Read file<br/>(blind-overwrite / stale-content)"]:::gap
+        vg_nope["NO permission reach (verified)<br/>not co-located with iron_gate/acceptEdits/canUseTool<br/>data-integrity speed-bump, not a privilege gate"]:::baseline
+        vg_flag --> vg_skip
+        vg_skip --> vg_nope
+    end
     %% ===== Cowork/CCR-v2 Bridge edges (AF, v2.1.160) =====
     startup -. "if ENVIRONMENT_KIND=='bridge'" .-> cb_gate
     cb_egress -. "sandbox egress (cloud-side, unverified)" .-> providers
     cb_classifier -. "gates auto-mode tool calls" .-> turn_loop
+    %% ===== Plugin-credential / guard-skip edges (AG/AH, v2.1.174/166) =====
+    startup -. "background autoupdate timer" .-> pc_gate
+    pc_host -. "git fetch → credential helper handoff (W-CREDHELPER)" .-> providers
+    turn_loop -. "Edit/Write validateInput" .-> vg_flag
     %% ===== Edges =====
     oauth --> firstparty
     firstparty --> orguuid
