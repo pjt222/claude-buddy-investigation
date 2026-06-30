@@ -237,8 +237,8 @@ window.VIZ_COUNTS = Object.freeze({
   // ---- Version coverage ----
   version: {
     start: "v2.1.89",
-    end: "v2.1.177",
-    range: "v2.1.89 \u2192 v2.1.160",  // unicode rightwards arrow
+    end: "v2.1.196",
+    range: "v2.1.89 \u2192 v2.1.196",  // unicode rightwards arrow
     skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125", "v2.1.127", "v2.1.130", "v2.1.134", "v2.1.135", "v2.1.136", "v2.1.137", "v2.1.139", "v2.1.146", "v2.1.149", "v2.1.150", "v2.1.151", "v2.1.154", "v2.1.155", "v2.1.157"]
   },
 
