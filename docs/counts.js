@@ -76,7 +76,7 @@ window.VIZ_COUNTS = Object.freeze({
   //   (2) gh_label_counts = live re-derivation from `gh issue list` severity
   //       labels in the private issue tracker (refreshed each version bump).
   //
-  // by_severity sums to 30 (8+8+10+3+1).
+  // by_severity sums to 30 (7+9+10+3+1).
   // session-61 docker-session promotions (2026-05-27):
   //   - #113 HIGH → CRITICAL (run-to-completion wire-confirmed on v2.1.152:
   //     the auto-updater + npm install actually replaces the on-disk
@@ -93,8 +93,8 @@ window.VIZ_COUNTS = Object.freeze({
     audit_observations: 1,
     post_audit: 16,
     by_severity: {
-      critical: 8,
-      high: 8,
+      critical: 7,
+      high: 9,
       medium: 10,
       low: 3,
       observation: 1
@@ -105,13 +105,13 @@ window.VIZ_COUNTS = Object.freeze({
     // curated post-audit additions.
     gh_label_counts: {
       critical: 14,
-      high: 35,
+      high: 37,
       medium: 53,
       low: 11,
-      labeled_total: 113,
-      unlabeled_by_severity: 39,
-      repo_total: 152,
-      derived_at: "2026-06-15"
+      labeled_total: 115,
+      unlabeled_by_severity: 40,
+      repo_total: 155,
+      derived_at: "2026-06-30"
     }
   },
 
@@ -136,14 +136,14 @@ window.VIZ_COUNTS = Object.freeze({
   skills: { bundled: 41 },
   hooks: { event_types: 27 },  // v2.1.112 binary: full tT[] array has 27 types (was 9 documented)
   // 7-layer resolution (v2.1.110 binary decode):
-  //   1. CLAUDE_CODE_DISABLE_* env kill switches (caller-side)
+  //   1. Per-feature env kill switches (caller-side)
   //   2. Session override map sTH() — env-var injected (CLAUDE_CODE_FEATURE_FLAGS)
   //   3. Project-local flag overrides tTH()
   //   4. GrowthBook feature cache (cachedGrowthBookFeatures in ~/.claude.json)
   //   5. Statsig supplemental gates [statsig-gate-fn] (cachedStatsigGates)
   //   6. Grove policy (GET /api/[internal-policy-endpoint])
   //   7. Embedded default ($ parameter fallback)
-  flags: { resolution_layers: 7, gate_reads: 410, default_true: 28 },  // v161-177 (session-67): 25 boolean + 3 typed, re-derived directly from the v177 binary. Boolean default-true moved 19→25 across v161-177 in four steps (a memory-bulk-export gate + a terminal-render gate at v161, a daemon attach-upgrade gate at v162, an autonomy-mode prompt nudge + an act-don't-rederive nudge at v169, an MCP stateless-init skip at v174) — ALL benign feature/perf/prompt-nudge gates, NONE a safety-gate inversion. Typed 3 unchanged. PRIOR v158: CORRECTED 20→22 (the scalar was stale since v152, frozen at 17 boolean + 3 typed; re-derived from the v158 binary = 19 boolean + 3 typed). Reader identifiers continue rotating per release (case-flip recurrence on boolean, full rotation on typed).
+  flags: { resolution_layers: 7, gate_reads: 410, default_true: 30 },  // v161-177 (session-67): 25 boolean + 3 typed, re-derived directly from the v177 binary. Boolean default-true moved 19→25 across v161-177 in four steps (a memory-bulk-export gate + a terminal-render gate at v161, a daemon attach-upgrade gate at v162, an autonomy-mode prompt nudge + an act-don't-rederive nudge at v169, an MCP stateless-init skip at v174) — ALL benign feature/perf/prompt-nudge gates, NONE a safety-gate inversion. Typed 3 unchanged. PRIOR v158: CORRECTED 20→22 (the scalar was stale since v152, frozen at 17 boolean + 3 typed; re-derived from the v158 binary = 19 boolean + 3 typed). Reader identifiers continue rotating per release (case-flip recurrence on boolean, full rotation on typed). v178-196 (session-69/71/72): boolean 25→28, typed 3→2, total 30. +2 boolean at v191 (a remote-control-notice display gate + a runner-side MCP startup-policy gate); +2 boolean at v196 (an upload-MITM-guard default-flip OFF→ON = hardening + a runner-side MCP-policy-exempt gate) minus 1 (a subagent-CLAUDE.md-omission gate removed) = net +1 to 28; typed 3→2 = the sandbox-classifier fail-open gate (#108) REMOVED upstream at v179. NONE is a safety-gate inversion.
 
   // ---- Local agents subsystem ----
   agents: {
@@ -230,8 +230,8 @@ window.VIZ_COUNTS = Object.freeze({
   investigation: {
     agents_deployed: "21+",
     waves: 16,
-    current_binary: "2.1.152",   // session-61 (2026-05-27); npm latest
-    latest_session: 61
+    current_binary: "2.1.196",   // session-72 (2026-06-30); npm latest
+    latest_session: 72
   },
 
   // ---- Version coverage ----

@@ -296,20 +296,20 @@ flowchart LR
         byoc_scope["Customer-segment killswitch only<br/>(BYOC contract surface; main consumer<br/>Pro/Max remains exposed when<br/>[feature-flag] server-flipped on)"]:::gap
         byoc_predicate --> byoc_scope
     end
-    %% ===== AC — v140 TUI Notification ANSI/OSC8 Injection (#127 CRITICAL) =====
-    subgraph STARTUP_NOTICE["AC — TUI Startup-Notice Injection (v2.1.140 #127 CRITICAL — wire-confirmed probe-HH + probe-JJ)"]
+    %% ===== AC — v140 TUI Notification Injection (#127 HIGH — Critical refuted, session-70 byte-test) =====
+    subgraph STARTUP_NOTICE["AC — TUI Startup-Notice Injection (v2.1.140 #127 HIGH — Critical refuted session-70: Ink &lt;Text&gt; strips dangerous escapes)"]
         direction TB
         sn_default["Default state on wire:<br/>{value:&#39;&#39;, on:false, off:true, source:&#39;defaultValue&#39;}<br/>(dormant for this account)"]:::baseline
         sn_inject["Server inject via [config-channel-endpoint]&lt;id&gt;:<br/>[feature-flag].value = &lt;attacker payload&gt;"]:::risk
-        sn_render["Ink notification component renders<br/>value verbatim wrapped in yellow SGR<br/>(no sanitization)"]:::gap
-        sn_ansi["probe-HH ansi phase:<br/>x1b[31m...x1b[39m passes through<br/>raw to TUI stdout"]:::risk
-        sn_osc8["probe-JJ OSC 8 phase:<br/>x1b]8;id=auto;&lt;evil-url&gt; BEL +<br/>visible label = mouse-clickable<br/>hyperlink in iTerm2 / WezTerm /<br/>Kitty / Windows Terminal / etc."]:::risk
-        sn_cap["Width cap ~75 visible chars;<br/>ANSI escapes zero-width and survive cap"]:::gap
+        sn_render["Sole consumer cor() → Ink &lt;Text&gt; (children:t.text)<br/>cell-based screen buffer parses + re-emits<br/>(NOT a raw stdout.write sink)"]:::baseline
+        sn_color["color: x1b[31m...x1b[0m → SURVIVES<br/>(chalk re-emits x1b[0m→x1b[39m: parsed, not raw)<br/>residual = styled-text spoofing in trusted banner"]:::gap
+        sn_stripped["cursor x1b[9;1H / clipboard x1b]52 / DSR x1b[6n /<br/>OSC8 hyperlink x1b]8;; → ALL STRIPPED<br/>(byte-test session-70, v191 — same path as #155)"]:::baseline
+        sn_cap["Width cap ~75 visible chars;<br/>only the surviving color SGR is zero-width"]:::baseline
         sn_markdown["Markdown rendered as literal text<br/>(defensive; no link parsing)"]:::baseline
         sn_default --> sn_inject
         sn_inject --> sn_render
-        sn_render --> sn_ansi
-        sn_render --> sn_osc8
+        sn_render --> sn_color
+        sn_render --> sn_stripped
         sn_render --> sn_cap
         sn_render --> sn_markdown
     end
@@ -321,7 +321,7 @@ flowchart LR
         ps_addon["MITM addon force-injects GrowthBook<br/>flag values into [config-channel-endpoint]* responses<br/>(get_text/set_text for gzip/zstd round-trip)"]:::ours
         ps_tui["probes/lib/tui-driver.exp<br/>expect-driven PTY keystroke automation<br/>seeds minimal $HOME/.claude.json<br/>walks onboarding past theme picker"]:::ours
         ps_113["#113 probe — inject [feature-flag]<br/>{external:2.1.137, external_force_downgrade:true}<br/>→ [feature-flag] fired<br/>{from:2.1.143, to:2.1.137}; Auto-updating… rendered<br/>WIRE-CONFIRMED v143 + v145"]:::risk
-        ps_127["#127 probe — inject [feature-flag]<br/>payload renders verbatim to TUI notification<br/>ANSI SGR escape UNSANITIZED; bare URL rendered<br/>WIRE-CONFIRMED v143 + v145"]:::risk
+        ps_127["#127 probe — inject [feature-flag]<br/>session-59: bumped Critical on a color-only substring grep<br/>session-70 byte-test (v191): only color survives Ink &lt;Text&gt;<br/>cursor/clipboard/DSR/OSC8 STRIPPED → DEMOTED High"]:::gap
         ps_115["#115 probe — inject [feature-flag]<br/>predicate hQ$() never fires on --print OR TUI<br/>beta-headers byte-identical baseline vs canary<br/>NEGATIVE → informational; REMEDIATED v156:<br/>flag+mechanism removed (fennel_kite 3/3/0) → CLOSED"]:::baseline
         ps_compose --> ps_creds
         ps_creds --> ps_addon
@@ -379,6 +379,32 @@ flowchart LR
         vg_nope["NO permission reach (verified)<br/>not co-located with iron_gate/acceptEdits/canUseTool<br/>data-integrity speed-bump, not a privilege gate"]:::baseline
         vg_flag --> vg_skip
         vg_skip --> vg_nope
+    end
+    %% ===== AI — v179 Heron-Brook System-Prompt Injection (#154 CRITICAL — W-HERON wire-confirmed) =====
+    subgraph HERONBROOK["AI — Heron-Brook System-Prompt Injection (v2.1.179 #154 CRITICAL — server-pushed string reaches /v1/messages system prompt verbatim)"]
+        direction TB
+        hb_gate["[system-prompt-string-flag] server-push<br/>(GrowthBook eval-SDK response)"]:::gap
+        hb_default["Default state: empty string or dormant<br/>no cap on payload size"]:::baseline
+        hb_inject["Server inject via [config-channel-endpoint]*:<br/>[system-prompt-string-flag].value = &lt;attacker payload&gt;<br/>reaches /v1/messages system[0].text UNESCAPED"]:::risk
+        hb_sink["Messages API system prompt assembly<br/>systemPromptSectionBuilder('[system-prompt-string]',…) dynamic-section builder<br/>#106-class but role:system (not role:user)<br/>W-HERON session-69: marker reached system field verbatim, system_len 27,537; byte-stable v179→v196"]:::core
+        hb_gate --> hb_default
+        hb_default --> hb_inject
+        hb_inject --> hb_sink
+    end
+    %% ===== AJ — v187 Startup-Announcements ANSI Injection (#155 HIGH — W-ANNOUNCE styled-text spoof) =====
+    subgraph STARTUPANNOUNCE["AJ — Startup-Announcements ANSI Injection (v2.1.187 #155 HIGH — server-pushed styled-text, Ink &lt;Text&gt; defends)"]
+        direction TB
+        sa_gate["[startup-banner-flag] server-push<br/>(GrowthBook eval-SDK response)"]:::gap
+        sa_default["Default state: empty or dormant<br/>rendered early in startup"]:::baseline
+        sa_inject["Server inject via [config-channel-endpoint]*:<br/>[startup-banner-flag].text = &lt;ANSI payload&gt;"]:::risk
+        sa_render["Sole consumer → Ink &lt;Text&gt; (render context)<br/>cell-based screen buffer parses + re-emits<br/>(NOT raw stdout.write sink)"]:::baseline
+        sa_stripped["cursor x1b[9;1H / clipboard x1b]52 / DSR x1b[6n /<br/>OSC8 hyperlink x1b]8;; → ALL STRIPPED<br/>(same Ink filtering as #127; W-ANNOUNCE session-69, byte-test v191+)"]:::baseline
+        sa_color["color: x1b[31m...x1b[0m → SURVIVES<br/>(chalk re-emits; styled-text spoof only)"]:::gap
+        sa_gate --> sa_default
+        sa_default --> sa_inject
+        sa_inject --> sa_render
+        sa_render --> sa_stripped
+        sa_render --> sa_color
     end
     %% ===== Cowork/CCR-v2 Bridge edges (AF, v2.1.160) =====
     startup -. "if ENVIRONMENT_KIND=='bridge'" .-> cb_gate

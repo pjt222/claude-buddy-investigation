@@ -1,6 +1,6 @@
 # Claude Code Buddy System — Technical Architecture
 
-**Date**: 2026-04-02 (updated 2026-05-20)
+**Date**: 2026-04-02 (updated 2026-06-30)
 **Version**: 1.3
 
 > **Version scope:** This document describes the companion system as it existed in **v2.1.89–v2.1.96**. The native UI module was surgically removed in v2.1.97 (built 2026-04-08). Functions, components, and rendering described below no longer exist in the binary. The `[buddy-reaction-api]` API remains live server-side — our workspace and MCP tools call it directly, bypassing the binary.
@@ -11,7 +11,7 @@
 >
 > **v2.1.111/v2.1.112 advances:** Binary investigation through v2.1.112 (build 2026-04-16T18:33:55Z) characterized 14+ additional systems. See §12 for a summary of new architectural surfaces and the `digest.md` v2.1.111/v2.1.112 investigation section for full detail.
 >
-> **v2.1.118 → v2.1.145 (current):** Investigation continued through **v2.1.145** (build 2026-05-19, npm `latest`). §13 documents the runtime-probe tooling built across this window (containerized MITM probe-sandbox, PTY keystroke automation). §14 documents the **server-flippable control plane** — the server-to-client config channel that became the dominant architectural surface, and the disclosure-asymmetry it creates. Full finding inventory and per-version detail: `digest.md` and the `results/` files.
+> **v2.1.118 → v2.1.196 (current):** Investigation has continued through **v2.1.196** (npm `latest`, 2026-06-30); the companion and harness *architecture* documented in this file is unchanged across this window. §13 documents the runtime-probe tooling built across it (containerized MITM probe-sandbox, PTY keystroke automation). §14 documents the **server-flippable control plane** — the server-to-client config channel that became the dominant architectural surface — and the disclosure-asymmetry it creates. The per-version finding inventory, severity recalibrations, and per-version detail are tracked in `digest.md`, `README.md`, and the `results/` files.
 
 ---
 
@@ -988,7 +988,7 @@ The driver is the reusable foundation for any future TUI-gated probe. Session-59
 | Finding | Static-only verdict (pre-probe) | Runtime verdict |
 |---|---|---|
 | #113 forced downgrade | inject lands; AutoUpdater path untested | **wire-confirmed** — the AutoUpdater performed a downgrade to an attacker-chosen older version with no UI prompt |
-| #127 startup-notice injection | static decode of the notification path | **wire-confirmed** — arbitrary text *and* unsanitized ANSI escapes render to the TUI notification surface |
+| #127 terminal-notification injection | static decode of the notification path | **wire-confirmed, later re-characterized** — arbitrary text renders to the TUI notification surface, but a session-70 byte-level re-test proved the Ink `<Text>` renderer **strips** the dangerous escapes (cursor/clipboard/DSR/OSC8 hyperlink); only color survives → demoted Critical→High |
 | #115 mid-conversation system | hypothesised substring-trigger primitive | **negative** — the predicate did not fire on a full TUI with the value injected; relabelled informational |
 | #117 API drift | — | **no drift** — passive monitoring baseline established |
 | #118 pi-passport L1 CI | n=13, LB 0.79 | n=30, **LB 0.905** (high-confidence band) |
@@ -1008,7 +1008,7 @@ Claude Code resolves feature flags through a remote-evaluation feature-flag serv
 Flag resolution is a 7-layer chain (highest precedence first):
 
 ```
-1. CLAUDE_CODE_DISABLE_* env kill switches (caller-side)
+1. Caller-side env kill-switches (per-feature disable variables)
 2. Session-override map        (a feature-flags env var)
 3. Project-local flag overrides
 4. Server-controlled feature cache  ◄── the server-controlled layer
@@ -1024,7 +1024,7 @@ The recurring code shape is a one-line gate over an entire subsystem — a singl
 The security weight of this channel comes from the **typed payloads**. A flag value can be an object or a string that flows directly into model context, terminal UI, or update behavior. A MITM scaffold (§13.1) rewrites these server config responses in flight to test the injection paths. The confirmed primitives, referred to by finding number:
 
 - **#106 (Critical)** — an empty-default string-flag reaches the messages API as `role:"user"` text, verbatim, with no length cap and no certificate pinning.
-- **#127 (Critical)** — an empty-default string-flag reaches the TUI notification surface with ANSI escapes left unsanitized.
+- **#127 (High, was Critical)** — an empty-default string-flag reaches the TUI notification surface. A session-70 byte-level re-test proved the Ink `<Text>` renderer **strips** the dangerous escapes (cursor/clipboard/DSR/OSC8 hyperlink) — only color survives — so the original "unsanitized ANSI" Critical was refuted; residual = server-controlled styled-text spoofing in the trusted notification banner.
 - **#113 (High)** — a typed-object flag drives the AutoUpdater to force a **downgrade** to an attacker-chosen older version.
 - **#108 (Critical)** — a DEFAULT-TRUE boolean flag governs the sandbox network classifier; flipping it produces fail-open behavior.
 - **#103** — a string-flag supplies the `/team-onboarding` slash-command prompt body.
