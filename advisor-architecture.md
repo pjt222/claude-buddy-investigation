@@ -1,11 +1,11 @@
 # Claude Code Advisor System — Technical Architecture
 
-**Date**: 2026-04-10 · **Last revised**: 2026-06-30 (session 72, v2.1.196 currency pass)
-**Version**: 1.3
+**Date**: 2026-04-10 · **Last revised**: 2026-07-03 (session 74, v2.1.200 currency pass)
+**Version**: 1.4
 
 > **Version scope:** The advisor tool infrastructure was already **code-complete in v2.1.96** (built 2026-04-03) — coexisting with the full buddy companion system. Both systems scored 75+/75+ in that build. The buddy UI was then removed in v2.1.97 (built 2026-04-08) while the advisor remained. The system prompt was refined in v2.1.98 (built 2026-04-10) and the feature gate bumped. The advisor is dark-launched behind a server-side feature flag and is not yet visible to all users.
 >
-> **Currency (v2.1.196, build 2026-06-30):** the advisor surface is **byte-stable on string-pool literals** from v2.1.96 through v2.1.196 — re-verified session 72 (2026-06-30): the tool type `advisor_20260301`, the advisor feature flag, the kill-switch env var, the advisor telemetry event names, and the system-prompt body (§4) are all byte-identical to the v2.1.98 extract across the v152→v177→v191→v195→v196 chain (sessions 67/69/71/72). Function-reference §3 names are **minified identifiers that rotate per build** — see the §3 caveat.
+> **Currency (v2.1.200, build 2026-07-03):** the advisor surface is **byte-stable on string-pool literals** from v2.1.96 through v2.1.200 — re-verified session 74 (2026-07-03): the tool type `advisor_20260301`, the advisor feature flag, the kill-switch env var, the advisor telemetry event names, and the system-prompt body (§4) are all byte-identical to the v2.1.98 extract across the v152→v177→v191→v195→v196→v197→v200 chain (sessions 67/69/71/72/73/74). The current binary is v2.1.199 (npm `latest`); coverage runs through v2.1.200 (npm `next`). Two benign notes from this window: (1) **v2.1.198 added an advisor-settings passthrough** that carries only the advisor **model choice** (a model id) end-to-end — it does **not** move the advisor prompt or system-context. The advisor prompt remains a hardcoded in-binary literal with **no server-push source**, so there is no finding. (2) v2.1.197 included model-catalog preparation for a future model, but v2.1.197→v2.1.200 added **no new advisor model short-name** — the valid advisor model list is unchanged. Function-reference §3 names are **minified identifiers that rotate per build** — see the §3 caveat. Each v181→v200 binary is a **genuine per-release build** (the app build id changes every release); the bundled runtime is unchanged.
 >
 > **See also:** `loop-architecture.md` for the Kairos loop system (`ScheduleWakeup` / `/loop`) that landed in v2.1.101 alongside but architecturally independent from the advisor.
 
@@ -327,9 +327,23 @@ v2.1.100 → v2.1.195    Advisor surface BYTE-STABLE on string-pool literals.
                         default migrated to the Opus 4.7 short-name path
                         (see §3 Model Resolution). The advisor feature flag
                         is still NOT flipped on for this account.
-v2.1.196 (2026-06-30)  Current binary. Re-verified session 72: advisor
-                        markers unchanged across the v152→v177→v191→v195→v196
-                        chain, system prompt body byte-identical to v2.1.98.
+v2.1.196 (2026-06-30)  Re-verified session 72: advisor markers unchanged
+                        across the v152→v177→v191→v195→v196 chain, system
+                        prompt body byte-identical to v2.1.98.
+v2.1.197 (2026-07-01)  Session 73. Model-catalog preparation for a future
+                        model; NO new advisor model short-name — valid
+                        advisor model list unchanged. Advisor surface
+                        byte-stable.
+v2.1.198 → v2.1.200    Session 74. Advisor core surface BYTE-STABLE
+                        (v197→v200). v2.1.198 added an advisor-settings
+                        passthrough carrying ONLY the advisor model choice
+                        (a model id) end-to-end — the advisor prompt stays a
+                        hardcoded in-binary literal; no server-push of prompt
+                        or system-context; benign, no finding. Current binary
+                        v2.1.199 (npm latest); coverage through v2.1.200
+                        (npm next). Advisor feature flag still NOT flipped on
+                        for this account. Genuine per-release builds; bundled
+                        runtime unchanged.
 ```
 
 ---
@@ -359,4 +373,4 @@ Unlike the server-controlled config-push, forced-downgrade, and third-party tele
 
 ---
 
-*Investigation conducted 2026-04-10; revised 2026-06-30 (session 72). Binary analysis on v2.1.96, v2.1.97, v2.1.98, v2.1.100; currency re-verified against v2.1.196 (build 2026-06-30). System prompt paraphrased from v2.1.98 (verbatim text withheld) and confirmed byte-identical in v2.1.196. Advisor confirmed code-complete in v2.1.96 (coexisting with full buddy system — both scored FULL). Feature-gate status: advisor gate still not rolled out to this account as of session 72. buddy_react API confirmed alive (200 OK, 1331ms latency) at original investigation. Companion config intact in `~/.claude/.claude.json`.*
+*Investigation conducted 2026-04-10; revised 2026-07-03 (session 74). Binary analysis on v2.1.96, v2.1.97, v2.1.98, v2.1.100; currency re-verified against v2.1.200 (current binary v2.1.199 = npm `latest`, coverage through v2.1.200 = npm `next`). System prompt paraphrased from v2.1.98 (verbatim text withheld) and confirmed byte-identical through v2.1.200. Advisor confirmed code-complete in v2.1.96 (coexisting with full buddy system — both scored FULL). Feature-gate status: advisor gate still not rolled out to this account as of session 74. buddy_react API confirmed alive (200 OK, 1331ms latency) at original investigation. Companion config intact in `~/.claude/.claude.json`.*

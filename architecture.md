@@ -1,7 +1,7 @@
 # Claude Code Buddy System — Technical Architecture
 
-**Date**: 2026-04-02 (updated 2026-06-30)
-**Version**: 1.3
+**Date**: 2026-04-02 (updated 2026-07-03)
+**Version**: 1.4
 
 > **Version scope:** This document describes the companion system as it existed in **v2.1.89–v2.1.96**. The native UI module was surgically removed in v2.1.97 (built 2026-04-08). Functions, components, and rendering described below no longer exist in the binary. The `[buddy-reaction-api]` API remains live server-side — our workspace and MCP tools call it directly, bypassing the binary.
 >
@@ -11,7 +11,7 @@
 >
 > **v2.1.111/v2.1.112 advances:** Binary investigation through v2.1.112 (build 2026-04-16T18:33:55Z) characterized 14+ additional systems. See §12 for a summary of new architectural surfaces and the `digest.md` v2.1.111/v2.1.112 investigation section for full detail.
 >
-> **v2.1.118 → v2.1.196 (current):** Investigation has continued through **v2.1.196** (npm `latest`, 2026-06-30); the companion and harness *architecture* documented in this file is unchanged across this window. §13 documents the runtime-probe tooling built across it (containerized MITM probe-sandbox, PTY keystroke automation). §14 documents the **server-flippable control plane** — the server-to-client config channel that became the dominant architectural surface — and the disclosure-asymmetry it creates. The per-version finding inventory, severity recalibrations, and per-version detail are tracked in `digest.md`, `README.md`, and the `results/` files.
+> **v2.1.118 → v2.1.200 (current):** Investigation has continued through **v2.1.200** (npm `next`; the current shipping binary is **v2.1.199**, npm `latest`, 2026-07-03, session 74); the companion and harness *architecture* documented in this file is unchanged across this window. The v197 (session 73) and v198–v200 (session 74) audits each closed with **zero new findings, zero remediations, zero regressions**. v198–v200 are large feature builds — browser automation went GA, background subagents (which, when launched from the background-agents view, can auto-commit/push and open a *draft* pull request on finishing code work), a new gateway upstream provider, a host-managed-credentials file path, a chart-design skill, and an "observer agents" capability — yet none add a server-controlled channel to the harness and every surface reconciled as benign; all growth is compiled-bundle code (no embedded blob), the bundled runtime is unchanged, and each release is a **genuine per-release build** (not a rebuild of a frozen source tag). Two new WATCH items are functional, not findings: the background auto-push/draft-PR path is gated but its never-push-to-main / no-force / no-merge boundary is prompt-level rather than code-enforced, and the observer-agents default-true gate is inert behind an operator experimental environment variable. §13 documents the runtime-probe tooling built across this window (containerized MITM probe-sandbox, PTY keystroke automation). §14 documents the **server-flippable control plane** — the server-to-client config channel that became the dominant architectural surface — and the disclosure-asymmetry it creates. The per-version finding inventory, severity recalibrations, DEFAULT-TRUE tally (now 32), and per-version detail are tracked in `digest.md`, `README.md`, `docs/counts.js`, and the `results/` files.
 
 ---
 

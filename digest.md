@@ -318,15 +318,15 @@ The strongest framing is the pattern, not the individual omissions: a reasonable
 
 ---
 
-## Phase 9: v2.1.153 → v2.1.196 — Continued Rolling Audit, Upstream Remediation, and a #127 Demotion
+## Phase 9: v2.1.153 → v2.1.200 — Continued Rolling Audit, Upstream Remediation, and a #127 Demotion
 
-**Scope**: rolling per-version harness audit from v2.1.153 through the current binary **v2.1.196** (build 2026-06-30, session 72). The investigation stayed in wire-confirmation mode: new subsystems are decoded, priority-finding literals are bounded-grep re-verified each release, and only genuinely new server-reachable primitives are filed. All flag and reader-identifier names redacted; functional descriptions and finding numbers only.
+**Scope**: rolling per-version harness audit from v2.1.153 through v2.1.200 (current stable binary **v2.1.199**, npm `latest`; coverage extends through **v2.1.200**, npm `next`; session 74). The investigation stayed in wire-confirmation mode: new subsystems are decoded, priority-finding literals are bounded-grep re-verified each release, and only genuinely new server-reachable primitives are filed. All flag and reader-identifier names redacted; functional descriptions and finding numbers only.
 
-### v2.1.153 → v2.1.177 bridge (the rebuild era)
+### v2.1.153 → v2.1.177 bridge (stable-runtime, genuine per-release builds)
 
 This window added product capability but few new local-reach primitives. Highlights, by finding number (full detail in the per-version `results/` files and the project README):
 
-- **Upstream source tag and bundled runtime went stable** across the back half of the window — every binary becomes a rebuild of one source tag (the bundled runtime bumped once near the start of the range and has held since). Apparent size growth reconciles as new bundled code, not a runtime change.
+- **The bundled runtime went stable** across the back half of the window — it bumped once near the start of the range and has held since. The per-release app build id, by contrast, **changes every release**: these are **genuine per-release builds**, not rebuilds of one frozen tag (an earlier "rebuild of one source tag" framing mistracked a runtime-embedded constant that only rotates on a runtime bump, not the app build id). Apparent size growth reconciles as new bundled code, not a runtime change.
 - **#115 REMEDIATED + CLOSED (v156).** The mid-conversation-system substring-trigger mechanism (already relabelled informational in Session 59) was removed from the binary entirely.
 - **#140 HIGH (v158).** A plugin-sync leg (an environment-variable opt-in, default off, plus org auth — *not* server-flippable) headlessly registers an org's synced plugins' MCP servers, including subprocess-spawning ones, with no consent prompt in the sync caller — asymmetric to the skills-sync sibling, which deliberately suppresses hook registration. Chains #136 + #110.
 - **v160 was a major feature release** whose flag-name-only diff hid the real content (the lesson that made the *non-flag* diff mandatory per release). Two large subsystems decoded: a **Cowork remote-environment bridge** (a register/reconnect + work-lease/heartbeat protocol over the public `/v1/environments/...` and `/v1/sessions/...` endpoints, networked and credentialed but **runner-side only** — it activates as a cloud remote environment, not on the local CLI — so below the local-reach bar, logged as a runtime-probe watch item); and a **two-stage auto-mode safety classifier** that is **fail-CLOSED** (blocks on uncertainty/unavailability) — a net safety *strengthening*, the opposite of the #108 fail-open inversion.
@@ -349,11 +349,48 @@ A byte-level re-test on the v191 image proved #127 is the sibling of #155: the s
 - **v193 / v195 (Session 71): ZERO new findings, ZERO remediations, ZERO regressions.** DEFAULT-TRUE flat. New flags decoded across these releases were all benign (telemetry events, UI-render, model-catalog, schema-normalization, scheduling); new endpoints were first-party billing / enterprise-SSO / observability surfaces, none reaching the local-reach bar.
 - **v196 (Session 72, 2026-06-30): ZERO new findings; ONE hardening default-flip.** The DEFAULT-TRUE boolean set moved **27 → 28** (total 30 with the 2 typed): an **upload-MITM-guard flag flipped default OFF → ON** — an anti-MITM guard on artifact upload, now on by default, i.e. a **hardening**, the *inverse* of a fail-open inversion. Also added: a runner-side MCP-policy-exempt gate (gated behind the cloud-runner environment plus an already-permission-bypassed mode — inert on the local CLI); and a removed subagent-CLAUDE.md-omission gate (behavior baked to its prior default). The typed DEFAULT-TRUE set moved 3 → 2 across the v178 → v196 range (the #108 gate removed at v179).
 - **New benign feature — plugin binary-asset provisioning.** v196's headline new capability fetches **sha256-pinned** binaries into a plugin's `bin/` directory from a **first-party content-addressed store**, gated to **official marketplaces only**, **default-off**, and the harness does **not** execute the placed files (execution is mediated by the plugin's own already-trusted hooks). It is the **best-hardened** member of the plugin-credential family (#136 / #140 / #151) — a **watch item, not a finding**. Two more benign decodes: a **read-only structured-output "report findings" tool** for the `/code-review` flow (renders locally, no egress) and a **single-bit A/B gate** over two hardcoded skill-tool description strings.
-- **Structural.** The upstream source tag has been **unchanged since v181** (v181 → v196 are rebuilds of one source tag); the bundled runtime is stable; v196 is a rebuild adding ~1 MiB of pure bundled code (no new assets or native markers).
+- **Structural.** v181 → v196 are **genuine per-release builds** — the per-release app build id changes every release (an earlier "unchanged since v181 / rebuild of one source tag" framing mistracked a runtime-embedded constant that only rotates on a runtime bump, not the app build id); the bundled runtime is stable; v196 adds ~1 MiB of pure bundled code (no new assets or native markers).
 
-### Tally (current as of v2.1.196, Session 72)
+### v2.1.197 (Session 73): zero new findings, model-catalog prep
 
-Severities mirror `docs/counts.js` (authoritative). The live GitHub-label re-derivation across the repo issue set: **14 critical / 37 high / 53 medium / 11 low** (115 severity-labeled issues across 155 total repo issues). The original tooling-audit baseline census stands at **30 items** (7 critical / 9 high / 10 medium / 3 low / 1 observation). The server-flippable DEFAULT-TRUE set is **30** (28 boolean + 2 typed). Net direction across the v153 → v196 window: the first two genuine remediations of tracked findings (#115 closed at v156, #108 removed at v179) and the first hardening default-flip (v196), set against two new injection primitives (#154 Critical, #155 High) and one demotion (#127 Critical → High).
+- **v197: ZERO new findings, ZERO remediations, ZERO regressions.** A genuine small feature build (~143 KiB of pure bundled code, **no embedded blob**; the bundled runtime is unchanged) whose dominant new content is model-catalog preparation for the next model generation. DEFAULT-TRUE flat at **30**.
+- **Two new benign surfaces, both below the local-reach bar:**
+  - A **new server-pushed config-cache key** carrying a promo-expiry **date**. It is **hard-sanitized** — the raw server string is re-parsed through a date formatter that **discards the original string** and emits only a short localized date — and it is spliced **only** into the model-picker UI description text. It **never** reaches model or system context and **never** gates a permission decision. Every reference to it resolves to the UI path.
+  - A **new documentation-only API endpoint**: reference text inside a bundled skill's documentation, with **no in-harness caller** — not reachable from a running session.
+- Standing findings #106 / #110 / #154 / #151 / #127 / #155 reproduce byte-identical; #108 stays removed (0).
+
+### v2.1.198 → v2.1.200 (Session 74): a major feature release, zero new findings
+
+**Scope**: v2.1.198 (a major feature release), v2.1.199 (fixes + hardening), and v2.1.200 (npm `next`). Current stable binary is **v2.1.199** (npm `latest`); coverage extends through **v2.1.200**. Across all three: **ZERO new findings, ZERO remediations, ZERO regressions.** The ~5.78 MiB of growth reconciles entirely as compiled-bundle code — no embedded blob — and the bundled runtime is unchanged. These are **genuine per-release builds**.
+
+**What shipped (v198, the major release):** browser automation reached general availability; subagents now run in the background **by default** and, when launched from the background-agents view, auto-commit / push / open a **DRAFT** pull request on finishing code work; a new gateway upstream provider; a host-managed-credentials file path; a chart-design skill; and a design-consent API. **v199** added fixes plus request-body compression, stacked slash-commands, a new teleport repo-host verification guard, and a SendMessage misroute fix. **v200** added an "observer agents" capability plus background-agent auth-mismatch guards.
+
+**Key surfaces decoded — all benign:**
+
+- **Host-managed-credentials file reader — the best-hardened member of the credential family (#136).** It validates at the use-site (owner-only file permissions + schema + process-liveness + expiry checks), holds tokens in memory, and deliberately keeps them **out** of the inheritable subprocess environment. It is **double-gated behind two operator-set environment variables** with no server-push source, so it is **not reachable from a plain local session**.
+- **Parked-permission resume for background / away-from-keyboard agents is FAIL-CLOSED.** A deferred permission only auto-resolves by **replaying the user's own persisted answer**; a timeout **cancels and re-asks** — there is no auto-approve.
+- **Background auto-push / draft-PR is worktree-isolated and DRAFT-only.** The merge- / force-capable auto-approve allowlist is scoped to the **user-invoked** commit-push-PR command and is **absent** from the background path.
+- **Away-from-keyboard AskUserQuestion auto-advance submits only answers the user already selected** — unanswered questions become "skipped", **never auto-picked** — and it is explicitly **barred from plan / permission approval**.
+- **The new teleport repo-host telemetry sits inside a NEW repo-binding guard** that **refuses on a repo mismatch** — this is **added defense**, not a masked hole. The #99 teleport-chain layer is unchanged.
+- **The design-consent endpoint sends only a boolean.** Artifact upload stays **user-invoked** and gated behind design-OAuth login + recorded consent + the default-on anti-MITM upload guard (the v196 hardening flip).
+- **A new "observer agents" capability** (a background agent that watches another). Its default-true gate is **inert behind an operator experimental environment variable** — no server push can enable it alone — and an observer influences the observed agent only through a **harness-mediated report channel**; the inbox / SendMessage path is **blocked**.
+
+**Two new WATCH items (functional, not findings):**
+
+- **W-BGPUSH** — background auto-push / draft-PR is gated, but the *never-push-to-main / no-force / no-merge* boundary is **prompt-level, not code-enforced**.
+- **W-OBSERVER** — the observer-agents default-true gate is inert behind the operator experimental env; **re-check if a future release drops that env gate**.
+
+**DEFAULT-TRUE 30 → 32** (boolean 28 → 30; typed flat at 2): two new default-true gates, **both benign** — one toggles the explore / plan helper agents (turning it *off* reduces capability, not a safety inversion), the other is the observer-agents gate (inert behind the operator env). **Neither is a safety-gate inversion.**
+
+**#31 AC3 re-checked — still UNDEFENDED (Critical).** The v199 SendMessage misroute fix is a **recipient-side** guard (it refuses a silent re-send to a reused member name after the resolved member has left) — **orthogonal** to the **sender-side** attribution forgery #31 AC3 exploits. #31 AC3 is neither mitigated nor regressed.
+
+**Out of scope:** browser-automation GA is out of scope for the server-channel audit — the browser tooling **pre-dates** v198 (v198 only flipped it to GA) and the diff adds no server-controlled browser gate.
+
+Standing findings #106 / #110 / #154 / #151 / #127 / #155 reproduce byte-identical v197 → v200; #108 stays removed (0). No status changes.
+
+### Tally (current as of v2.1.199, coverage through v2.1.200, Session 74)
+
+Severities mirror `docs/counts.js` (authoritative), **unchanged across this window**. The live GitHub-label re-derivation across the repo issue set: **14 critical / 37 high / 53 medium / 11 low** (115 severity-labeled issues across 155 total repo issues). The original tooling-audit baseline census stands at **30 items** (7 critical / 9 high / 10 medium / 3 low / 1 observation). The server-flippable DEFAULT-TRUE set is now **32** (30 boolean + 2 typed). Current stable binary **v2.1.199** (npm `latest`); coverage extends through **v2.1.200** (npm `next`). Net direction across the v153 → v200 window: two genuine remediations of tracked findings (#115 closed at v156, #108 removed at v179), one hardening default-flip (v196), and — across v197 → v200 — **zero new findings, zero remediations, zero regressions**: a major feature release (v198) whose new capabilities (background auto-push / draft-PR, host-managed credentials, observer agents, design-consent upload) all landed with use-site hardening, fail-closed defaults, and operator-gated experimental toggles below the local-reach bar. Standing against this: the two v178→v191 injection primitives (#154 Critical, #155 High) and the #127 demotion (Critical → High).
 
 ---
 
