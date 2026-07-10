@@ -1,11 +1,11 @@
 # Claude Code Advisor System — Technical Architecture
 
-**Date**: 2026-04-10 · **Last revised**: 2026-07-03 (session 74, v2.1.200 currency pass)
-**Version**: 1.4
+**Date**: 2026-04-10 · **Last revised**: 2026-07-09 (session 78, v2.1.206 currency pass)
+**Version**: 1.5
 
 > **Version scope:** The advisor tool infrastructure was already **code-complete in v2.1.96** (built 2026-04-03) — coexisting with the full buddy companion system. Both systems scored 75+/75+ in that build. The buddy UI was then removed in v2.1.97 (built 2026-04-08) while the advisor remained. The system prompt was refined in v2.1.98 (built 2026-04-10) and the feature gate bumped. The advisor is dark-launched behind a server-side feature flag and is not yet visible to all users.
 >
-> **Currency (v2.1.200, build 2026-07-03):** the advisor surface is **byte-stable on string-pool literals** from v2.1.96 through v2.1.200 — re-verified session 74 (2026-07-03): the tool type `advisor_20260301`, the advisor feature flag, the kill-switch env var, the advisor telemetry event names, and the system-prompt body (§4) are all byte-identical to the v2.1.98 extract across the v152→v177→v191→v195→v196→v197→v200 chain (sessions 67/69/71/72/73/74). The current binary is v2.1.199 (npm `latest`); coverage runs through v2.1.200 (npm `next`). Two benign notes from this window: (1) **v2.1.198 added an advisor-settings passthrough** that carries only the advisor **model choice** (a model id) end-to-end — it does **not** move the advisor prompt or system-context. The advisor prompt remains a hardcoded in-binary literal with **no server-push source**, so there is no finding. (2) v2.1.197 included model-catalog preparation for a future model, but v2.1.197→v2.1.200 added **no new advisor model short-name** — the valid advisor model list is unchanged. Function-reference §3 names are **minified identifiers that rotate per build** — see the §3 caveat. Each v181→v200 binary is a **genuine per-release build** (the app build id changes every release); the bundled runtime is unchanged.
+> **Currency (v2.1.206, build 2026-07-09):** the advisor surface is **byte-stable on string-pool literals** from v2.1.96 through v2.1.206 — re-verified session 78: the tool type `advisor_20260301`, the advisor feature flag, the kill-switch env var, the advisor telemetry event names, and the system-prompt body (§4) are all byte-identical to the v2.1.98 extract across the v152→v177→v191→v195→v196→v197→v200→v202→v203→v206 chain (sessions 67/69/71/72/73/74/77/78). The advisor **core surface is unchanged across v2.1.201→v2.1.206** — the v201–v206 releases were feature/rebuild work unrelated to the advisor (a diagram-in-Artifacts feature at v2.1.202 shipping its own XSS sanitizer; a preview/render-engine retirement at v2.1.203 that removed ~5 MiB of code and left every advisor marker untouched). The current binary is v2.1.206 (npm `latest` and `next`; `stable` = v2.1.197). Two benign notes carried forward: (1) **v2.1.198 added an advisor-settings passthrough** that carries only the advisor **model choice** (a model id) end-to-end — it does **not** move the advisor prompt or system-context. The advisor prompt remains a hardcoded in-binary literal with **no server-push source**, so there is no finding. (2) v2.1.197 included model-catalog preparation for a future model, but **v2.1.197→v2.1.206 added no new advisor model short-name** — the valid advisor model list (`["opus", "sonnet"]`) is unchanged. Function-reference §3 names are **minified identifiers that rotate per build** — see the §3 caveat. Each v181→v206 binary is a **genuine per-release build** (the app build id changes every release); the bundled runtime is unchanged.
 >
 > **See also:** `loop-architecture.md` for the Kairos loop system (`ScheduleWakeup` / `/loop`) that landed in v2.1.101 alongside but architecturally independent from the advisor.
 
@@ -344,6 +344,18 @@ v2.1.198 → v2.1.200    Session 74. Advisor core surface BYTE-STABLE
                         (npm next). Advisor feature flag still NOT flipped on
                         for this account. Genuine per-release builds; bundled
                         runtime unchanged.
+v2.1.201 → v2.1.206    Sessions 77–78. Advisor core surface BYTE-STABLE
+                        (v200→v206). NO new advisor model short-name; the
+                        valid advisor model list is unchanged. The version
+                        churn was feature/rebuild work UNRELATED to the
+                        advisor: v2.1.202 shipped a diagram-in-Artifacts
+                        feature (with its own XSS sanitizer); v2.1.203
+                        retired a preview/render engine (~5 MiB pure code
+                        shrink, no embedded blob) and left every advisor
+                        marker untouched. Current binary v2.1.206 (npm latest
+                        and next); stable = v2.1.197. Advisor feature flag
+                        still NOT flipped on for this account. Genuine
+                        per-release builds; bundled runtime unchanged.
 ```
 
 ---
@@ -373,4 +385,4 @@ Unlike the server-controlled config-push, forced-downgrade, and third-party tele
 
 ---
 
-*Investigation conducted 2026-04-10; revised 2026-07-03 (session 74). Binary analysis on v2.1.96, v2.1.97, v2.1.98, v2.1.100; currency re-verified against v2.1.200 (current binary v2.1.199 = npm `latest`, coverage through v2.1.200 = npm `next`). System prompt paraphrased from v2.1.98 (verbatim text withheld) and confirmed byte-identical through v2.1.200. Advisor confirmed code-complete in v2.1.96 (coexisting with full buddy system — both scored FULL). Feature-gate status: advisor gate still not rolled out to this account as of session 74. buddy_react API confirmed alive (200 OK, 1331ms latency) at original investigation. Companion config intact in `~/.claude/.claude.json`.*
+*Investigation conducted 2026-04-10; revised 2026-07-09 (session 78). Binary analysis on v2.1.96, v2.1.97, v2.1.98, v2.1.100; currency re-verified against v2.1.206 (current binary v2.1.206 = npm `latest`/`next`; `stable` = v2.1.197). System prompt paraphrased from v2.1.98 (verbatim text withheld) and confirmed byte-identical through v2.1.206. Advisor confirmed code-complete in v2.1.96 (coexisting with full buddy system — both scored FULL). Feature-gate status: advisor gate still not rolled out to this account as of session 78. buddy_react API confirmed alive (200 OK, 1331ms latency) at original investigation. Companion config intact in `~/.claude/.claude.json`.*

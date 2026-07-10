@@ -143,7 +143,7 @@ window.VIZ_COUNTS = Object.freeze({
   //   5. Statsig supplemental gates [statsig-gate-fn] (cachedStatsigGates)
   //   6. Grove policy (GET /api/[internal-policy-endpoint])
   //   7. Embedded default ($ parameter fallback)
-  flags: { resolution_layers: 7, gate_reads: 410, default_true: 32 },  // v161-177 (session-67): 25 boolean + 3 typed, re-derived directly from the v177 binary. Boolean default-true moved 19→25 across v161-177 in four steps (a memory-bulk-export gate + a terminal-render gate at v161, a daemon attach-upgrade gate at v162, an autonomy-mode prompt nudge + an act-don't-rederive nudge at v169, an MCP stateless-init skip at v174) — ALL benign feature/perf/prompt-nudge gates, NONE a safety-gate inversion. Typed 3 unchanged. PRIOR v158: CORRECTED 20→22 (the scalar was stale since v152, frozen at 17 boolean + 3 typed; re-derived from the v158 binary = 19 boolean + 3 typed). Reader identifiers continue rotating per release (case-flip recurrence on boolean, full rotation on typed). v178-196 (session-69/71/72): boolean 25→28, typed 3→2, total 30. +2 boolean at v191 (a remote-control-notice display gate + a runner-side MCP startup-policy gate); +2 boolean at v196 (an upload-MITM-guard default-flip OFF→ON = hardening + a runner-side MCP-policy-exempt gate) minus 1 (a subagent-CLAUDE.md-omission gate removed) = net +1 to 28; typed 3→2 = the sandbox-classifier fail-open gate (#108) REMOVED upstream at v179. NONE is a safety-gate inversion. v197-200 (session-73/74): boolean 28→30, typed 2, total 32. +1 boolean at v198 (a gate toggling the explore/plan helper agents — turning it OFF reduces capability, not a safety inversion) and +1 boolean at v200 (an "observer agents" gate that is inert behind an operator experimental environment variable with no server-push source). NONE is a safety-gate inversion. Structural correction (session-73): the upstream build id changes every release — v181→v200 are genuine per-release builds, NOT rebuilds of one source tag; the earlier "unchanged since v181" framing tracked a runtime-embedded constant that only rotates on a runtime bump, not the app build id.
+  flags: { resolution_layers: 7, gate_reads: 410, default_true: 35 },  // v201-206 (sessions 77-78): boolean 30→33 + typed 2 = 32→35. +1 at v202 (a diagram-render capability toggle for artifacts), +1 at v203 (a daemon-side downgrade-refusal guard — the background daemon refuses to self-restart into an older on-disk build; a security-positive, server-disableable but disabling only reverts to prior behavior, #113-adjacent), +1 at v206 (a staged-tool-call kill-switch — turning it off REFUSES the call = capability reduction). NONE is a safety-gate inversion. PRIOR v161-177 (session-67): 25 boolean + 3 typed, re-derived directly from the v177 binary. Boolean default-true moved 19→25 across v161-177 in four steps (a memory-bulk-export gate + a terminal-render gate at v161, a daemon attach-upgrade gate at v162, an autonomy-mode prompt nudge + an act-don't-rederive nudge at v169, an MCP stateless-init skip at v174) — ALL benign feature/perf/prompt-nudge gates, NONE a safety-gate inversion. Typed 3 unchanged. PRIOR v158: CORRECTED 20→22 (the scalar was stale since v152, frozen at 17 boolean + 3 typed; re-derived from the v158 binary = 19 boolean + 3 typed). Reader identifiers continue rotating per release (case-flip recurrence on boolean, full rotation on typed). v178-196 (session-69/71/72): boolean 25→28, typed 3→2, total 30. +2 boolean at v191 (a remote-control-notice display gate + a runner-side MCP startup-policy gate); +2 boolean at v196 (an upload-MITM-guard default-flip OFF→ON = hardening + a runner-side MCP-policy-exempt gate) minus 1 (a subagent-CLAUDE.md-omission gate removed) = net +1 to 28; typed 3→2 = the sandbox-classifier fail-open gate (#108) REMOVED upstream at v179. NONE is a safety-gate inversion. v197-200 (session-73/74): boolean 28→30, typed 2, total 32. +1 boolean at v198 (a gate toggling the explore/plan helper agents — turning it OFF reduces capability, not a safety inversion) and +1 boolean at v200 (an "observer agents" gate that is inert behind an operator experimental environment variable with no server-push source). NONE is a safety-gate inversion. Structural correction (session-73): the upstream build id changes every release — v181→v200 are genuine per-release builds, NOT rebuilds of one source tag; the earlier "unchanged since v181" framing tracked a runtime-embedded constant that only rotates on a runtime bump, not the app build id.
 
   // ---- Local agents subsystem ----
   agents: {
@@ -230,15 +230,15 @@ window.VIZ_COUNTS = Object.freeze({
   investigation: {
     agents_deployed: "21+",
     waves: 16,
-    current_binary: "2.1.199",   // session-74 (2026-07-03); npm latest=v199, next=v200 (audited through v200)
-    latest_session: 74
+    current_binary: "2.1.206",   // session-78 (2026-07-10); npm latest=next=v206 (audited through v206), stable v197; v201-206 zero new findings
+    latest_session: 78
   },
 
   // ---- Version coverage ----
   version: {
     start: "v2.1.89",
-    end: "v2.1.200",
-    range: "v2.1.89 \u2192 v2.1.200",  // unicode rightwards arrow. hero badge reads version.range; session-74 audited through v200 (npm next), current binary v199 (npm latest)
+    end: "v2.1.206",
+    range: "v2.1.89 \u2192 v2.1.206",  // unicode rightwards arrow. hero badge reads version.range; session-78 audited through v206 (npm latest=next), stable v197
     skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125", "v2.1.127", "v2.1.130", "v2.1.134", "v2.1.135", "v2.1.136", "v2.1.137", "v2.1.139", "v2.1.146", "v2.1.149", "v2.1.150", "v2.1.151", "v2.1.154", "v2.1.155", "v2.1.157"]
   },
 

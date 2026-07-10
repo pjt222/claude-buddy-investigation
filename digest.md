@@ -318,9 +318,9 @@ The strongest framing is the pattern, not the individual omissions: a reasonable
 
 ---
 
-## Phase 9: v2.1.153 → v2.1.200 — Continued Rolling Audit, Upstream Remediation, and a #127 Demotion
+## Phase 9: v2.1.153 → v2.1.206 — Continued Rolling Audit, Upstream Remediation, and a #127 Demotion
 
-**Scope**: rolling per-version harness audit from v2.1.153 through v2.1.200 (current stable binary **v2.1.199**, npm `latest`; coverage extends through **v2.1.200**, npm `next`; session 74). The investigation stayed in wire-confirmation mode: new subsystems are decoded, priority-finding literals are bounded-grep re-verified each release, and only genuinely new server-reachable primitives are filed. All flag and reader-identifier names redacted; functional descriptions and finding numbers only.
+**Scope**: rolling per-version harness audit from v2.1.153 through v2.1.206 (current binary **v2.1.206**, npm `latest` and `next`; the marked-stable binary is **v2.1.197**; coverage extends through session 78). The investigation stayed in wire-confirmation mode: new subsystems are decoded, priority-finding literals are bounded-grep re-verified each release, and only genuinely new server-reachable primitives are filed. All flag and reader-identifier names redacted; functional descriptions and finding numbers only.
 
 ### v2.1.153 → v2.1.177 bridge (stable-runtime, genuine per-release builds)
 
@@ -388,9 +388,60 @@ A byte-level re-test on the v191 image proved #127 is the sibling of #155: the s
 
 Standing findings #106 / #110 / #154 / #151 / #127 / #155 reproduce byte-identical v197 → v200; #108 stays removed (0). No status changes.
 
-### Tally (current as of v2.1.199, coverage through v2.1.200, Session 74)
+### v2.1.201 → v2.1.202 (Session 77): a refactor and the diagram-in-Artifacts feature (with an XSS sanitizer)
 
-Severities mirror `docs/counts.js` (authoritative), **unchanged across this window**. The live GitHub-label re-derivation across the repo issue set: **14 critical / 37 high / 53 medium / 11 low** (115 severity-labeled issues across 155 total repo issues). The original tooling-audit baseline census stands at **30 items** (7 critical / 9 high / 10 medium / 3 low / 1 observation). The server-flippable DEFAULT-TRUE set is now **32** (30 boolean + 2 typed). Current stable binary **v2.1.199** (npm `latest`); coverage extends through **v2.1.200** (npm `next`). Net direction across the v153 → v200 window: two genuine remediations of tracked findings (#115 closed at v156, #108 removed at v179), one hardening default-flip (v196), and — across v197 → v200 — **zero new findings, zero remediations, zero regressions**: a major feature release (v198) whose new capabilities (background auto-push / draft-PR, host-managed credentials, observer agents, design-consent upload) all landed with use-site hardening, fail-closed defaults, and operator-gated experimental toggles below the local-reach bar. Standing against this: the two v178→v191 injection primitives (#154 Critical, #155 High) and the #127 demotion (Critical → High).
+Both releases: **ZERO new findings, ZERO remediations, ZERO regressions.**
+
+- **v201 is a near-pure refactor.** It is a genuine per-release build (the per-release app build id changes) with **net-zero size growth**. The apparent flag- and environment-variable deltas were artifacts of a greedy substring grep matching against byte-stable literals — once discounted, there is **no new server-reachable surface**.
+- **v202 shipped a diagram-in-Artifacts feature** — roughly +10 MiB of pure bundled code comprising a diagram-rendering engine, a grammar parser, and an HTML sanitizer. Notably, it **ships an XSS sanitizer** over the rendered diagram SVG/HTML: a **security-positive**, not a new exposure. Two more benign surfaces:
+  - **A cloud-runner agent-proxy that MEDIATES provider credentials.** It injects a **sentinel placeholder token** into the tool subprocess environment and keeps the **real** credential **out** of that environment — the *inverse* of a credential leak. A bespoke runner secret is additionally scrubbed from a locked-down git subprocess environment (protocol restricted). This is a hardening pattern, not a #136-class egress.
+  - **A refusal-fallback auto-retry** driven by a **server-pushed boolean config-cache key**: on an availability refusal it swaps to a fallback model. This is an **availability swap, not a text-into-model-context primitive** — distinct from the #106 / #154 server-string-to-model-context class.
+- **DEFAULT-TRUE moved 32 → 33** (a diagram-render capability toggle). Non-#108; a capability gate, not a safety inversion. The 2 typed defaults stayed flat.
+
+### v2.1.203 → v2.1.204 (Session 78): a code shrink and a mechanical rebuild
+
+Both releases: **ZERO new findings, ZERO remediations, ZERO regressions.**
+
+- **v203 carried the real delta of the span — and it is a ~5 MiB code SHRINK.** A preview/render engine was **retired** once the v202 diagram path superseded it (pure code removal, **no embedded blob**). A shrink can neither add nor mask a finding, and all standing-finding anchors are byte-stable. Four safety-relevant candidates all decoded benign:
+  - **An auto-mode edit-classification capability, DEFAULT-OFF.** When enabled it routes edits to **more** scrutiny — the *inverse* of the removed #108 fail-open inversion, not a safety inversion.
+  - **A new default-true daemon-side downgrade-refusal guard** (security-positive): the background daemon **refuses to self-restart into an older on-disk build**. It is server-disableable, but disabling only reverts to prior behavior — **#113-adjacent, no new reach** (a functional WATCH, not a finding).
+  - **A new provider-auth environment variable** for an already-scaffolded upstream provider backend — operator-set, held in the credential-redaction lists.
+  - **A resume-integrity filter that DROPS unlinked transcript records on resume** — the *opposite* of an attribution-injection.
+- **DEFAULT-TRUE moved 33 → 34** (the daemon downgrade-refusal guard).
+- **v204 is a mechanical rebuild** — a tiny bundle re-chunk with **zero flag / environment / gate changes**.
+
+### v2.1.205 (Session 78): a security-positive auto-mode exfil-command enrichment
+
+**ZERO new findings, ZERO remediations, ZERO regressions.** The headline is a **net-defensive enrichment of the auto-mode safety classifier**: exfil-command awareness.
+
+- The classifier now **flags exfil-capable git / gh commands** (push, remote set-url / add, pr / issue create, release upload, fork) and enriches its permission decision with two optional, **DEFAULT-OFF** signals: the repository's **public/private visibility** (client-computed and sanitized) and **git-status paths** (paths and status **only** — never file content, length-capped).
+- Both signals are sent **only to the first-party classifier** — **no third-party sink**.
+- Crucially it is a **risk HINT, not a decision**: no visibility branch flips a permission on its own.
+- Net-defensive, analogous to the v160 two-stage classifier strengthening — the **opposite** of the #108 inversion (a functional WATCH, not a finding).
+
+### v2.1.206 (Session 78): a feature build, two anchor drifts (both benign), and an enable-gate graduation
+
+**ZERO new findings, ZERO remediations, ZERO regressions.** A feature build (+1.49 MiB of compiled code) with four surfaces, all benign:
+
+- **Staged-tool-call gating — a server-controlled KILL-SWITCH.** Turning it **off REFUSES** the staged call: a capability **reduction**, not a fail-open.
+- **A new end-of-conversation agent-lifecycle tool**, guarded so that a subagent **cannot** end the parent conversation; it is **local-only, no egress**.
+- **A plan-review UI surface.**
+- **A telemetry cluster.**
+
+**DEFAULT-TRUE moved 34 → 35** (the staged-call kill-switch; a capability gate, not a safety inversion).
+
+**Two standing-finding anchors drifted by ±1 at v205, and BOTH decode benign:**
+
+- **The #110 field-egress anchor FELL by one occurrence** — a semantics-preserving hoist of a telemetry emit above a branch. The egress is **unchanged, NOT remediated**.
+- **The #31 AC3 attribution anchor ROSE by one** — a new **legitimate** producer (an end-of-conversation abort branch stamping the attribution field from a **real** source id). The consumer that #31 AC3 exploits is **byte-identical**, so the gap is **neither worsened nor fixed**.
+
+An **enable-gate GRADUATION** was also noted: a design-integration enable environment variable was **removed** while the consent + guard boundary on its egress stayed **byte-stable** — a feature going GA, **not a masked hole**.
+
+Standing findings #106 / #110 / #154 / #151 / #127 / #155 reproduce byte-identical v200 → v206; #108 stays removed (0). No status changes across the v201 → v206 window.
+
+### Tally (current as of v2.1.206, Session 78)
+
+Severities mirror `docs/counts.js` (authoritative), **unchanged across this window**. The live GitHub-label re-derivation across the repo issue set: **14 critical / 37 high / 53 medium / 11 low** (115 severity-labeled issues across 155 total repo issues). The original tooling-audit baseline census stands at **30 items** (7 critical / 9 high / 10 medium / 3 low / 1 observation). The server-flippable DEFAULT-TRUE set is now **35** (33 boolean + 2 typed). Current binary **v2.1.206** (npm `latest` and `next`); the marked-stable binary is **v2.1.197**. Net direction across the v153 → v206 window: two genuine remediations of tracked findings (#115 closed at v156, #108 removed at v179), one hardening default-flip (v196), and — across v197 → v206 — **zero new findings, zero remediations, zero regressions**: a major feature release (v198) plus the v202 diagram-in-Artifacts feature (which itself **ships an XSS sanitizer**), whose new capabilities (background auto-push / draft-PR, host-managed credentials, observer agents, design-consent upload, credential-mediating cloud-runner proxy) all landed with use-site hardening, fail-closed defaults, and operator-gated toggles below the local-reach bar. The DEFAULT-TRUE set moved 32 (v200) → 33 (v202) → 34 (v203) → 35 (v206); every addition is benign and **none is a safety-gate inversion**. Two new functional WATCH items joined the ledger: the v203 daemon downgrade-refusal guard (server-disableable but net-positive, #113-adjacent) and the v205 auto-mode exfil-awareness enrichment (net-defensive). Standing against all of this: the two v178→v191 injection primitives (#154 Critical, #155 High) and the #127 demotion (Critical → High).
 
 ---
 
