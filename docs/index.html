@@ -23,7 +23,7 @@
         <h1>Claude Code: Hidden Systems</h1>
         <p class="subtitle">A multi-agent investigation into the Buddy Companion, Advisor Strategy, Kairos Loops, Teams, Skills, Local Agents, CCR Cloud-Runner, Reactive Compaction, and the wider harness &mdash; discovered, documented, decoded.</p>
         <div class="hero-meta">
-          <span class="tag"><span data-count="version.range">v2.1.89 &rarr; v2.1.206</span></span>
+          <span class="tag"><span data-count="version.range">v2.1.89 &rarr; v2.1.212</span></span>
           <span class="tag"><span data-count="subsystems.total">18</span> Subsystems</span>
           <span class="tag"><span data-count="investigation.agents_deployed">21+</span> Agents</span>
           <span class="tag">MITM + hook captures</span>
@@ -489,7 +489,17 @@
             </div>
             <div class="timeline-dot"></div>
             <div class="timeline-label">v201&rarr;v206 (session-78): zero new findings, zero remediations, zero regressions. <strong>v202</strong> = diagram-in-Artifacts (a diagram-rendering + parser + HTML-sanitizer stack; it <strong>ships an XSS sanitizer</strong> for the rendered diagram markup = security-positive) plus a credential-<strong>mediating</strong> cloud-runner agent-proxy (it injects a sentinel token into the tool subprocess environment and keeps the real credential OUT of it). <strong>v203</strong> = the real delta with a ~5&nbsp;MiB code <strong>shrink</strong> (a preview/render engine retired after the diagram path landed; a shrink can neither add nor mask a finding, and all standing anchors are byte-stable), plus a new default-true daemon-side <strong>downgrade-refusal guard</strong> (the background daemon refuses to self-restart into an older on-disk build; security-positive, #113-adjacent, server-disableable but disabling only reverts to prior behavior) and an auto-mode edit-classification capability (default-off; when on it routes edits to <em>more</em> scrutiny &mdash; the inverse of the removed #108). <strong>v205</strong> = a security-positive auto-mode <strong>exfil-command awareness</strong> enrichment: the safety classifier flags exfil-capable git/gh commands (push, remote set-url, pr/issue create, release upload, fork) and enriches its decision with repo public/private + git-status paths (both default-off, client-computed, sanitized, paths-only &mdash; never file content, to the first-party classifier) &mdash; a risk hint, not a decision. <strong>v206</strong> = a feature build (+1.49&nbsp;MiB) with a staged-tool-call <strong>kill-switch</strong> (turning it off refuses the call = capability reduction, not a #108 fail-open) and a guarded end-conversation tool. Two &plusmn;1 standing-anchor drifts at v205 both benign: the #110 field-egress anchor fell by one (a semantics-preserving telemetry-emit hoist, egress unchanged) and the #31 AC3 anchor rose by one (a new legitimate producer; the exploited consumer is byte-identical, so the gap is unchanged). Both size deltas reconcile as 100&percnt; compiled JS (no blob); Bun 1.4.0 flat. Standing anchors #106/#110/#154/#151/#127/#155 byte-identical v200&rarr;v206; #108 stays 0. Tally 14C/37H/53M/11L across 155 issues; DEFAULT-TRUE 32&rarr;35.</div>
-            <span class="tl-badge">v206 current</span>
+            <span class="tl-badge">v206</span>
+          </div>
+          <div class="timeline-connector"></div>
+          <div class="timeline-node subsystems-era">
+            <div class="timeline-caption-top">
+              <div class="timeline-version">v2.1.212</div>
+              <div class="timeline-date">2026-07-17</div>
+            </div>
+            <div class="timeline-dot"></div>
+            <div class="timeline-label">v207&rarr;v212 (session-79): <strong>ONE new finding (#165, HIGH), zero regressions, multiple hardening wins.</strong> Six genuine per-release builds; the entire +5.27&nbsp;MiB is compiled JS confined to the bundle section (the native-code and read-only-data sections are byte-identical on the installed releases, and no embedded-blob magic appears in any of the six string-pair diffs); Bun 1.4.0 flat. <strong>#165 (HIGH)</strong> &mdash; a server-controlled configuration value can override an <em>official-marketplace or built-in</em> plugin's model-facing text (the MCP server-instructions plus the tool, parameter, prompt, and skill descriptions handed to the model) and land it <strong>verbatim in model context</strong>; the payload is type-validated only (no content sanitization), the primary instructions field is length-capped but not escaped, and the other maps are uncapped. It is a new instance of the server-push-into-model-context class (kin to the stop-hook #106 and system-prompt #154 instances) but a distinct flag/key/sink-role, with the injection attributed to a trusted first-party plugin's instructions. Filed <strong>High, not Critical</strong> &mdash; default-off, official/built-in-gated (third-party plugins cannot be targeted), fail-safe fallback, and not yet wire-confirmed. <strong>Hardening:</strong> a transient v207 feature that briefly routed a server-pushed prompt string into model context (remote/cowork-gated, never reachable on a plain local session) was removed at v208; a new default-off toggle <em>adds authentication</em> to the server-controlled config channel; the memory subsystem's secret-skip guard survived and hardened a refactor (it now hard-blocks secret-bearing writes, fail-closed); the file-edit read-before-write guard-skip became non-server-flippable (the #152 write-path residual stays Low); a new guard code-enforces the never-reuse-the-default-branch rule for the cloud/teleport auto-PR path; and the background-daemon anti-downgrade guard is unconditional. DEFAULT-TRUE 35&rarr;43 (all eight additions benign, none a permission inversion). A per-version delta-extractor blind spot (an accessor identifier containing a &lsquo;$&rsquo; that the character class excluded) was found and fixed. The #31 AC3 anchor moved by one benign new error-path producer (its consumer byte-identical). Standing anchors #106/#110/#154/#151/#127/#155 byte-identical v206&rarr;v212; #108 stays 0. Tally 14C/38H/59M/13L across 164 issues; DEFAULT-TRUE 35&rarr;43.</div>
+            <span class="tl-badge">v212 current</span>
           </div>
         </div>
       </div>
@@ -2227,7 +2237,7 @@ omitted per redaction policy (Tier 1).</code>
         <p class="section-intro">
           Full structural map of the Claude Code harness — <span data-count="subsystems.total">18</span> subsystems across the
           Startup Spine, Core Runtime, and all satellite clusters. Clusters A–AJ; version scope
-          <span data-count="version.range">v2.1.89 → v2.1.206</span>.
+          <span data-count="version.range">v2.1.89 → v2.1.212</span>.
           Node styles: <strong>blue border</strong> = verified, <strong>red dashed</strong> = gap, <strong>grey dashed</strong> = removed, <strong>violet</strong> = our tooling.
         </p>
 

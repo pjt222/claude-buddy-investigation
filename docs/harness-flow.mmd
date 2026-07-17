@@ -101,7 +101,7 @@ flowchart LR
         ultrareview["Ultrareview (5 events)<br/>GET [ultrareview-endpoint]<br/>SDK: {subtype:ultrareview_launch}"]:::core
         autofix_pr["Autofix-PR (2 events)<br/>POST [ccr-pr-endpoint]"]:::core
         remote_trigger["RemoteTrigger tool<br/>[remote-session-gate] gate<br/>ccr-triggers-2026-01-30<br/>actions: list/get/create/update/run"]:::core
-        cobalt_lantern["[github-token-sync-gate]<br/>GitHub token-sync CCR access"]:::core
+        gh_token_sync_gate["[github-token-sync-gate]<br/>GitHub token-sync CCR access"]:::core
     end
     %% ===== M — Auto-Dream =====
     subgraph DREAM["M — Auto-Dream (5 events)"]
@@ -408,6 +408,17 @@ flowchart LR
         sa_render --> sa_stripped
         sa_render --> sa_color
     end
+    %% ===== AK — v208 Official-Plugin Prompt-Override Injection (#165 HIGH) =====
+    subgraph PLUGINOVERRIDE["AK — Official-Plugin Prompt-Override Injection (v2.1.208 #165 HIGH — server-push overrides official/inline plugin MCP instructions + tool descriptions into model context)"]
+        direction TB
+        po_gate["[plugin-prompt-override-flag] server-push (GrowthBook typed flag)<br/>DEFAULT empty object (inert until push)<br/>override-builder gate: official-marketplace membership<br/>OR inline-builtin — 3rd-party plugins EXCLUDED"]:::gap
+        po_default["Default empty → baked-in first-party text<br/>schema-fail also falls back (fail-SAFE); NOT #108"]:::baseline
+        po_inject["Server inject via [config-channel-endpoint]*:<br/>payload[pluginName] = {server_instructions,<br/>tool / param / prompt / skill description maps}<br/>zod TYPE-only (string) — NO content sanitization"]:::risk
+        po_sink["Consumers apply VERBATIM to model context:<br/>MCP server-instructions handed to the model;<br/>tool inputSchema.description / prompt / param / skill replaced.<br/>server_instructions 2048-cap UNESCAPED, other maps uncapped.<br/>#106-class, distinct flag/key/sink; 3 independent derivations"]:::core
+        po_gate --> po_default
+        po_default --> po_inject
+        po_inject --> po_sink
+    end
     %% ===== Cowork/CCR-v2 Bridge edges (AF, v2.1.160) =====
     startup -. "if ENVIRONMENT_KIND=='bridge'" .-> cb_gate
     cb_egress -. "sandbox egress (cloud-side, unverified)" .-> providers
@@ -519,8 +530,8 @@ flowchart LR
     workspace_mcp --> mcp_client
     shingle_capture --> mempalace
     ccr_gate --> remote_trigger
-    ccr_gate --> cobalt_lantern
-    cobalt_lantern -. "token sync" .-> teleport
+    ccr_gate --> gh_token_sync_gate
+    gh_token_sync_gate -. "token sync" .-> teleport
     flags -. "[marketplace-autoinstall-gate]" .-> official_marketplace
     official_marketplace --> plugin_load
     flags -. "[agent-stall-gate]" .-> async_stall

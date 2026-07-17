@@ -95,7 +95,7 @@ A wave-based probe of v2.1.111 and v2.1.112 binaries identified new subsystems a
 - 148 unique gate reads documented
 - 15 DEFAULT-TRUE flags (active for all users without server override)
 - ~830 strings match the flag prefix — distinguishing gate calls from telemetry events reduces this to 148 actual gates (6× noise ratio; completeness tracking is essential)
-- 7-layer flag resolution: env kill-switches → session overrides → project overrides → GrowthBook cache → Statsig gates → Grove policy → embedded default
+- 7-layer flag resolution: env kill-switches → session overrides → project overrides → server-controlled config cache → supplemental gates → policy layer → embedded default
 
 **Gate reader variants identified** (6 types):
 
@@ -163,9 +163,9 @@ The background daemon subsystem (statically present since v2.1.119, dormant) bec
 
 A telemetry layer for detecting forged subagent-attribution chains was shipped. Static analysis showed 3 of 4 reachable attack-class variants remain undefended at parse/load time: transcript-replay forge, sidechain-insertion forge, SendMessage inbox forge. SDK-stdin variant IS defended. One additional structural defense was confirmed bypassable via matched-pair forge.
 
-### v2.1.126 brief-mode stop-hook GrowthBook injection (1 Critical)
+### v2.1.126 brief-mode stop-hook server-channel injection (1 Critical)
 
-A new GrowthBook string-flag (empty-default) was added that overrides the hardcoded brief-mode Stop-hook reminder text. mitm-injection canary empirically reaches the model's `/v1/messages` request body as a `role:"user"` `type:"text"` synthetic message verbatim. 64KB canary upper-bound test confirmed no client-side length cap. No certificate pinning at the eval channel — network-MITM threat is realistic. Cross-model alignment retest: the v126 `--print` default model COMPLIED with a stripped bare-workdir canary; smaller models REFUSED. The default-model surface is wide open.
+A new server-controlled string-flag (empty-default) was added that overrides the hardcoded brief-mode Stop-hook reminder text. mitm-injection canary empirically reaches the model's `/v1/messages` request body as a `role:"user"` `type:"text"` synthetic message verbatim. 64KB canary upper-bound test confirmed no client-side length cap. No certificate pinning at the eval channel — network-MITM threat is realistic. Cross-model alignment retest: the v126 `--print` default model COMPLIED with a stripped bare-workdir canary; smaller models REFUSED. The default-model surface is wide open.
 
 ### v2.1.126 third-party processor extension (1 High)
 
@@ -200,9 +200,9 @@ A destructure-rename pattern in the 1P telemetry pipeline extracts `_PROTO_*`-pr
 - A `_PROTO_code → repl_code` slot exists at the egress destructure across v123/v126/v128/v129 but is currently unwired (0 emitter hits empirically). Forward-compat slot — escalate watch if a future binary wires a `_PROTO_code:` setter, since raw REPL inputs would be considerably more sensitive than identifier strings.
 - Extends the prior envelope-level leak class (raw session_id / device_id / email transmitted on every batch) from envelope to field level
 
-### v2.1.129 GrowthBook eval-SDK reachability baseline (informational, supports prior v128 findings)
+### v2.1.129 server config-eval reachability baseline (informational, supports prior v128 findings)
 
-The same MITM run captured the GrowthBook SDK feature-flag evaluation response: a 46 KB body containing 224 resolved features. Distribution by source: 162 `defaultValue`, 48 `force` (admin-pushed override), 14 `experiment` (active A/B assignment).
+The same MITM run captured the server-side feature-flag evaluation response: a 46 KB body containing 224 resolved features. Distribution by source: 162 `defaultValue`, 48 `force` (admin-pushed override), 14 `experiment` (active A/B assignment).
 
 This is the substrate behind the two adjacent v128 findings (sandbox classifier fail-open inversion via DEFAULT-TRUE flag; PR-status path-switcher activation via boolean flag). Neither flag was server-resolved for this user during the capture (one absent → local default applied, one present with `defaultValue: false`). However, the same response shows that the experiment-source and force-source override paths are demonstrably active for ~30 other flags right now — the inversions documented in those v128 findings are reachable via a single config push using mechanisms already in production use, not theoretical mechanisms requiring new infrastructure.
 
@@ -223,7 +223,7 @@ Full-attack run: classifier 3× retries all 503, classifier-error log emitted, t
 
 Site coverage: this run confirms the auto-mode permission classifier path. The sandbox-network classifier (separate function in the binary) uses the same flag with the same fail-open inversion semantics but fires only when network sandboxing is active (Linux unshare / macOS sandbox-exec) — empirical confirmation deferred to a sandbox-active TUI session. Static-decode evidence already filed for that site.
 
-Adversary capability required: server-flip access to GrowthBook (Anthropic operations) plus classifier endpoint disruption (could be partial outage, network event, or coordinated). Both are realistic operational conditions. The binary's own `(fail open)` log line is direct acknowledgement of the inversion.
+Adversary capability required: server-flip access to the config-eval channel (Anthropic operations) plus classifier endpoint disruption (could be partial outage, network event, or coordinated). Both are realistic operational conditions. The binary's own `(fail open)` log line is direct acknowledgement of the inversion.
 
 ### v2.1.129 reader unification (informational)
 
@@ -318,9 +318,9 @@ The strongest framing is the pattern, not the individual omissions: a reasonable
 
 ---
 
-## Phase 9: v2.1.153 → v2.1.206 — Continued Rolling Audit, Upstream Remediation, and a #127 Demotion
+## Phase 9: v2.1.153 → v2.1.212 — Continued Rolling Audit, Upstream Remediation, a #127 Demotion, and a New Injection Finding (#165)
 
-**Scope**: rolling per-version harness audit from v2.1.153 through v2.1.206 (current binary **v2.1.206**, npm `latest` and `next`; the marked-stable binary is **v2.1.197**; coverage extends through session 78). The investigation stayed in wire-confirmation mode: new subsystems are decoded, priority-finding literals are bounded-grep re-verified each release, and only genuinely new server-reachable primitives are filed. All flag and reader-identifier names redacted; functional descriptions and finding numbers only.
+**Scope**: rolling per-version harness audit from v2.1.153 through v2.1.212 (current binary **v2.1.212**, npm `latest` = 212; the marked-stable binary is **v2.1.197**; coverage extends through session 79). The investigation stayed in wire-confirmation mode: new subsystems are decoded, priority-finding literals are bounded-grep re-verified each release, and only genuinely new server-reachable primitives are filed. All flag and reader-identifier names redacted; functional descriptions and finding numbers only.
 
 ### v2.1.153 → v2.1.177 bridge (stable-runtime, genuine per-release builds)
 
@@ -439,9 +439,30 @@ An **enable-gate GRADUATION** was also noted: a design-integration enable enviro
 
 Standing findings #106 / #110 / #154 / #151 / #127 / #155 reproduce byte-identical v200 → v206; #108 stays removed (0). No status changes across the v201 → v206 window.
 
-### Tally (current as of v2.1.206, Session 78)
+### v2.1.207 → v2.1.212 (Session 79): one new injection finding (#165 High) and a hardening sweep
 
-Severities mirror `docs/counts.js` (authoritative), **unchanged across this window**. The live GitHub-label re-derivation across the repo issue set: **14 critical / 37 high / 53 medium / 11 low** (115 severity-labeled issues across 155 total repo issues). The original tooling-audit baseline census stands at **30 items** (7 critical / 9 high / 10 medium / 3 low / 1 observation). The server-flippable DEFAULT-TRUE set is now **35** (33 boolean + 2 typed). Current binary **v2.1.206** (npm `latest` and `next`); the marked-stable binary is **v2.1.197**. Net direction across the v153 → v206 window: two genuine remediations of tracked findings (#115 closed at v156, #108 removed at v179), one hardening default-flip (v196), and — across v197 → v206 — **zero new findings, zero remediations, zero regressions**: a major feature release (v198) plus the v202 diagram-in-Artifacts feature (which itself **ships an XSS sanitizer**), whose new capabilities (background auto-push / draft-PR, host-managed credentials, observer agents, design-consent upload, credential-mediating cloud-runner proxy) all landed with use-site hardening, fail-closed defaults, and operator-gated toggles below the local-reach bar. The DEFAULT-TRUE set moved 32 (v200) → 33 (v202) → 34 (v203) → 35 (v206); every addition is benign and **none is a safety-gate inversion**. Two new functional WATCH items joined the ledger: the v203 daemon downgrade-refusal guard (server-disableable but net-positive, #113-adjacent) and the v205 auto-mode exfil-awareness enrichment (net-defensive). Standing against all of this: the two v178→v191 injection primitives (#154 Critical, #155 High) and the #127 demotion (Critical → High).
+**Scope**: six releases, v2.1.207 through v2.1.212 (current binary **v2.1.212**, npm `latest` = 212; the marked-stable binary remains **v2.1.197**). This window carried **ONE new finding (#165, HIGH), ZERO regressions, and multiple hardening wins.** All six are **genuine per-release builds** (a distinct app build id each) with the bundled runtime unchanged; the entire **+5.27 MiB** of growth is compiled application code confined to the bundle section — section-localized via `readelf`, with the native-code and read-only-data sections **byte-identical** across the installed releases and **no embedded blob** in any of the six string-pair diffs.
+
+**#165 — HIGH (new): a server-push override of a trusted plugin's model-facing text into model context.** A server-controlled configuration value can override an **official-marketplace or built-in** plugin's model-facing text — the plugin's MCP server-instructions plus the tool, parameter, prompt, and skill descriptions handed to the model — and that override text lands **verbatim** in model context. The payload is **type-validated only** (no content sanitization); the primary server-instructions field is **length-capped but not escaped**, and the other description maps are **uncapped**. This is a **new instance of the server-push-into-model-context class** — kin to the Stop-hook override (#106) and the system-prompt override (#154) — but with a **distinct flag, config-cache key, and sink role**: the injected text is attributed to a **trusted first-party plugin's instructions**. Filed **HIGH rather than Critical** because it is **default-off**, gated to **official / built-in plugins only** (third-party plugins cannot be targeted), **fails safe** to the built-in text on a malformed payload, and is **not yet wire-confirmed**. Wire-confirmation is the natural escalation (as it was for #106 / #108 / #113 / #154).
+
+**Hardening wins this window:**
+
+- **A transient v207 feature that briefly routed a server-pushed prompt string into model context was removed one release later.** It was gated behind a remote / cloud-cowork entrypoint and was **never reachable on a plain local session**; it is gone by the next release.
+- **A new default-off toggle ADDS authentication to the server-controlled config channel** — a defense-in-depth improvement on the config/control plane this investigation tracks.
+- **The memory subsystem's secret-skip guard survived and was hardened through a refactor.** It now **hard-blocks** secret-bearing memory writes (fail-closed).
+- **The read-before-write guard-skip on the file-edit tool became non-server-flippable (#152).** The server can **no longer force-skip** the read-before-write guard; the write-path residual stays **Low** (#152).
+- **A new guard code-enforces the never-reuse-the-default-branch rule for the cloud / teleport auto-PR path** — partially closing the prior **W-BGPUSH** watch item, so the never-push-to-the-default-branch boundary is now **code-enforced** on that path, not prompt-level.
+- **The anti-downgrade guard on the background daemon is now unconditional** — there is **no server flag on its predicate** (the v203 daemon downgrade-refusal WATCH tightens to always-on).
+
+**DEFAULT-TRUE 35 → 43.** All **eight** additions are **benign** — each server OFF-flip either **reduces capability** or is a **reliability / UI / approval-fail-closed** toggle; **none inverts a permission decision**. The two typed defaults stay flat, so the additions are all boolean-style toggles.
+
+**Standing findings byte-stable v206 → v212.** #106 / #110 / #154 / #151 / #127 / #155 all reproduce; the #108 sandbox-classifier fail-open gate **stays removed (0)**. The **#31 AC3 subagent-attribution anchor moved by a single occurrence** — a new **benign error-path producer** stamping the attribution field from a real source id — but the **consumer that #31 AC3 exploits is byte-identical**, so the gap is neither worsened nor fixed.
+
+**Tooling fix.** A per-version delta-extractor **blind spot** was found and fixed: a minified accessor identifier that legitimately contains a `$` character was excluded by the extractor's character class, which had briefly made a **stable** server-push config set read as **removed**. Corrected — the config set is confirmed stable.
+
+### Tally (current as of v2.1.212, Session 79)
+
+Severities mirror `docs/counts.js` (authoritative). The live GitHub-label re-derivation across the repo issue set: **14 critical / 38 high / 59 medium / 13 low** (124 severity-labeled issues across **164** total repo issues). The high count rose by one for **#165** (the new server-push plugin-instruction override); the medium / low / total movement (53→59, 11→13, 155→164) is a **catch-up** that folds an earlier issue batch into the tracker, re-derived directly from the issue set — not new server-reachable findings. The original tooling-audit baseline census stands at **30 items** (7 critical / 9 high / 10 medium / 3 low / 1 observation). The server-flippable DEFAULT-TRUE set is now **43** (41 boolean + 2 typed). Current binary **v2.1.212** (npm `latest` = 212); the marked-stable binary is **v2.1.197**. Net direction across the v153 → v212 window: two genuine remediations of tracked findings (#115 closed at v156, #108 removed at v179), one hardening default-flip (v196), the v207→v212 hardening sweep (config-channel authentication toggle, fail-closed secret-skip memory guard, a non-server-flippable read-before-write guard-skip tightening #152, a code-enforced never-reuse-the-default-branch guard partially closing W-BGPUSH, and an unconditional daemon anti-downgrade predicate), and — across v197 → v212 — a **single new finding** (#165, High) against a backdrop of otherwise benign feature builds. The v198 major release plus the v202 diagram-in-Artifacts feature (which itself **ships an XSS sanitizer**) landed new capabilities (background auto-push / draft-PR, host-managed credentials, observer agents, design-consent upload, credential-mediating cloud-runner proxy) with use-site hardening, fail-closed defaults, and operator-gated toggles below the local-reach bar. The DEFAULT-TRUE set moved 32 (v200) → 33 (v202) → 34 (v203) → 35 (v206) → 43 (v212); every addition is benign and **none is a safety-gate inversion**. Functional WATCH items on the ledger: the v203 daemon downgrade-refusal guard (now tightened to always-on) and the v205 auto-mode exfil-awareness enrichment (net-defensive). Standing against all of this: the two v178→v191 injection primitives (#154 Critical, #155 High), the new #165 (High), and the #127 demotion (Critical → High).
 
 ---
 
