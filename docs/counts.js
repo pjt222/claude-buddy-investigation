@@ -106,11 +106,11 @@ window.VIZ_COUNTS = Object.freeze({
     gh_label_counts: {
       critical: 14,
       high: 38,
-      medium: 59,
+      medium: 60,  // session-80: +1 = a tooling/process issue recording a redaction-enforcer gap in this project's own publish pipeline (found and fixed the same session), NOT a harness finding.
       low: 14,   // session-80: +1 = a new watch-tracker issue for the server-selectable prompt-variant gates (a tracker with a promotion tripwire, NOT a severity finding - two independent passes returned watch-only). Zero new harness findings this window.
-      labeled_total: 125,   // 14C + 38H + 59M + 14L
+      labeled_total: 126,   // 14C + 38H + 60M + 14L
       unlabeled_by_severity: 40,
-      repo_total: 165,  // session-80: +1 = the prompt-variant watch tracker. Harness findings this window: ZERO.
+      repo_total: 166,  // session-80: +2 total = #166 (prompt-variant watch tracker) and #167 (a tooling/process issue recording a redaction-enforcer gap in this project OWN publish pipeline, found and fixed the same session). Harness findings this window: ZERO.
       derived_at: "2026-07-17"
     }
   },
