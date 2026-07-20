@@ -309,6 +309,8 @@ Each version since v126 has been round-1 flag-diffed and the priority findings c
 
 ### The documentation-gap pattern
 
+*Prior status (2026-05-20). This assessment has been **superseded** by the 2026-07-20 refresh in Phase 9 below, which records three gaps closing outright; it is preserved here as the historical baseline.*
+
 A 2026-05-20 review of the official Claude Code docs against the finding inventory surfaces a uniform, one-directional gap that is itself a disclosure-grade observation:
 
 - **User-triggered data flows are documented honestly** — `/feedback`, the session-quality survey, the transcript-share follow-up, and OpenTelemetry export each have a precise description of what is uploaded, retention, and a documented opt-out.
@@ -318,9 +320,9 @@ The strongest framing is the pattern, not the individual omissions: a reasonable
 
 ---
 
-## Phase 9: v2.1.153 → v2.1.212 — Continued Rolling Audit, Upstream Remediation, a #127 Demotion, and a New Injection Finding (#165)
+## Phase 9: v2.1.153 → v2.1.215 — Continued Rolling Audit, Upstream Remediation, a #127 Demotion, and a New Injection Finding (#165)
 
-**Scope**: rolling per-version harness audit from v2.1.153 through v2.1.212 (current binary **v2.1.212**, npm `latest` = 212; the marked-stable binary is **v2.1.197**; coverage extends through session 79). The investigation stayed in wire-confirmation mode: new subsystems are decoded, priority-finding literals are bounded-grep re-verified each release, and only genuinely new server-reachable primitives are filed. All flag and reader-identifier names redacted; functional descriptions and finding numbers only.
+**Scope**: rolling per-version harness audit from v2.1.153 through v2.1.215 (current binary **v2.1.215**, npm `latest` = `next` = 215; the marked-stable binary advanced v2.1.197 → **v2.1.205**; coverage extends through session 80). The investigation stayed in wire-confirmation mode: new subsystems are decoded, priority-finding literals are bounded-grep re-verified each release, and only genuinely new server-reachable primitives are filed. All flag and reader-identifier names redacted; functional descriptions and finding numbers only.
 
 ### v2.1.153 → v2.1.177 bridge (stable-runtime, genuine per-release builds)
 
@@ -460,9 +462,72 @@ Standing findings #106 / #110 / #154 / #151 / #127 / #155 reproduce byte-identic
 
 **Tooling fix.** A per-version delta-extractor **blind spot** was found and fixed: a minified accessor identifier that legitimately contains a `$` character was excluded by the extractor's character class, which had briefly made a **stable** server-push config set read as **removed**. Corrected — the config set is confirmed stable.
 
-### Tally (current as of v2.1.212, Session 79)
+### v2.1.213 → v2.1.215 (Session 80): zero new findings, a bundler-runtime revision bump, and a standing anchor that fell without being fixed
+
+**Scope**: three releases, v2.1.213 through v2.1.215 (current binary **v2.1.215**, npm `latest` = `next` = 215; the marked-stable binary advanced v2.1.197 → **v2.1.205**). Across all three: **ZERO new findings, ZERO regressions, ZERO remediations.** All three are **genuine per-release builds** (a distinct application build id each). Method for the window: a lead-owned factual spine plus a **16-unit decode-and-adversarially-verify fan-out**, followed by **two independent contrarian refinement passes** over the surviving residuals.
+
+**This was NOT a pure-JavaScript window — the first since v198.** Every native section of the binary moved and one runtime-internal section was dropped outright. The shift is **fully ATTRIBUTED** to a **bundler/runtime BUILD-REVISION bump under an unchanged semantic version**: the compiled-JavaScript share grew ~1.34 MiB while the binary as a whole grew only ~1.09 MiB, because the **native side shrank**. No embedded-executable markers appear anywhere in the new strings. The distinction is now tracked explicitly per window: an **ATTRIBUTED** native shift (the bundled runtime's revision moved) is expected and benign; an **UNATTRIBUTED** one would mean first-party native code and is a decode trigger. The corresponding methodology fix: the runtime is now identified by `<semantic version>+<build revision>`, not by semantic version alone — semantic version alone was structurally blind to exactly this swap.
+
+**A standing-finding anchor FELL — and the drop decoded as benign, not a fix.** Two of the **#110** raw-field-egress anchors dropped (10 → 6 and 13 → 9). That is precisely the shape a remediation takes, so it was **decoded rather than welcomed**: the prior release's **five inline plugin-command telemetry emits were collapsed into one shared helper** — an ordinary DRY refactor. All five events still fire, with **identical payloads and identical per-event counts**. **#110 STANDS, unremediated**, and the finding thread now records this so a future audit does not misread the lower number as an upstream fix.
+
+**Census, re-derived rather than counted:**
+
+- **DEFAULT-TRUE 43, FLAT** (41 boolean + 2 typed) — re-derived at **MEMBER** level, not by count alone, because a count-stable set can still conceal a swap. Both the added and the removed sets were **empty**.
+- **Server-pushed config-cache keys: 9, flat.** The accessor identifier rotated again; it was located by **definition body** rather than by name, confirming the extractor is **not blind** (this is the class of blind spot fixed in the previous window).
+- All other standing anchors byte-stable; the **#108** anchor **stays at zero** (removed upstream at v179).
+
+**Two items carried as WATCH — neither filed as a finding.** Both survived contrarian refinement, and both came out **watch-only**:
+
+- **Server-selectable system-prompt text variants.** A family of gates whose activation condition is an **OR, not an AND**, so a **server flag alone suffices** to select a variant. One member **omits a cautionary clause** from tool-use guidance that the prior release rendered **unconditionally** — i.e. a previously-unconditional guard becomes **server-suppressible**. It is **not #106-class**: the server contributes only a **boolean or a three-value enum**, and every rendered sentence is a **literal already compiled into the client** — **no server-authored text reaches model context**. Watch-only because a fourth member of the family **pre-dates** this window, and because **#106 / #154 / #165 strictly dominate** it in reach. Tracked as a new **low-severity tracker issue (#166)**.
+- **A remote grant auto-resolving a local permission prompt.** Default-off, **triple-bounded** in reach, establishes **no durable allow-rule**, and the grant it waits on is itself a **real user action on another first-party surface** — so it **relocates** an approval rather than fabricating one.
+
+**Hardening confirmed this window:**
+
+- **An environment opt-out that hard-disables all model substitution, fail-closed** — with it set, a flagged message **pauses the session** rather than silently switching the user onto a different model.
+- **The daily-briefing surface is now fully retired, with zero successor** — completing the removal begun at v208 (the transient v207 server-pushed-prompt path noted in the previous window).
+
+**Benign new surfaces, all decoded:**
+
+- **A local-only configuration import command** with an unusually defensive apply path: it refuses paths that escape the source directory, refuses project-scope writes underneath a symlink, **never overwrites an existing target**, and **does not port hook definitions**.
+- **Organization-memory literals that are telemetry, not flags** — a server-to-local mirror only, with **no upload path added**. The fail-closed secret-skip memory guard from the previous window **survives** here.
+- **An operator-environment-only first-party cloud provider** that **no server flag can reach**; its auth-skip toggle is an operator gateway header and is fail-closed.
+- **An OpenTelemetry content-length control that returns a MINIMUM** — so it can only ever **shorten** emitted content, never lengthen it. The underlying path pre-dates this window, is default-off, and is byte-stable; it is **not** an expansion of the #105 telemetry footprint.
+
+Standing findings **#106 / #110 / #154 / #151 / #127 / #155 reproduce byte-identical v212 → v215**; **#108 stays removed (0)**. No status changes.
+
+### Documentation-gap analysis refreshed (2026-07-20): the asymmetry narrowed but did not close
+
+The 2026-05-20 assessment recorded above was **re-run against the current official Claude Code documentation corpus (170 pages)** and is **superseded** by this refresh. The direction of travel is genuinely positive, and three prior gaps **closed outright**:
+
+- **The server-to-client feature-flag channel is now named on the record** as Anthropic's feature-flag service, **with a documented opt-out environment variable** (`DISABLE_GROWTHBOOK`). The single largest omission of the 2026-05-20 review — that a doc search for "feature flags" returned nothing at all — no longer holds.
+- **The remote-session `--teleport` flag is now fully documented.**
+- **The hook input-REWRITE surface is documented in detail** — the `PreToolUse` hook's ability to return an `updatedInput` that replaces the tool's arguments is now described rather than merely implied.
+
+**What did not move.** Across all 170 pages there is still **nothing** describing:
+
+- a **server-pushed string that reaches the model's context or system prompt** (#106 / #154 / #165);
+- a **server-pushed notice rendered in the user's terminal** (#127 / #155);
+- a **server-initiated version DOWNGRADE** (#113) — still not covered by the documented auto-updates opt-out.
+
+The Anthropic-bound operational-metrics channel remains described **only by what it excludes**, never by the **identity metadata it carries** (#92 / #110).
+
+**Two affirmative security claims now appear in the docs where this repository holds contrary evidence** — the documentation states that background marketplace refresh **disables git credential helpers**, and that a teammate's relayed approval is **treated as untrusted**. Both are directly contradicted by tracked findings (**#151** and **#31** respectively). Documented claims are easier to test and easier to discuss than silence, so this **strengthens rather than weakens** the disclosure posture on both.
+
+### Redaction tooling rebuilt (Session 80)
+
+The publish-time redaction enforcer was **inverted in design**: it moved from a **hand-enumerated list of known-sensitive tokens** to **scan-and-subtract**. It now extracts **every internal-shaped identifier** present in the public mirror and subtracts **everything the official documentation publishes** — so a **newly invented internal name is caught on day one**, rather than whenever someone remembers to add it to a list. The governing rule is now explicit: **a name published in the official documentation is not sensitive and is used verbatim**. The publish-time redactors additionally **fail closed** — the build **aborts** rather than emitting an identifier that no mapping table happens to cover. The rebuild immediately caught a class of leak the enumerated list had **structurally never looked for**.
+
+### Tally (prior status, as of v2.1.212, Session 79)
 
 Severities mirror `docs/counts.js` (authoritative). The live GitHub-label re-derivation across the repo issue set: **14 critical / 38 high / 59 medium / 13 low** (124 severity-labeled issues across **164** total repo issues). The high count rose by one for **#165** (the new server-push plugin-instruction override); the medium / low / total movement (53→59, 11→13, 155→164) is a **catch-up** that folds an earlier issue batch into the tracker, re-derived directly from the issue set — not new server-reachable findings. The original tooling-audit baseline census stands at **30 items** (7 critical / 9 high / 10 medium / 3 low / 1 observation). The server-flippable DEFAULT-TRUE set is now **43** (41 boolean + 2 typed). Current binary **v2.1.212** (npm `latest` = 212); the marked-stable binary is **v2.1.197**. Net direction across the v153 → v212 window: two genuine remediations of tracked findings (#115 closed at v156, #108 removed at v179), one hardening default-flip (v196), the v207→v212 hardening sweep (config-channel authentication toggle, fail-closed secret-skip memory guard, a non-server-flippable read-before-write guard-skip tightening #152, a code-enforced never-reuse-the-default-branch guard partially closing W-BGPUSH, and an unconditional daemon anti-downgrade predicate), and — across v197 → v212 — a **single new finding** (#165, High) against a backdrop of otherwise benign feature builds. The v198 major release plus the v202 diagram-in-Artifacts feature (which itself **ships an XSS sanitizer**) landed new capabilities (background auto-push / draft-PR, host-managed credentials, observer agents, design-consent upload, credential-mediating cloud-runner proxy) with use-site hardening, fail-closed defaults, and operator-gated toggles below the local-reach bar. The DEFAULT-TRUE set moved 32 (v200) → 33 (v202) → 34 (v203) → 35 (v206) → 43 (v212); every addition is benign and **none is a safety-gate inversion**. Functional WATCH items on the ledger: the v203 daemon downgrade-refusal guard (now tightened to always-on) and the v205 auto-mode exfil-awareness enrichment (net-defensive). Standing against all of this: the two v178→v191 injection primitives (#154 Critical, #155 High), the new #165 (High), and the #127 demotion (Critical → High).
+
+### Tally (current as of v2.1.215, Session 80)
+
+Severities mirror `docs/counts.js` (authoritative). The live GitHub-label re-derivation across the repo issue set: **14 critical / 38 high / 59 medium / 14 low** across **165** total repo issues. The **only** movement from the Session-79 tally is **low 13 → 14** and **total 164 → 165** — a single new **watch-tracker** issue (**#166**, the server-selectable system-prompt text variants). There are **ZERO new harness findings**, **ZERO regressions**, and **ZERO remediations** in the v213 → v215 window; the critical, high, and medium counts are unchanged. The original tooling-audit baseline census stands at **30 items** (7 critical / 9 high / 10 medium / 3 low / 1 observation).
+
+The server-flippable DEFAULT-TRUE set is **43** (41 boolean + 2 typed), **FLAT** across this window and re-verified at **member** level — added and removed sets both empty, so the flat count is a verified-identical set rather than a coincidence of arithmetic. Server-pushed config-cache keys hold at **9**.
+
+Current binary **v2.1.215** (npm `latest` = `next` = 215); the marked-stable binary advanced **v2.1.197 → v2.1.205**. Net direction across v213 → v215: a **quiet window** — three genuine per-release builds, one **attributed** bundler-runtime revision bump (the first non-pure-JavaScript window since v198, fully explained and carrying no first-party native code), two hardening confirmations (a fail-closed model-substitution opt-out; the daily-briefing surface fully retired with no successor), four benign new surfaces, and two WATCH items that both survived contrarian refinement as **watch-only**. The one event that looked like good news — a **#110 anchor count falling** — was decoded and is **a DRY refactor, not a remediation**: **#110 stands**. Standing against all of this, unchanged: the injection primitives **#106 / #154** (Critical), **#155 / #165 / #127 / #151** (High), and the undefended subagent-attribution gap **#31 AC3** (Critical).
 
 ---
 

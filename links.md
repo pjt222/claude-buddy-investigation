@@ -165,8 +165,8 @@ turn, hatch, pet, test-fail, error, large-diff, complete, idle, silence
 
 Three server-side flags landed in v2.1.101 related to the CCR (Claude Code Remote) cloud-runner subsystem:
 
-- **`cinder_almanac`** — gates the CCR subsystem. **RESOLVED 2026-04-13**: rollout switch for the `/loop` skill's cloud-scheduling preamble that upsells users toward `/schedule` via the `RemoteTrigger` tool. **Extended 2026-04-15**: full CCR architecture: teleport module, bridge module (aka "Remote Control"), `/v1/sessions/*` API, `/v1/environments/*` API, adaptive heartbeat, `anthropic-beta: ccr-byoc-2025-07-29`.
-- **`surreal_dali`** — secondary gate for CCR. Resolved as companion gate to `cinder_almanac` in CCR subsystem deep-dive.
-- **`ultraplan_dialog_choice`** — extends the existing `ultraplan_*` flag family. Likely a UI dialog-choice affordance within plan-mode.
+- **`[ccr-rollout-gate]`** — gates the CCR subsystem. **RESOLVED 2026-04-13**: rollout switch for the `/loop` skill's cloud-scheduling preamble that upsells users toward `/schedule` via the `RemoteTrigger` tool. **Extended 2026-04-15**: full CCR architecture: teleport module, bridge module (aka "Remote Control"), `/v1/sessions/*` API, `/v1/environments/*` API, adaptive heartbeat, `anthropic-beta: ccr-byoc-2025-07-29`.
+- **`[ccr-secondary-gate]`** — secondary gate for CCR. Resolved as companion gate to `[ccr-rollout-gate]` in CCR subsystem deep-dive.
+- **`[plan-dialog-flag]`** — extends the existing `[plan-mode-flag-family]` flag family. Likely a UI dialog-choice affordance within plan-mode.
 
 None of these have observable behaviour in the current Claude Code surface without server-side flag enablement.

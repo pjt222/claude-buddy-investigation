@@ -107,10 +107,10 @@ window.VIZ_COUNTS = Object.freeze({
       critical: 14,
       high: 38,
       medium: 59,
-      low: 13,
-      labeled_total: 124,
+      low: 14,   // session-80: +1 = a new watch-tracker issue for the server-selectable prompt-variant gates (a tracker with a promotion tripwire, NOT a severity finding - two independent passes returned watch-only). Zero new harness findings this window.
+      labeled_total: 125,   // 14C + 38H + 59M + 14L
       unlabeled_by_severity: 40,
-      repo_total: 164,
+      repo_total: 165,  // session-80: +1 = the prompt-variant watch tracker. Harness findings this window: ZERO.
       derived_at: "2026-07-17"
     }
   },
@@ -137,7 +137,7 @@ window.VIZ_COUNTS = Object.freeze({
   hooks: { event_types: 27 },  // v2.1.112 binary: full tT[] array has 27 types (was 9 documented)
   // 7-layer resolution (v2.1.110 binary decode):
   //   1. Per-feature env kill switches (caller-side)
-  //   2. Session override map sTH() — env-var injected (CLAUDE_CODE_FEATURE_FLAGS)
+  //   2. Session override map sTH() — env-var injected ([env-flag])
   //   3. Project-local flag overrides tTH()
   //   4. GrowthBook feature cache (cachedGrowthBookFeatures in ~/.claude.json)
   //   5. Statsig supplemental gates [statsig-gate-fn] (cachedStatsigGates)
@@ -189,7 +189,7 @@ window.VIZ_COUNTS = Object.freeze({
   // ---- Auto-Dream memory scheduler ----
   // Probed on v2.1.110 in results/auto-dream-2026-04-16.md.
   // Background memory-consolidation; forks dream agent with skipTranscript=true.
-  auto_dream: {
+  memory_consolidation: {
     total_events: 5,      // _skipped, _fired, _completed, _failed, _toggled
     min_sessions_default: 5,
     min_hours_default: 24
@@ -204,9 +204,9 @@ window.VIZ_COUNTS = Object.freeze({
   },
 
   // ---- CCR wave 6 additions ----
-  // remote_trigger: [remote-trigger-gate] gate, ccr-triggers-2026-01-30
+  // trigger-tool: [remote-trigger-gate] gate, ccr-triggers-2026-01-30
   // [codename]: GitHub token-sync CCR access
-  remote_trigger: {
+  trigger_tool: {
     actions: 5  // list, get, create, update, run
   },
 
@@ -230,15 +230,15 @@ window.VIZ_COUNTS = Object.freeze({
   investigation: {
     agents_deployed: "21+",
     waves: 16,
-    current_binary: "2.1.212",   // session-79 (2026-07-17); npm latest=v212 (audited through v212), stable v197; v207-212 = ONE new finding #165 HIGH (server-push plugin-instruction override into model context, v208), zero regressions, multiple hardening wins
-    latest_session: 78
+    current_binary: "2.1.215",   // session-80 (2026-07-20); binary moved v212 to v215 across three releases; ZERO new findings, ZERO regressions, ZERO remediations; stable advanced v197 to v205. NOT a pure-JS window (the first since v198): all native sections moved and one runtime-internal section was dropped - fully ATTRIBUTED to a bundler/runtime BUILD-REVISION bump under an unchanged semantic version; the JavaScript share grew more than the binary did, because the native side shrank. DEFAULT-TRUE 43 FLAT, re-derived at MEMBER level (added and removed sets both empty). Server-pushed config-cache keys 9 flat. Two #110 raw-field-egress anchors dropped (10 to 6, 13 to 9) = a DRY refactor collapsing five inline plugin-command emits into one shared helper, all five still firing identical payloads - NOT a remediation; #110 stands. Two WATCH items, neither filed as a finding.
+    latest_session: 80
   },
 
   // ---- Version coverage ----
   version: {
     start: "v2.1.89",
-    end: "v2.1.206",
-    range: "v2.1.89 \u2192 v2.1.212",  // unicode rightwards arrow. hero badge reads version.range; session-79 audited through v212 (npm latest), stable v197
+    end: "v2.1.215",
+    range: "v2.1.89 \u2192 v2.1.215",  // unicode rightwards arrow. hero badge reads version.range; session-80 audited through v215 (npm latest=next), stable advanced v197 to v205
     skipped: ["v2.1.120", "v2.1.122", "v2.1.124", "v2.1.125", "v2.1.127", "v2.1.130", "v2.1.134", "v2.1.135", "v2.1.136", "v2.1.137", "v2.1.139", "v2.1.146", "v2.1.149", "v2.1.150", "v2.1.151", "v2.1.154", "v2.1.155", "v2.1.157"]
   },
 
@@ -302,12 +302,12 @@ window.VIZ_COUNTS = Object.freeze({
     severity_promotion_gate_pending: "USER incognito re-verify with explicit address-bar + sign-in-interstitial check"
   },
 
-  // ---- v128 iron_gate sandbox network classifier fail-closed inversion ----
+  // ---- v128 [sandbox-classifier-gate] sandbox network classifier fail-closed inversion ----
   // <iron-gate-flag> default-TRUE controls fail-closed-vs-fail-open
   // behaviour of the sandbox network classifier when classifier is unavailable.
   // Server flip to false inverts the safety default from DENY (fail-closed) to
   // ALLOW (fail-open). Server-flippable safety-default inversion.
-  iron_gate_fail_open_inversion: {
+  sandbox_classifier_gate_fail_open_inversion: {
     flag: "<iron-gate-flag>",                   // GrowthBook boolean-flag, default true
     default_behavior_when_classifier_unavailable: "deny (fail-closed, safe)",
     behavior_after_server_flip_to_false: "allow (fail-open, unsafe)",
@@ -315,11 +315,11 @@ window.VIZ_COUNTS = Object.freeze({
     promotion_gate_to_high: "empirical observation of classifier-unavailable window in normal operations"
   },
 
-  // ---- v128 harbor_prism PR-status path-switcher ----
+  // ---- v128 [pr-status-switcher] PR-status path-switcher ----
   // <harbor-prism-flag> string-flag (default false) switches PR-status
   // check between local `gh pr view` (default, ground truth) and Anthropic-server
   // side path. Decision-routing flag — diverges per-account.
-  harbor_prism_path_switcher: {
+  pr_status_switcher: {
     flag: "<harbor-prism-flag>",                // GrowthBook string-flag, default false
     off_path: "local `gh pr view --json ...` (ground truth)",
     on_path: "Anthropic-server side <pr-server-path-fn>($) routing",
@@ -447,7 +447,7 @@ window.VIZ_COUNTS = Object.freeze({
   // GrowthBook reader, Datadog third-party gate, harbor PR-status flag,
   // hookSpecificOutput.updatedInput nesting, --teleport CLI flag, the
   // forced-downgrade canary primitive, the sourceToolAssistantUUID
-  // transcript-replay literal, and parent_tool_use_id (phantom_parent class)
+  // transcript-replay literal, and parent_tool_use_id ([forged-parent] class)
   // all unchanged.
   v140_round_1: {
     binary_size_bytes: 231577296,
@@ -614,7 +614,7 @@ window.VIZ_COUNTS = Object.freeze({
     default_true_v148: 19,
     default_true_v152: 20,
     new_capabilities_decoded: 3,
-    skills_sync_severity: "defense-working (multistore-class) — surface registered with promotion-gate to disclosure-candidate, requires crafted-zip MITM probe to verify whether sync'd skill hooks/hooks.json auto-registers command-type hooks"
+    skill_sync_severity: "defense-working (multistore-class) — surface registered with promotion-gate to disclosure-candidate, requires crafted-zip MITM probe to verify whether sync'd skill hooks/hooks.json auto-registers command-type hooks"
   },
 
   // ---- Session-62 v152→v153→v156 round-1 flag-delta (2026-05-29) ----
