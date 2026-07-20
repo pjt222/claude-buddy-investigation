@@ -1652,3 +1652,82 @@ a:focus-visible { outline: 2px solid var(--v7); outline-offset: 2px; }
 .dot-gap   { display:inline-block; width:10px; height:10px; border-radius:2px; background:#3f1d1d; border:2px dashed #f87171; vertical-align:middle; margin-right:5px; }
 .dot-removed { display:inline-block; width:10px; height:10px; border-radius:2px; background:#1a1a1a; border:2px dashed #6b7280; vertical-align:middle; margin-right:5px; }
 .dot-ours  { display:inline-block; width:10px; height:10px; border-radius:2px; background:#1e293b; border:2px solid #a78bfa; vertical-align:middle; margin-right:5px; }
+
+/* Per-version flag-delta table: numeric columns (size + the five ± counts) right-aligned,
+   tabular monospace figures so the +a/-r deltas line up column-wise. */
+.flag-delta-table td:nth-child(2),
+.flag-delta-table th:nth-child(2),
+.flag-delta-table td:nth-child(n+4),
+.flag-delta-table th:nth-child(n+4) {
+  text-align: right;
+  white-space: nowrap;
+}
+.flag-delta-table td:nth-child(2),
+.flag-delta-table td:nth-child(n+4) {
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.flag-delta-table tbody tr:hover { background: rgba(96,165,250,0.06); }
+
+/* === Flow gallery: per-cluster diagrams with a derived minimap ===================
+   The monolithic architecture SVG renders at ~0.069 scale in a 1100px column, putting
+   12px labels at ~0.8px (measured). It is split into one diagram per cluster; these
+   rules give each panel enough width to be legible and pair it with a minimap showing
+   where that cluster sits in the whole map.
+
+   Captions deliberately do NOT use --text-dim (#6a6a88): that token measures 3.83:1
+   against --bg and fails WCAG AA. Fixing it globally is a separate change; new markup
+   should not inherit a known failure. --flow-dim below is 5.57:1. */
+.flow-gallery {
+  --flow-dim: #8484a9;
+  --mm-off: #31446b;
+  --mm-on: var(--v7);
+  display: grid;
+  gap: 1.75rem;
+}
+
+/* Full-bleed: break out of the 1100px column. Legibility needs the width — the largest
+   cluster renders text at ~7px inside the column versus ~10.5px at 1500px. */
+.flow-gallery,
+.flow-gallery-intro {
+  width: min(1500px, 94vw);
+  margin-left: calc(50% - min(750px, 47vw));
+  margin-right: auto;
+}
+.flow-gallery-intro { color: var(--flow-dim); max-width: 60ch; }
+
+.flow-card {
+  margin: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.1rem 1.2rem;
+  scroll-margin-top: 1.5rem;   /* so #flow-<ID> deep links do not hide under the top edge */
+}
+.flow-cap { display: flex; flex-wrap: wrap; align-items: baseline; gap: .6rem; margin-bottom: .8rem; }
+.flow-code {
+  font-size: .72rem; letter-spacing: .08em; color: var(--bg);
+  background: var(--v5); border-radius: 3px; padding: .1rem .4rem;
+}
+.flow-title { color: var(--text-bright); font-weight: 600; }
+.flow-meta { color: var(--flow-dim); font-size: .78rem; margin-left: auto; }
+
+.flow-body { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1.2rem; align-items: start; }
+.flow-diagram { display: block; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); }
+.flow-diagram img { display: block; width: 100%; height: auto; }
+.flow-diagram:focus-visible { outline: 2px solid var(--v7); outline-offset: 2px; }
+
+.flow-mini { display: flex; flex-direction: column; gap: .4rem; align-items: center; }
+.flow-mini-cap { color: var(--flow-dim); font-size: .68rem; text-align: center; max-width: 200px; }
+.flow-minimap { display: block; border: 1px solid var(--border); border-radius: 4px; background: #0b0b14; }
+.flow-minimap .mm-bg { fill: #0b0b14; }
+.flow-minimap a:hover rect { fill: var(--v6); }
+.flow-minimap a:focus-visible rect { outline: 1px solid var(--v8); }
+.flow-mm-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* Below ~900px the minimap moves under the diagram rather than shrinking both. */
+@media (max-width: 900px) {
+  .flow-body { grid-template-columns: minmax(0, 1fr); }
+  .flow-mini { flex-direction: row; align-items: center; justify-content: center; gap: .8rem; }
+  .flow-gallery, .flow-gallery-intro { width: 100%; margin-left: 0; }
+}

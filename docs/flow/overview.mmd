@@ -1,0 +1,119 @@
+flowchart LR
+    %% Overview — one node per cluster, edges weighted by crossings
+    SPINE["gate every subsystem<br/><small>9 nodes</small>"]
+    CORE["Core Runtime (per-turn loop)<br/><small>6 nodes</small>"]
+    BUDDY["Buddy [OUTSIDE]<br/><small>8 nodes</small>"]
+    ADVISOR["Advisor [INSIDE]<br/><small>6 nodes</small>"]
+    LOOP["Kairos Loop [AROUND]<br/><small>6 nodes</small>"]
+    MCP["MCP (42 events)<br/><small>6 nodes</small>"]
+    EXTH["Hooks + Skills + Managed Agents<br/><small>6 nodes</small>"]
+    STATE["Session State<br/><small>4 nodes</small>"]
+    TEL["Telemetry (fan-in)<br/><small>6 nodes</small>"]
+    CCR["CCR Cloud-Runner<br/><small>7 nodes</small>"]
+    DREAM["Auto-Dream (5 events)<br/><small>4 nodes</small>"]
+    PLUGINS["Plugins (22 events)<br/><small>4 nodes</small>"]
+    NEW111["v2.1.111+ Systems<br/><small>5 nodes</small>"]
+    TUI["TUI Renderer (three-tier)<br/><small>3 nodes</small>"]
+    DAEMON["30 events)<br/><small>20 nodes</small>"]
+    HARBOR["runtime-confirmed; v126 unchanged)<br/><small>10 nodes</small>"]
+    BRIEFINJ["Brief Stop-Hook GrowthBook Injection (v2.1.126 #106 CRITICAL)<br/><small>5 nodes</small>"]
+    DATADOG["extends #92)<br/><small>5 nodes</small>"]
+    OURS["Our Tooling<br/><small>4 nodes</small>"]
+    PIPASS["Pi-Passport (third-party gate evasion + Claude-Code bypass) [hardened postQ3Q4 2026-05-10]<br/><small>10 nodes</small>"]
+    TPGATE["Anthropic Third-Party-App Classifier<br/><small>3 nodes</small>"]
+    SHAREONBOARD["ShareOnboardingGuide unauth-public share URL (v2.1.128 #107 HIGH; round-3 incognito → CRITICAL contradicted by round-4 scrapling)<br/><small>5 nodes</small>"]
+    IRONGATE["PROMOTED CRITICAL via probe-v2 MITM 2026-05-06)<br/><small>4 nodes</small>"]
+    HARBORPRISM["PR-status path-switcher (v2.1.128 #109 Med info)<br/><small>4 nodes</small>"]
+    PROTOLEAK["PROMOTED CRITICAL via probe-r MITM 2026-05-06)<br/><small>6 nodes</small>"]
+    FORCED_DG["Forced-Downgrade + AC3 Partial-Defense (v2.1.138 #113 + #114 HIGH)<br/><small>6 nodes</small>"]
+    MIDCONV["REMEDIATED v2.1.156)<br/><small>6 nodes</small>"]
+    BYOC_DD["BYOC Datadog Killswitch (v2.1.138 partial #105 remediation, BYOC subset only)<br/><small>2 nodes</small>"]
+    STARTUP_NOTICE["Critical refuted session-70: Ink &lt;Text&gt; strips dangerous escapes)<br/><small>7 nodes</small>"]
+    PROBESANDBOX["Runtime-Probe Harness (probe-sandbox + PTY automation, sessions 55-59)<br/><small>7 nodes</small>"]
+    PLUGINSYNC["no consent prompt in sync caller; asymmetric to skills-sync hooks:void 0)<br/><small>5 nodes</small>"]
+    COWORKBRIDGE["no finding; runner-side; watch W1/W2)<br/><small>7 nodes</small>"]
+    PLUGINCRED["server-flippable; local, NOT CCR-gated; #136/#140 family; → W-CREDHELPER)<br/><small>4 nodes</small>"]
+    VELVETGUARD["data-integrity only, no permission reach; → W-VELVET)<br/><small>3 nodes</small>"]
+    HERONBROOK["server-pushed string reaches /v1/messages system prompt verbatim)<br/><small>4 nodes</small>"]
+    STARTUPANNOUNCE["server-pushed styled-text, Ink &lt;Text&gt; defends)<br/><small>6 nodes</small>"]
+    PLUGINOVERRIDE["server-push overrides official/inline plugin MCP instructions + tool descriptions into model context)<br/><small>4 nodes</small>"]
+    PROMPTVARIANT["server-selectable system-prompt text variants; NOT #106: no server-authored string)<br/><small>4 nodes</small>"]
+
+    CCR -->|4| TEL
+    NEW111 -->|4| CORE
+    SPINE -->|3| CORE
+    SPINE -->|3| NEW111
+    SPINE -->|3| HARBOR
+    SPINE -->|2| EXTH
+    ADVISOR -->|2| CORE
+    EXTH -->|2| CORE
+    CCR -->|2| CORE
+    PLUGINS -->|2| EXTH
+    CORE -->|2| TEL
+    OURS -->|2| BUDDY
+    SPINE -->|2| TUI
+    SPINE -->|2| DAEMON
+    SPINE -->|2| BRIEFINJ
+    CORE --> PLUGINSYNC
+    PLUGINSYNC --> MCP
+    PLUGINSYNC --> PLUGINS
+    PLUGINS --> PLUGINOVERRIDE
+    PLUGINOVERRIDE --> CORE
+    SPINE --> PROMPTVARIANT
+    PROMPTVARIANT --> CORE
+    PROMPTVARIANT --> HERONBROOK
+    CORE --> COWORKBRIDGE
+    COWORKBRIDGE --> SPINE
+    COWORKBRIDGE --> CORE
+    CORE --> PLUGINCRED
+    PLUGINCRED --> SPINE
+    CORE --> VELVETGUARD
+    SPINE --> BUDDY
+    SPINE --> ADVISOR
+    SPINE --> LOOP
+    SPINE --> MCP
+    BUDDY --> STATE
+    CORE --> BUDDY
+    CORE --> ADVISOR
+    CORE --> LOOP
+    LOOP --> CORE
+    MCP --> CORE
+    CORE --> EXTH
+    CORE --> STATE
+    SPINE --> STATE
+    STATE --> EXTH
+    SPINE --> CCR
+    SPINE --> DREAM
+    CORE --> PLUGINS
+    PLUGINS --> MCP
+    LOOP --> TEL
+    MCP --> TEL
+    PLUGINS --> TEL
+    DREAM --> TEL
+    NEW111 --> TEL
+    CORE --> NEW111
+    EXTH --> OURS
+    OURS --> MCP
+    SPINE --> PLUGINS
+    CORE --> TUI
+    DAEMON --> CORE
+    CCR --> DAEMON
+    DAEMON --> TEL
+    MCP --> HARBOR
+    BRIEFINJ --> SPINE
+    BRIEFINJ --> CORE
+    SPINE --> DATADOG
+    PIPASS --> TPGATE
+    PIPASS --> CORE
+    TPGATE --> PIPASS
+    PROBESANDBOX --> SPINE
+    PROBESANDBOX --> FORCED_DG
+    PROBESANDBOX --> STARTUP_NOTICE
+    PROBESANDBOX --> MIDCONV
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

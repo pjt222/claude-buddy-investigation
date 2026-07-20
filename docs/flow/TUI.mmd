@@ -1,0 +1,18 @@
+flowchart LR
+    %% TUI — K — TUI Renderer (three-tier)
+    subgraph TUI["K — TUI Renderer (three-tier)"]
+        direction TB
+        tui_fullscreen["Tier 1: Ink Flexbox<br/>fullscreenGate()=true<br/>[ink-flexbox-gate] / [env-flag]<br/>OSC 8 hyperlinks"]:::core
+        tui_decstbm["Tier 2: decstbmRenderer DECSTBM renderer<br/>[decstbm-gate] / [env-flag]<br/>scroll-region + nativeHistory[10K]<br/>syncViewport / tickPump / draw<br/>gate: TTY + not-tmux-CC + decstbmCapabilityCheck + not-Zellij + not-fullscreen"]:::gap
+        tui_minimal["Tier 3: minimal Fragment<br/>(fallback)"]:::core
+    end
+
+    tui_fullscreen -->|"fullscreenGate()=false"| tui_decstbm
+    tui_decstbm -->|"decstbmGate()=false"| tui_minimal
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

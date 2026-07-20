@@ -1,0 +1,30 @@
+flowchart LR
+    %% PIPASS — Q1 — Pi-Passport (third-party gate evasion + Claude-Code bypass) [hardened postQ3Q4 2026-05-10]
+    subgraph PIPASS["Q1 — Pi-Passport (third-party gate evasion + Claude-Code bypass) [hardened postQ3Q4 2026-05-10]"]
+        direction TB
+        pp_creds["~/.claude/.credentials.json<br/>OAuth bearer + refreshToken<br/>(stolen-token threat surface)"]:::ours
+        pp_refresh["refresh-token.mjs<br/>POST platform.claude.com[oauth-token-endpoint]<br/>client_id 9d1c250a-... (binary's<br/>secondary CLIENT_ID; primary fails)<br/>+S2 randomBytes tmp / +S3 redirect:error<br/>+S4 UUID-validate --client-id"]:::ours
+        pp_launcher["evade-pi.sh<br/>+E1 absolute paths for jq/node/pi/timeout<br/>+E1 minimal hardcoded PATH in env-i<br/>+S1 require_uint() before arith<br/>defaults: opus-4-7 / thinking high"]:::ours
+        pp_canary["First-call canary<br/>Pi's REAL system blocks<br/>L_N → 400 → bump to L_(N+1)<br/>cap at maxLevel<br/>+R2 refuses initialLevel>maxLevel"]:::ours
+        pp_sanitizer["Sanitizer hook (applyEvasion in-place)<br/>before_provider_request<br/>L1: \\bpi\\b → 'the agent'<br/>L2: docs/.md links<br/>L3: ## /path.md + packages<br/>L4: nuclear (replace block 2)<br/>D1 byte-delta read-back warning"]:::ours
+        pp_banner["suppress-banner.mjs<br/>warnings.anthropicExtraUsage=false<br/>(Pi's banner is misleading post-evade)<br/>+R6 preserves source mode 0o600"]:::ours
+        pp_anthropic_api["anthropic-api.ts (A8)<br/>Single source for ANTHROPIC_VERSION,<br/>OAUTH_BETA, CANARY_MODEL<br/>+S3 redirect:error default"]:::ours
+        pp_runner["classifier/node/runner.mjs<br/>Shared loadOauth/classifyOutcome/<br/>writeFileAtomic + GATE_PATTERN<br/>+R4 user:inference scope check<br/>+R5 single-source GATE_PATTERN"]:::ours
+        pp_classifier["Classifier corpus + rule-fallback<br/>41 samples (22 mitm + 19 sensitivity)<br/>gate requires density+structure,<br/>not keyword OR-rule<br/>Path A executed: model.rds deleted,<br/>glm() retired, (?m) regex fixed"]:::ours
+        pp_test_suite["54-test suite (was 41)<br/>+9 R7 index handler integration<br/>+4 R2/R5 unit"]:::ours
+    end
+
+    pp_creds -- "read accessToken" --> pp_launcher
+    pp_creds -- "read refreshToken" --> pp_refresh
+    pp_refresh -. "atomic write" .-> pp_creds
+    pp_launcher -- "exec pi -e ./index.ts" --> pp_canary
+    pp_canary --> pp_sanitizer
+    pp_classifier -. "R GLM filter (overfit on N=41)" .-> pp_sanitizer
+    pp_banner -. "writes ~/.pi/agent/settings.json" .-> pp_launcher
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

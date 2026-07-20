@@ -1,0 +1,23 @@
+flowchart LR
+    %% LOOP — F — Kairos Loop [AROUND]
+    subgraph LOOP["F — Kairos Loop [AROUND]"]
+        direction TB
+        sched_tool["ScheduleWakeup tool<br/>delaySeconds / prompt / reason"]:::core
+        sentinels["4 sentinels<br/>autonomous-loop / loop.md / -dynamic"]:::core
+        sched_fn["scheduleLoopWakeup<br/>clamp [60, 3600]"]:::core
+        cron_create["CronCreate(kind: loop)"]:::core
+        loop_state["state keyed by prompt hash<br/>recurringMaxAgeMs=7d"]:::core
+        loop_slash["/loop slash command"]:::core
+    end
+
+    sched_tool --> sched_fn
+    sched_fn --> cron_create
+    cron_create --> loop_state
+    loop_slash --> sched_fn
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

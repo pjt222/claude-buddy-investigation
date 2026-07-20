@@ -1,0 +1,24 @@
+flowchart LR
+    %% MIDCONV — AA — Mid-Conversation System Predicate (#115 — REMEDIATED v2.1.156)
+    subgraph MIDCONV["AA — Mid-Conversation System Predicate (#115 — REMEDIATED v2.1.156)"]
+        direction TB
+        mc_env["[env-flag]<br/>(env override path)"]:::gap
+        mc_cache["clientDataCache?.[feature-flag]<br/>(cached GrowthBook string)"]:::gap
+        mc_live["J$('[feature-flag]','')<br/>(live eval-SDK fallback)"]:::gap
+        mc_predicate["hQ$(H) predicate:<br/>extracts conversation $ via C7(H);<br/>if any of 3 sources match $.includes() → true"]:::gap
+        mc_betahdr["Caller 1: Wt8 beta-headers assembler<br/>if predicate true → push JB$ beta-header<br/>(API feature gate via eval-SDK string)"]:::gap
+        mc_sysprompt["Caller 2: hG system-prompt assembler<br/>predicate result K flows into prompt build path"]:::gap
+    end
+
+    mc_env --> mc_predicate
+    mc_cache --> mc_predicate
+    mc_live --> mc_predicate
+    mc_predicate --> mc_betahdr
+    mc_predicate --> mc_sysprompt
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

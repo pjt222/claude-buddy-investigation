@@ -1,0 +1,26 @@
+flowchart LR
+    %% BUDDY — D — Buddy [OUTSIDE]
+    subgraph BUDDY["D — Buddy [OUTSIDE]"]
+        direction TB
+        identity["Identity pipeline<br/>hash + Mulberry32"]:::core
+        soul["Soul LLM call<br/>querySource: buddy_companion"]:::core
+        companion_cfg["companion key<br/>(name, personality, hatchedAt)"]:::core
+        turn_watcher["turnWatcher() turn watcher"]:::removed
+        bi_sender["buddyDispatch() POST dispatcher"]:::removed
+        buddy_api(["POST /buddy_react<br/>(API lives; UI removed v2.1.97)"]):::core
+        sprite_ui["ASCII sprite + SpeechBubble"]:::removed
+        intro_inject["companion_intro<br/>(dead filter v2.1.97+)"]:::removed
+    end
+
+    identity --> soul
+    soul --> companion_cfg
+    turn_watcher --> bi_sender
+    bi_sender -- "POST /buddy_react" --> buddy_api
+    companion_cfg -. "dead filter" .-> intro_inject
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

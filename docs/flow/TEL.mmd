@@ -1,0 +1,24 @@
+flowchart LR
+    %% TEL — J — Telemetry (fan-in)
+    subgraph TEL["J — Telemetry (fan-in)"]
+        direction TB
+        tel_main["advisor-events-5<br/>loop-events-3<br/>oauth-events-41<br/>mcp-events-42"]:::core
+        tel_ccr["teleport-events-17+bridge_{30}+ccr_{7}<br/>[feature-flag]+autofix_{2}"]:::core
+        tel_ext["plugin-events-22<br/>memory-consolidation-events-5<br/>[feature-flag]+file_{21}<br/>[feature-flag]+streaming_{7}+post_{9}"]:::core
+        tel_v111["opus47-launch-shown<br/>ptl-surfaced<br/>memory-survey-event<br/>unknown-command-suggestion"]:::core
+        tel_team["Team telemetry (v2.1.112)<br/>16 events (was 0)<br/>team-events"]:::core
+        tel_transport["Ingest: [event-logging-endpoint]<br/>+ Datadog [logs-endpoint]"]:::core
+    end
+
+    tel_main --> tel_transport
+    tel_ccr --> tel_transport
+    tel_ext --> tel_transport
+    tel_v111 --> tel_transport
+    tel_team --> tel_transport
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

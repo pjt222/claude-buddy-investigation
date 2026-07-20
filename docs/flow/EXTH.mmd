@@ -1,0 +1,22 @@
+flowchart LR
+    %% EXTH — H — Hooks + Skills + Managed Agents
+    subgraph EXTH["H — Hooks + Skills + Managed Agents"]
+        direction TB
+        hook_config["hooks config<br/>~/.claude/settings.json"]:::core
+        hook_pipeline["Hook subprocess pipeline<br/>SessionStart / PreToolUse / PostToolUse<br/>UserPromptSubmit / Stop / SubagentStop / Notification"]:::gap
+        skill_loader["Skill loader<br/>~/.claude/skills + almanac"]:::core
+        dream_nightly["/dream nightly<br/>SessionStart consolidation"]:::gap
+        ma_agents["POST [agents-endpoint] (doc-only,<br/>no live call-sites)"]:::gap
+        async_stall["Async agent stall watchdog<br/>[agent-stall-gate]<br/>default 600s (CLAUDE_ASYNC_AGENT_STALL_TIMEOUT_MS)<br/>aborts + marks task failed"]:::core
+    end
+
+    hook_config --> hook_pipeline
+    hook_pipeline -. "SessionStart" .-> dream_nightly
+    async_stall -. "abort on stall" .-> ma_agents
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

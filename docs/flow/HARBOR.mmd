@@ -1,0 +1,32 @@
+flowchart LR
+    %% HARBOR — S — Harbor MCP Channels (v2.1.121 #102 + #104 — runtime-confirmed; v126 unchanged)
+    subgraph HARBOR["S — Harbor MCP Channels (v2.1.121 #102 + #104 — runtime-confirmed; v126 unchanged)"]
+        direction TB
+        harbor_gate["kTH() = G$('[feature-flag]',false)<br/>master gate (v126: rotated T$→G$)<br/>current cohort: TRUE"]:::core
+        integration_ledger["hA8() = G$('[feature-flag]',[])<br/>4 entries: discord/telegram/fakechat/imessage<br/>GrowthBook-flippable per cohort"]:::core
+        harbor_perms["Rr7() = G$('[feature-flag]',false)<br/>current cohort: TRUE<br/>gates pluginSyncHelper() React hook → channelPermissionCallbacks"]:::core
+        harbor_policy["Enterprise policy gate<br/>policySettings.channelsEnabled<br/>+ allowedChannelPlugins allowlist"]:::core
+        harbor_dev["CLI flag bypass<br/>--dangerously-load-development-channels"]:::gap
+        harbor_cap["MCP server capability<br/>experimental[claude/channel]<br/>+ experimental[claude/channel/permission]<br/>both required for #104"]:::core
+        harbor_check["Vw$() gate w/ 7 skip kinds<br/>capability/disabled/auth/policy/<br/>session/marketplace/allowlist"]:::core
+        harbor_inj["#102 — channel injection<br/>vw$() wraps content as<br/>&lt;channel source=&quot;...&quot;&gt;...&lt;/channel&gt;<br/>round-12: model-defended<br/>round-13: content-escape weakness"]:::gap
+        harbor_authz["#104 — channel permissions<br/>Cr7(toolUseID) → 5-char base-25 ID<br/>tool_name+description+input_preview<br/>round-14c: TUI-mode runtime-confirmed<br/>logged as source.type:'user' (laundered)"]:::gap
+        harbor_tui_only["#104 TUI-only constraint<br/>SA8 React provider mounts pluginSyncHelper<br/>--print/SDK paths IMMUNE<br/>(round-14b probe-j confirmed)"]:::core
+    end
+
+    harbor_gate --> harbor_cap
+    integration_ledger --> harbor_check
+    harbor_check --> harbor_cap
+    harbor_perms --> harbor_authz
+    harbor_perms --> harbor_tui_only
+    harbor_policy -. "team/enterprise override" .-> harbor_cap
+    harbor_dev -. "bypass allowlist" .-> harbor_cap
+    harbor_cap --> harbor_inj
+    harbor_cap --> harbor_authz
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

@@ -1,0 +1,22 @@
+flowchart LR
+    %% FORCED_DG — Z — Forced-Downgrade + AC3 Partial-Defense (v2.1.138 #113 + #114 HIGH)
+    subgraph FORCED_DG["Z — Forced-Downgrade + AC3 Partial-Defense (v2.1.138 #113 + #114 HIGH)"]
+        direction TB
+        fd_reader["mo('[feature-flag]',{})<br/>typed eval-SDK reader (object form;<br/>alongside scalar reader J$)"]:::gap
+        fd_parse["vP7() returns {maxVersion, forceDowngradeEnabled}<br/>RL6.parse(external semver)<br/>vflagReader() = startup downgrade decision"]:::gap
+        fd_canary["Sister: Ek_() reads [feature-flag] semver<br/>same eval-SDK channel<br/>bidirectional version-pin (server controls<br/>both upgrade ceiling AND downgrade floor)"]:::gap
+        fd_floor["User mitigation: settings.json<br/>minimumVersion floor via q7H(Z) check<br/>(default undefined; most users vulnerable)"]:::core
+        fd_ac3["#114 insertMessageChain: M=null bypass<br/>shouldSkipPersistence chain:<br/>uDH() → tI() OR env [env-flag]<br/>tI() reads Q$.sessionPersistenceDisabled<br/>Trigger: --no-session-persistence (--print only)<br/>+ SDK persistSession:false<br/>+ env [env-flag]"]:::gap
+        fd_wrappers["Round-3 SDK wrapper survey:<br/>97 third-party repos use --no-session-persistence<br/>5/7 sampled default UNCONDITIONALLY<br/>(lcm/claudebox/chunkhound/dyad/raptor)<br/>~71% of public ecosystem on bypass-vulnerable path"]:::gap
+    end
+
+    fd_reader --> fd_parse --> fd_floor
+    fd_canary --> fd_parse
+    fd_ac3 --> fd_wrappers
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

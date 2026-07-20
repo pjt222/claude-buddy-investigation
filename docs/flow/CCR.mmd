@@ -1,0 +1,27 @@
+flowchart LR
+    %% CCR — L — CCR Cloud-Runner
+    subgraph CCR["L — CCR Cloud-Runner"]
+        direction TB
+        ccr_gate["Gate: [ccr-gate]<br/>+ [remote-session-gate]<br/>+ allow_remote_sessions"]:::core
+        teleport["Teleport (17 events)<br/>POST /v1/sessions/..."]:::core
+        bridge["Bridge (30 events)<br/>POST /v1/environments/..."]:::core
+        ultrareview["Ultrareview (5 events)<br/>GET [ultrareview-endpoint]<br/>SDK: {subtype:ultrareview_launch}"]:::core
+        pr_autofix["Autofix-PR (2 events)<br/>POST [ccr-pr-endpoint]"]:::core
+        trigger_tool["RemoteTrigger tool<br/>[remote-session-gate] gate<br/>ccr-triggers-2026-01-30<br/>actions: list/get/create/update/run"]:::core
+        github_token_sync["[github-token-sync-gate]<br/>GitHub token-sync CCR access"]:::core
+    end
+
+    ccr_gate --> teleport
+    ccr_gate --> bridge
+    ccr_gate --> ultrareview
+    ccr_gate --> pr_autofix
+    ccr_gate --> trigger_tool
+    ccr_gate --> github_token_sync
+    github_token_sync -. "token sync" .-> teleport
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

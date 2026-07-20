@@ -1,0 +1,507 @@
+{
+  "source": "publish/docs/harness-flow.mmd",
+  "clusters": [
+    {
+      "id": "SPINE",
+      "label": "Startup Spine \u2014 gate every subsystem",
+      "nodes": 9,
+      "internal_edges": 8,
+      "crossing_edges": 32,
+      "neighbours": [
+        "ADVISOR",
+        "BRIEFINJ",
+        "BUDDY",
+        "CCR",
+        "CORE",
+        "COWORKBRIDGE",
+        "DAEMON",
+        "DATADOG",
+        "DREAM",
+        "EXTH",
+        "HARBOR",
+        "LOOP",
+        "MCP",
+        "NEW111",
+        "PLUGINCRED",
+        "PLUGINS",
+        "PROBESANDBOX",
+        "PROMPTVARIANT",
+        "STATE",
+        "TUI"
+      ],
+      "neighbour_count": 20
+    },
+    {
+      "id": "CORE",
+      "label": "A \u2014 Core Runtime (per-turn loop)",
+      "nodes": 6,
+      "internal_edges": 5,
+      "crossing_edges": 36,
+      "neighbours": [
+        "ADVISOR",
+        "BRIEFINJ",
+        "BUDDY",
+        "CCR",
+        "COWORKBRIDGE",
+        "DAEMON",
+        "EXTH",
+        "LOOP",
+        "MCP",
+        "NEW111",
+        "PIPASS",
+        "PLUGINCRED",
+        "PLUGINOVERRIDE",
+        "PLUGINS",
+        "PLUGINSYNC",
+        "PROMPTVARIANT",
+        "SPINE",
+        "STATE",
+        "TEL",
+        "TUI",
+        "VELVETGUARD"
+      ],
+      "neighbour_count": 21
+    },
+    {
+      "id": "BUDDY",
+      "label": "D \u2014 Buddy [OUTSIDE]",
+      "nodes": 8,
+      "internal_edges": 5,
+      "crossing_edges": 5,
+      "neighbours": [
+        "CORE",
+        "OURS",
+        "SPINE",
+        "STATE"
+      ],
+      "neighbour_count": 4
+    },
+    {
+      "id": "ADVISOR",
+      "label": "E \u2014 Advisor [INSIDE]",
+      "nodes": 6,
+      "internal_edges": 2,
+      "crossing_edges": 4,
+      "neighbours": [
+        "CORE",
+        "SPINE"
+      ],
+      "neighbour_count": 2
+    },
+    {
+      "id": "LOOP",
+      "label": "F \u2014 Kairos Loop [AROUND]",
+      "nodes": 6,
+      "internal_edges": 4,
+      "crossing_edges": 4,
+      "neighbours": [
+        "CORE",
+        "SPINE",
+        "TEL"
+      ],
+      "neighbour_count": 3
+    },
+    {
+      "id": "MCP",
+      "label": "G \u2014 MCP (42 events)",
+      "nodes": 6,
+      "internal_edges": 5,
+      "crossing_edges": 7,
+      "neighbours": [
+        "CORE",
+        "HARBOR",
+        "OURS",
+        "PLUGINS",
+        "PLUGINSYNC",
+        "SPINE",
+        "TEL"
+      ],
+      "neighbour_count": 7
+    },
+    {
+      "id": "EXTH",
+      "label": "H \u2014 Hooks + Skills + Managed Agents",
+      "nodes": 6,
+      "internal_edges": 3,
+      "crossing_edges": 9,
+      "neighbours": [
+        "CORE",
+        "OURS",
+        "PLUGINS",
+        "SPINE",
+        "STATE"
+      ],
+      "neighbour_count": 5
+    },
+    {
+      "id": "STATE",
+      "label": "I \u2014 Session State",
+      "nodes": 4,
+      "internal_edges": 1,
+      "crossing_edges": 4,
+      "neighbours": [
+        "BUDDY",
+        "CORE",
+        "EXTH",
+        "SPINE"
+      ],
+      "neighbour_count": 4
+    },
+    {
+      "id": "TEL",
+      "label": "J \u2014 Telemetry (fan-in)",
+      "nodes": 6,
+      "internal_edges": 5,
+      "crossing_edges": 13,
+      "neighbours": [
+        "CCR",
+        "CORE",
+        "DAEMON",
+        "DREAM",
+        "LOOP",
+        "MCP",
+        "NEW111",
+        "PLUGINS"
+      ],
+      "neighbour_count": 8
+    },
+    {
+      "id": "CCR",
+      "label": "L \u2014 CCR Cloud-Runner",
+      "nodes": 7,
+      "internal_edges": 7,
+      "crossing_edges": 8,
+      "neighbours": [
+        "CORE",
+        "DAEMON",
+        "SPINE",
+        "TEL"
+      ],
+      "neighbour_count": 4
+    },
+    {
+      "id": "DREAM",
+      "label": "M \u2014 Auto-Dream (5 events)",
+      "nodes": 4,
+      "internal_edges": 3,
+      "crossing_edges": 2,
+      "neighbours": [
+        "SPINE",
+        "TEL"
+      ],
+      "neighbour_count": 2
+    },
+    {
+      "id": "PLUGINS",
+      "label": "N \u2014 Plugins (22 events)",
+      "nodes": 4,
+      "internal_edges": 2,
+      "crossing_edges": 8,
+      "neighbours": [
+        "CORE",
+        "EXTH",
+        "MCP",
+        "PLUGINOVERRIDE",
+        "PLUGINSYNC",
+        "SPINE",
+        "TEL"
+      ],
+      "neighbour_count": 7
+    },
+    {
+      "id": "NEW111",
+      "label": "P \u2014 v2.1.111+ Systems",
+      "nodes": 5,
+      "internal_edges": 0,
+      "crossing_edges": 9,
+      "neighbours": [
+        "CORE",
+        "SPINE",
+        "TEL"
+      ],
+      "neighbour_count": 3
+    },
+    {
+      "id": "TUI",
+      "label": "K \u2014 TUI Renderer (three-tier)",
+      "nodes": 3,
+      "internal_edges": 2,
+      "crossing_edges": 3,
+      "neighbours": [
+        "CORE",
+        "SPINE"
+      ],
+      "neighbour_count": 2
+    },
+    {
+      "id": "DAEMON",
+      "label": "R \u2014 Background Daemon (v2.1.119 \u2014 30 events)",
+      "nodes": 20,
+      "internal_edges": 20,
+      "crossing_edges": 5,
+      "neighbours": [
+        "CCR",
+        "CORE",
+        "SPINE",
+        "TEL"
+      ],
+      "neighbour_count": 4
+    },
+    {
+      "id": "HARBOR",
+      "label": "S \u2014 Harbor MCP Channels (v2.1.121 #102 + #104 \u2014 runtime-confirmed; v126 unchanged)",
+      "nodes": 10,
+      "internal_edges": 9,
+      "crossing_edges": 4,
+      "neighbours": [
+        "MCP",
+        "SPINE"
+      ],
+      "neighbour_count": 2
+    },
+    {
+      "id": "BRIEFINJ",
+      "label": "T \u2014 Brief Stop-Hook GrowthBook Injection (v2.1.126 #106 CRITICAL)",
+      "nodes": 5,
+      "internal_edges": 3,
+      "crossing_edges": 4,
+      "neighbours": [
+        "CORE",
+        "SPINE"
+      ],
+      "neighbour_count": 2
+    },
+    {
+      "id": "DATADOG",
+      "label": "U \u2014 Datadog Third-Party Processor (v2.1.126 #105 \u2014 extends #92)",
+      "nodes": 5,
+      "internal_edges": 4,
+      "crossing_edges": 1,
+      "neighbours": [
+        "SPINE"
+      ],
+      "neighbour_count": 1
+    },
+    {
+      "id": "OURS",
+      "label": "Q \u2014 Our Tooling",
+      "nodes": 4,
+      "internal_edges": 1,
+      "crossing_edges": 4,
+      "neighbours": [
+        "BUDDY",
+        "EXTH",
+        "MCP"
+      ],
+      "neighbour_count": 3
+    },
+    {
+      "id": "PIPASS",
+      "label": "Q1 \u2014 Pi-Passport (third-party gate evasion + Claude-Code bypass) [hardened postQ3Q4 2026-05-10]",
+      "nodes": 10,
+      "internal_edges": 7,
+      "crossing_edges": 3,
+      "neighbours": [
+        "CORE",
+        "TPGATE"
+      ],
+      "neighbour_count": 2
+    },
+    {
+      "id": "TPGATE",
+      "label": "Q2 \u2014 Anthropic Third-Party-App Classifier",
+      "nodes": 3,
+      "internal_edges": 1,
+      "crossing_edges": 2,
+      "neighbours": [
+        "PIPASS"
+      ],
+      "neighbour_count": 1
+    },
+    {
+      "id": "SHAREONBOARD",
+      "label": "V \u2014 ShareOnboardingGuide unauth-public share URL (v2.1.128 #107 HIGH; round-3 incognito \u2192 CRITICAL contradicted by round-4 scrapling)",
+      "nodes": 5,
+      "internal_edges": 0,
+      "crossing_edges": 0,
+      "neighbours": [],
+      "neighbour_count": 0
+    },
+    {
+      "id": "IRONGATE",
+      "label": "W \u2014 Sandbox classifier fail-closed inversion (v2.1.128 #108 \u2014 PROMOTED CRITICAL via probe-v2 MITM 2026-05-06)",
+      "nodes": 4,
+      "internal_edges": 0,
+      "crossing_edges": 0,
+      "neighbours": [],
+      "neighbour_count": 0
+    },
+    {
+      "id": "HARBORPRISM",
+      "label": "X \u2014 PR-status path-switcher (v2.1.128 #109 Med info)",
+      "nodes": 4,
+      "internal_edges": 0,
+      "crossing_edges": 0,
+      "neighbours": [],
+      "neighbour_count": 0
+    },
+    {
+      "id": "PROTOLEAK",
+      "label": "Y \u2014 _PROTO_ destructure-rename leak (v2.1.129 #110 \u2014 PROMOTED CRITICAL via probe-r MITM 2026-05-06)",
+      "nodes": 6,
+      "internal_edges": 0,
+      "crossing_edges": 0,
+      "neighbours": [],
+      "neighbour_count": 0
+    },
+    {
+      "id": "FORCED_DG",
+      "label": "Z \u2014 Forced-Downgrade + AC3 Partial-Defense (v2.1.138 #113 + #114 HIGH)",
+      "nodes": 6,
+      "internal_edges": 3,
+      "crossing_edges": 1,
+      "neighbours": [
+        "PROBESANDBOX"
+      ],
+      "neighbour_count": 1
+    },
+    {
+      "id": "MIDCONV",
+      "label": "AA \u2014 Mid-Conversation System Predicate (#115 \u2014 REMEDIATED v2.1.156)",
+      "nodes": 6,
+      "internal_edges": 5,
+      "crossing_edges": 1,
+      "neighbours": [
+        "PROBESANDBOX"
+      ],
+      "neighbour_count": 1
+    },
+    {
+      "id": "BYOC_DD",
+      "label": "AB \u2014 BYOC Datadog Killswitch (v2.1.138 partial #105 remediation, BYOC subset only)",
+      "nodes": 2,
+      "internal_edges": 1,
+      "crossing_edges": 0,
+      "neighbours": [],
+      "neighbour_count": 0
+    },
+    {
+      "id": "STARTUP_NOTICE",
+      "label": "AC \u2014 TUI Startup-Notice Injection (v2.1.140 #127 HIGH \u2014 Critical refuted session-70: Ink &lt;Text&gt; strips dangerous escapes)",
+      "nodes": 7,
+      "internal_edges": 6,
+      "crossing_edges": 1,
+      "neighbours": [
+        "PROBESANDBOX"
+      ],
+      "neighbour_count": 1
+    },
+    {
+      "id": "PROBESANDBOX",
+      "label": "AD \u2014 Runtime-Probe Harness (probe-sandbox + PTY automation, sessions 55-59)",
+      "nodes": 7,
+      "internal_edges": 6,
+      "crossing_edges": 4,
+      "neighbours": [
+        "FORCED_DG",
+        "MIDCONV",
+        "SPINE",
+        "STARTUP_NOTICE"
+      ],
+      "neighbour_count": 4
+    },
+    {
+      "id": "PLUGINSYNC",
+      "label": "AE \u2014 Plugins-Sync Headless stdio-MCP Register (v2.1.158 #140 HIGH \u2014 no consent prompt in sync caller; asymmetric to skills-sync hooks:void 0)",
+      "nodes": 5,
+      "internal_edges": 4,
+      "crossing_edges": 3,
+      "neighbours": [
+        "CORE",
+        "MCP",
+        "PLUGINS"
+      ],
+      "neighbour_count": 3
+    },
+    {
+      "id": "COWORKBRIDGE",
+      "label": "AF \u2014 Cowork/CCR-v2 Remote-Environment Bridge + Two-Stage Classifier (v2.1.160 \u2014 no finding; runner-side; watch W1/W2)",
+      "nodes": 7,
+      "internal_edges": 6,
+      "crossing_edges": 3,
+      "neighbours": [
+        "CORE",
+        "SPINE"
+      ],
+      "neighbour_count": 2
+    },
+    {
+      "id": "PLUGINCRED",
+      "label": "AG \u2014 Plugin-Autoupdate Git Credential-Helper Re-enable (v2.1.174 #151 HIGH \u2014 server-flippable; local, NOT CCR-gated; #136/#140 family; \u2192 W-CREDHELPER)",
+      "nodes": 4,
+      "internal_edges": 3,
+      "crossing_edges": 2,
+      "neighbours": [
+        "CORE",
+        "SPINE"
+      ],
+      "neighbour_count": 2
+    },
+    {
+      "id": "VELVETGUARD",
+      "label": "AH \u2014 Read-Before-Edit/Write Guard Skip (v2.1.166 #152 LOW \u2014 data-integrity only, no permission reach; \u2192 W-VELVET)",
+      "nodes": 3,
+      "internal_edges": 2,
+      "crossing_edges": 1,
+      "neighbours": [
+        "CORE"
+      ],
+      "neighbour_count": 1
+    },
+    {
+      "id": "HERONBROOK",
+      "label": "AI \u2014 Heron-Brook System-Prompt Injection (v2.1.179 #154 CRITICAL \u2014 server-pushed string reaches /v1/messages system prompt verbatim)",
+      "nodes": 4,
+      "internal_edges": 3,
+      "crossing_edges": 1,
+      "neighbours": [
+        "PROMPTVARIANT"
+      ],
+      "neighbour_count": 1
+    },
+    {
+      "id": "STARTUPANNOUNCE",
+      "label": "AJ \u2014 Startup-Announcements ANSI Injection (v2.1.187 #155 HIGH \u2014 server-pushed styled-text, Ink &lt;Text&gt; defends)",
+      "nodes": 6,
+      "internal_edges": 5,
+      "crossing_edges": 0,
+      "neighbours": [],
+      "neighbour_count": 0
+    },
+    {
+      "id": "PLUGINOVERRIDE",
+      "label": "AK \u2014 Official-Plugin Prompt-Override Injection (v2.1.208 #165 HIGH \u2014 server-push overrides official/inline plugin MCP instructions + tool descriptions into model context)",
+      "nodes": 4,
+      "internal_edges": 3,
+      "crossing_edges": 2,
+      "neighbours": [
+        "CORE",
+        "PLUGINS"
+      ],
+      "neighbour_count": 2
+    },
+    {
+      "id": "PROMPTVARIANT",
+      "label": "AL \u2014 Prompt-Section Variant Registry (v2.1.215 W-PROMPTVARIANT / #166 WATCH \u2014 server-selectable system-prompt text variants; NOT #106: no server-authored string)",
+      "nodes": 4,
+      "internal_edges": 3,
+      "crossing_edges": 3,
+      "neighbours": [
+        "CORE",
+        "HERONBROOK",
+        "SPINE"
+      ],
+      "neighbour_count": 3
+    }
+  ]
+}

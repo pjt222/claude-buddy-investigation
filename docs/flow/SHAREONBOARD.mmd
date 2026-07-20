@@ -1,0 +1,18 @@
+flowchart LR
+    %% SHAREONBOARD — V — ShareOnboardingGuide unauth-public share URL (v2.1.128 #107 HIGH; round-3 incognito → CRITICAL contradicted by round-4 scrapling)
+    subgraph SHAREONBOARD["V — ShareOnboardingGuide unauth-public share URL (v2.1.128 #107 HIGH; round-3 incognito → CRITICAL contradicted by round-4 scrapling)"]
+        direction TB
+        share_gate["G$('[feature-flag]',!1)<br/>GrowthBook string-flag (default false)<br/>this account: server-flipped ON"]:::gap
+        share_tool["ShareOnboardingGuide tool<br/>model-invocable (no disableModelInvocation)<br/>reads ONBOARDING.md from cwd<br/>64KB file-size cap"]:::gap
+        share_endpoint["POST [onboarding-endpoint]<br/>mode:check is NOT idempotent-read<br/>PUT = update; NO DELETE in v128 binary"]:::gap
+        share_url["https://claude.ai/claude-code/onboard/{12-char-short-code}<br/>UNAUTH-PUBLIC (round-3 anon-incognito test)<br/>round-4 scrapling no-cookies → /login redirect<br/>severity reverted CRITICAL → HIGH; promotion-gate open"]:::gap
+        share_msg_inject["Tool result injects model-directive<br/>(Close with: '...' instruction)<br/>same channel class as brief stop-hook"]:::gap
+    end
+
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

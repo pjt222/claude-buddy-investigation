@@ -1,0 +1,21 @@
+flowchart LR
+    %% BRIEFINJ — T — Brief Stop-Hook GrowthBook Injection (v2.1.126 #106 CRITICAL)
+    subgraph BRIEFINJ["T — Brief Stop-Hook GrowthBook Injection (v2.1.126 #106 CRITICAL)"]
+        direction TB
+        brief_gate["eZ('[feature-flag]',!1,FI_)<br/>brief-mode entry switch<br/>server-flippable, no user opt-in"]:::core
+        brief_text_flag["G$('[feature-flag]','')<br/>byte 117293158 — string-default reader<br/>EMPTY DEFAULT (overrides hardcoded UI_)"]:::gap
+        brief_inj["#106 — round-3 mitm-injection<br/>canary 145B → /v1/messages role:'user' verbatim<br/>round-7N empirical: 65,596B reaches verbatim<br/>NO CLIENT-SIDE LENGTH CAP"]:::gap
+        brief_no_pin["#106 round-5: no cert pinning<br/>UNABLE_TO_VERIFY_LEAF_SIGNATURE uniform<br/>network-MITM threat realistic"]:::gap
+        brief_targeting["per-account targeting<br/>accountUUID + email + organizationUUID<br/>+ subscriptionType + deviceID<br/>POST [config-channel-endpoint]* envelope"]:::core
+    end
+
+    brief_gate --> brief_text_flag
+    brief_text_flag --> brief_inj
+    brief_no_pin -. "MITM realistic" .-> brief_text_flag
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

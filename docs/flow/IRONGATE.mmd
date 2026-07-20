@@ -1,0 +1,17 @@
+flowchart LR
+    %% IRONGATE — W — Sandbox classifier fail-closed inversion (v2.1.128 #108 — PROMOTED CRITICAL via probe-v2 MITM 2026-05-06)
+    subgraph IRONGATE["W — Sandbox classifier fail-closed inversion (v2.1.128 #108 — PROMOTED CRITICAL via probe-v2 MITM 2026-05-06)"]
+        direction TB
+        iron_classifier["Sandbox network classifier (L48 / p78)<br/>+ auto-mode permission classifier (0x70c79b8)<br/>2 call sites; site-2 wire-confirmed"]:::core
+        iron_flag["G$('[feature-flag]',!0)<br/>DEFAULT-TRUE = deny when classifier unavailable<br/>server flip false → ALLOW (fail-open)"]:::gap
+        iron_decision["Probe-v2 empirical: literal binary log line<br/>'Auto mode classifier unavailable, falling<br/>back to normal permission handling (fail open)'<br/>fires under documented attack input"]:::gap
+        iron_x_neg["Probe-x interactive 5-min TUI session<br/>site-1 NEVER invoked despite all preconditions met<br/>(0 SandboxNetworkAccess classifier requests)"]:::core
+    end
+
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

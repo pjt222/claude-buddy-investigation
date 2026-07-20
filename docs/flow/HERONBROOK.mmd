@@ -1,0 +1,20 @@
+flowchart LR
+    %% HERONBROOK — AI — Heron-Brook System-Prompt Injection (v2.1.179 #154 CRITICAL — server-pushed string reaches /v1/messages system prompt verbatim)
+    subgraph HERONBROOK["AI — Heron-Brook System-Prompt Injection (v2.1.179 #154 CRITICAL — server-pushed string reaches /v1/messages system prompt verbatim)"]
+        direction TB
+        hb_gate["[system-prompt-string-flag] server-push<br/>(GrowthBook eval-SDK response)"]:::gap
+        hb_default["Default state: empty string or dormant<br/>no cap on payload size"]:::baseline
+        hb_inject["Server inject via [config-channel-endpoint]*:<br/>[system-prompt-string-flag].value = &lt;attacker payload&gt;<br/>reaches /v1/messages system[0].text UNESCAPED"]:::risk
+        hb_sink["Messages API system prompt assembly<br/>systemPromptSectionBuilder('[system-prompt-string]',…) dynamic-section builder<br/>#106-class but role:system (not role:user)<br/>W-HERON session-69: marker reached system field verbatim, system_len 27,537; byte-stable v179→v200"]:::core
+    end
+
+    hb_gate --> hb_default
+    hb_default --> hb_inject
+    hb_inject --> hb_sink
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

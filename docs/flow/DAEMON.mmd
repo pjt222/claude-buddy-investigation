@@ -1,0 +1,53 @@
+flowchart LR
+    %% DAEMON — R — Background Daemon (v2.1.119 — 30 events)
+    subgraph DAEMON["R — Background Daemon (v2.1.119 — 30 events)"]
+        direction TB
+        daemon_qqh["qqH() = return false (HARDCODED)<br/>isDaemonCliEnabled gate<br/>blocks 'claude daemon list/install/status/etc'<br/>'claude daemon run' BYPASSES<br/>'claude service install' BLOCKED"]:::removed
+        daemon_czh["CZH() = serverMapBuilder('[feature-flag]',false)<br/>isAgentsFleetEnabled gate (GrowthBook)<br/>gates --bg/--background/logs/attach/kill/respawn/rm<br/>SERVER-FLIPPABLE without binary release<br/>current cohort: NOT PRESENT → defaults false"]:::gap
+        daemon_dispatch_chain["Auto-spawn dispatch chain (fleet-enabled):<br/>claude --bg → mz8() spawnBackgroundFork<br/>→ b3H → J_5 → TN6 → C3H<br/>→ spawn claude daemon run --origin auto"]:::core
+        daemon_sparewarm["Sz8() spare-worker pre-warm<br/>useEffect on Agents Fleet component mount<br/>auto-spawns on every session render<br/>(also gated by CZH — component hidden if false)"]:::gap
+        daemon_gate["allow_remote_control<br/>managed-policy kill-switch<br/>fail-closed upstream"]:::core
+        daemon_fn["Fn() resolver<br/>managedPolicy.remoteControlAtStartup<br/>?? userSettings.remoteControlAtStartup<br/>(project-scope NOT consulted)"]:::core
+        daemon_dialog["r74() dialog gate<br/>!remoteDialogSeen && NT() && OAuth<br/>(non-interactive skips dialog)<br/>dialog component i74 — title 'Remote Control'<br/>useEffect: remoteDialogSeen=true on MOUNT"]:::gap
+        daemon_spawn["Two install paths<br/>A: spawn-fork claude daemon run<br/>--origin auto (detached .unref())<br/>B: systemd-user / launchd<br/>--origin service; com.anthropic.claude-daemon"]:::core
+        daemon_env["K_5() env redact (spawn-fork only)<br/>clears INVOCATION_ID always<br/>strips OAuth token + OAUTH_TOKEN_FILE_DESCRIPTOR<br/>on Linux/Windows if refresh token in keychain<br/>INHERITS both on macOS (#101)"]:::gap
+        daemon_loop["LY4() main loop<br/>spawnMode: same-dir | worktree<br/>staleCheckIntervalMs / idleGraceMs"]:::core
+        daemon_lock["Single-instance lock<br/>daemon.json + process.kill(pid,0)<br/>ESRCH=proceed, reachable=exit"]:::core
+        daemon_persist["[feature-flag]<br/>JG6() binary-target watch<br/>systemd Restart=always RestartSec=1<br/>WantedBy=default.target (autostart)"]:::core
+        daemon_zombie["Zombie recovery<br/>[feature-flag]<br/>PID-0 probe + 2s wait + respawn"]:::core
+        daemon_sock_dir["Socket root /tmp/cc-daemon-&lt;uid&gt;/&lt;sha256(cfg-dir)[:8]&gt;<br/>_18() uid-ownership check<br/>chmod 0o700 enforced<br/>refuses to bind on foreign-uid dir"]:::core
+        daemon_sock_ctl["control.sock — supervisor RPC<br/>15 ops: ping/nudge/lease/dispatch/list/has/kill<br/>reply/subscribe/attach/resize/ensure-spare<br/>permission-response/respawn-stale/await-ack"]:::core
+        daemon_sock_rv["rv/&lt;short&gt;.sock — per-worker rendezvous"]:::core
+        daemon_sock_pty["pty/&lt;short&gt;.sock — per-worker PTY passthrough"]:::core
+        daemon_pipekey["~/.claude/daemon/pipe.key (16-hex)<br/>Windows: embedded in pipe name (auth)<br/>Linux: file created but UNUSED<br/>(fs perms on sock dir = auth)"]:::gap
+        daemon_dispatch_schema["dispatch schema Y18<br/>env: Record&lt;string,string&gt; (arbitrary env)<br/>source: shell|slash|fleet|respawn<br/>isolation: none|worktree"]:::gap
+        daemon_frame["DCS escape framing<br/>\\x1B_cc-detach-msg;...\\x1B\\\\<br/>PTY-compatible IPC"]:::core
+    end
+
+    daemon_qqh -. "blocks manual subcmds<br/>except 'run'" .-> daemon_spawn
+    daemon_czh -- "if true: allow --bg" --> daemon_dispatch_chain
+    daemon_dispatch_chain --> daemon_spawn
+    daemon_czh -- "if true: mount fleet UI" --> daemon_sparewarm
+    daemon_sparewarm -. "spare-worker pre-warm" .-> daemon_spawn
+    daemon_gate --> daemon_fn
+    daemon_fn --> daemon_dialog
+    daemon_dialog -- "consent" --> daemon_spawn
+    daemon_spawn --> daemon_env
+    daemon_env --> daemon_loop
+    daemon_loop --> daemon_lock
+    daemon_spawn --> daemon_persist
+    daemon_spawn --> daemon_zombie
+    daemon_loop --> daemon_sock_dir
+    daemon_sock_dir --> daemon_sock_ctl
+    daemon_sock_dir --> daemon_sock_rv
+    daemon_sock_dir --> daemon_sock_pty
+    daemon_spawn -. "creates" .-> daemon_pipekey
+    daemon_sock_ctl -. "DCS wrap" .-> daemon_frame
+    daemon_sock_ctl -. "op: dispatch" .-> daemon_dispatch_schema
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

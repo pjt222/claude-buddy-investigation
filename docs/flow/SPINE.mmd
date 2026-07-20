@@ -1,0 +1,30 @@
+flowchart LR
+    %% SPINE — Startup Spine — gate every subsystem
+    subgraph SPINE["Startup Spine — gate every subsystem"]
+        direction TB
+        oauth["OAuth token<br/>~/.claude/.credentials.json"]:::core
+        firstparty["firstParty check"]:::core
+        orguuid["organizationUuid"]:::core
+        providers["Provider registry resolveProvider()<br/>firstParty / bedrock / vertex / anthropicAws<br/>mantle / foundry(scaffolded)<br/>firstPartyEquivGate() firstParty-equivalence gate"]:::core
+        mtls["mTLS envs (v2.1.101)<br/>CERT_STORE / CLIENT_CERT/KEY"]:::gap
+        sdkrefresh["SDK OAuth refresh callback<br/>oauth-sdk-refresh-event"]:::gap
+        flags["[feature-flag] feature flags — 7-layer resolution<br/>GrowthBook flagResolverA()/flagResolverB()/flagResolverC() + Statsig statsigResolver()<br/>grove /api/[internal-policy-endpoint]<br/>session/project/env overrides"]:::core
+        envkill["[env-flag]* env kill switches"]:::core
+        settings["~/.claude/settings.json<br/>~/.claude/.claude.json"]:::core
+    end
+
+    oauth --> firstparty
+    firstparty --> orguuid
+    oauth --> providers
+    providers -. "BYOC" .-> mtls
+    oauth -. "401 refresh" .-> sdkrefresh
+    firstparty --> flags
+    flags --> envkill
+    settings --> flags
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

@@ -1,0 +1,17 @@
+flowchart LR
+    %% HARBORPRISM — X — PR-status path-switcher (v2.1.128 #109 Med info)
+    subgraph HARBORPRISM["X — PR-status path-switcher (v2.1.128 #109 Med info)"]
+        direction TB
+        prism_flag["G$('[feature-flag]','off')<br/>string-flag (default 'off')<br/>per-account decision-routing"]:::core
+        prism_off["OFF path: local `gh pr view --json ...`<br/>ground truth"]:::core
+        prism_on["ON path: direct GitHub API/GraphQL fetch from binary<br/>(qV7/Ak_ chain — React-component-only)<br/>requires interactive TUI in PR-context branch<br/>--print mode does NOT trigger"]:::gap
+        prism_z_tui["Probe-z-tui: flag-injection PROVEN<br/>via rewrites.jsonl experiment-flip<br/>but canonical /ultrareview path-switcher branch UNRESOLVED<br/>(generic prompts → LLM picks gh pr view regardless)"]:::core
+    end
+
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

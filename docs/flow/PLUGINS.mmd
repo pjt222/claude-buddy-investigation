@@ -1,0 +1,19 @@
+flowchart LR
+    %% PLUGINS — N — Plugins (22 events)
+    subgraph PLUGINS["N — Plugins (22 events)"]
+        direction TB
+        plugin_mkt["Marketplace GCS+git<br/>claude-plugins-official"]:::core
+        plugin_load["Plugin loader<br/>skills+agents+hooks+mcp+lsp+monitors"]:::core
+        plugin_cli["claude plugin install|enable|disable<br/>list|update|marketplace"]:::core
+        official_marketplace["Official MCP marketplace<br/>auto-installer (v2.1.112)<br/>[env-flag]<br/>[marketplace-autoinstall-gate]<br/>states: policy_blocked / already_installed / git_unavailable"]:::core
+    end
+
+    plugin_mkt --> plugin_load
+    official_marketplace --> plugin_load
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

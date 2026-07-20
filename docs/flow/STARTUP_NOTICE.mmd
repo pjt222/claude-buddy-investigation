@@ -1,0 +1,26 @@
+flowchart LR
+    %% STARTUP_NOTICE — AC — TUI Startup-Notice Injection (v2.1.140 #127 HIGH — Critical refuted session-70: Ink &lt;Text&gt; strips dangerous escapes)
+    subgraph STARTUP_NOTICE["AC — TUI Startup-Notice Injection (v2.1.140 #127 HIGH — Critical refuted session-70: Ink &lt;Text&gt; strips dangerous escapes)"]
+        direction TB
+        sn_default["Default state on wire:<br/>{value:&#39;&#39;, on:false, off:true, source:&#39;defaultValue&#39;}<br/>(dormant for this account)"]:::baseline
+        sn_inject["Server inject via [config-channel-endpoint]&lt;id&gt;:<br/>[feature-flag].value = &lt;attacker payload&gt;"]:::risk
+        sn_render["Sole consumer cor() → Ink &lt;Text&gt; (children:t.text)<br/>cell-based screen buffer parses + re-emits<br/>(NOT a raw stdout.write sink)"]:::baseline
+        sn_color["color: x1b[31m...x1b[0m → SURVIVES<br/>(chalk re-emits x1b[0m→x1b[39m: parsed, not raw)<br/>residual = styled-text spoofing in trusted banner"]:::gap
+        sn_stripped["cursor x1b[9;1H / clipboard x1b]52 / DSR x1b[6n /<br/>OSC8 hyperlink x1b]8;; → ALL STRIPPED<br/>(byte-test session-70, v191 — same path as #155)"]:::baseline
+        sn_cap["Width cap ~75 visible chars;<br/>only the surviving color SGR is zero-width"]:::baseline
+        sn_markdown["Markdown rendered as literal text<br/>(defensive; no link parsing)"]:::baseline
+    end
+
+    sn_default --> sn_inject
+    sn_inject --> sn_render
+    sn_render --> sn_color
+    sn_render --> sn_stripped
+    sn_render --> sn_cap
+    sn_render --> sn_markdown
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

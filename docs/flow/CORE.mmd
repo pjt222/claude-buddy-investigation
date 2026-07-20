@@ -1,0 +1,24 @@
+flowchart LR
+    %% CORE — A — Core Runtime (per-turn loop)
+    subgraph CORE["A — Core Runtime (per-turn loop)"]
+        direction TB
+        startup["Startup bootstrap<br/>getStartupInfo family"]:::core
+        model_router["Model router modelRouterSelect() / resolveModelSpec(spec,mainLoop,override,permMode)<br/>opus-4-7 / opus-4-6 / sonnet-4-6 / haiku<br/>xhigh_effort→4-7 / max_effort→4-6<br/>[env-flag] override<br/>[1m] tier suffix: useOneMillionCtx()&&!suppressTierSuffix()<br/>inherit path via inheritModelSpec()"]:::core
+        msgs_api["Messages API<br/>POST /v1/messages"]:::core
+        turn_loop["Per-turn loop<br/>(ordering unverified)"]:::gap
+        stream_handler["Streaming handler<br/>[advisor-response-type] / tool_result"]:::core
+        hook_checkpoints["Hook checkpoints<br/>(7 named, 2 observed)"]:::gap
+    end
+
+    startup --> model_router
+    model_router --> msgs_api
+    msgs_api --> turn_loop
+    turn_loop --> stream_handler
+    turn_loop -. "unverified" .-> hook_checkpoints
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px
