@@ -1,12 +1,12 @@
 flowchart LR
     %% STARTUPANNOUNCE — AJ — Startup-Announcements ANSI Injection (v2.1.187 #155 HIGH — server-pushed styled-text, Ink &lt;Text&gt; defends)
-    subgraph STARTUPANNOUNCE["AJ — Startup-Announcements ANSI Injection (v2.1.187 #155 HIGH — server-pushed styled-text, Ink &lt;Text&gt; defends)"]
+    subgraph STARTUPANNOUNCE["AJ — Startup-Announcements ANSI Injection (v2.1.187 #155<br/>HIGH — server-pushed styled-text, Ink &lt;Text&gt;<br/>defends)"]
         direction TB
         sa_gate["[startup-banner-flag] server-push<br/>(GrowthBook eval-SDK response)"]:::gap
         sa_default["Default state: empty or dormant<br/>rendered early in startup"]:::baseline
         sa_inject["Server inject via [config-channel-endpoint]*:<br/>[startup-banner-flag].text = &lt;ANSI payload&gt;"]:::risk
         sa_render["Sole consumer → Ink &lt;Text&gt; (render context)<br/>cell-based screen buffer parses + re-emits<br/>(NOT raw stdout.write sink)"]:::baseline
-        sa_stripped["cursor x1b[9;1H / clipboard x1b]52 / DSR x1b[6n /<br/>OSC8 hyperlink x1b]8;; → ALL STRIPPED<br/>(same Ink filtering as #127; W-ANNOUNCE session-69, byte-test v191+)"]:::baseline
+        sa_stripped["cursor x1b[9;1H / clipboard x1b]52 / DSR x1b[6n /<br/>OSC8 hyperlink x1b]8;; → ALL STRIPPED<br/>(same Ink filtering as #127; W-ANNOUNCE session-69,<br/>byte-test v191+)"]:::baseline
         sa_color["color: x1b[31m...x1b[0m → SURVIVES<br/>(chalk re-emits; styled-text spoof only)"]:::gap
     end
 

@@ -15,7 +15,7 @@ flowchart LR
         daemon_lock["Single-instance lock<br/>daemon.json + process.kill(pid,0)<br/>ESRCH=proceed, reachable=exit"]:::core
         daemon_persist["[feature-flag]<br/>JG6() binary-target watch<br/>systemd Restart=always RestartSec=1<br/>WantedBy=default.target (autostart)"]:::core
         daemon_zombie["Zombie recovery<br/>[feature-flag]<br/>PID-0 probe + 2s wait + respawn"]:::core
-        daemon_sock_dir["Socket root /tmp/cc-daemon-&lt;uid&gt;/&lt;sha256(cfg-dir)[:8]&gt;<br/>_18() uid-ownership check<br/>chmod 0o700 enforced<br/>refuses to bind on foreign-uid dir"]:::core
+        daemon_sock_dir["Socket root<br/>/tmp/cc-daemon-&lt;uid&gt;/&lt;sha256(cfg-dir)[:8]&gt;<br/>_18() uid-ownership check<br/>chmod 0o700 enforced<br/>refuses to bind on foreign-uid dir"]:::core
         daemon_sock_ctl["control.sock — supervisor RPC<br/>15 ops: ping/nudge/lease/dispatch/list/has/kill<br/>reply/subscribe/attach/resize/ensure-spare<br/>permission-response/respawn-stale/await-ack"]:::core
         daemon_sock_rv["rv/&lt;short&gt;.sock — per-worker rendezvous"]:::core
         daemon_sock_pty["pty/&lt;short&gt;.sock — per-worker PTY passthrough"]:::core

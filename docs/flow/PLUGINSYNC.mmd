@@ -1,11 +1,11 @@
 flowchart LR
     %% PLUGINSYNC — AE — Plugins-Sync Headless stdio-MCP Register (v2.1.158 #140 HIGH — no consent prompt in sync caller; asymmetric to skills-sync hooks:void 0)
-    subgraph PLUGINSYNC["AE — Plugins-Sync Headless stdio-MCP Register (v2.1.158 #140 HIGH — no consent prompt in sync caller; asymmetric to skills-sync hooks:void 0)"]
+    subgraph PLUGINSYNC["AE — Plugins-Sync Headless stdio-MCP Register (v2.1.158<br/>#140 HIGH — no consent prompt in sync caller; asymmetric<br/>to skills-sync hooks:void 0)"]
         direction TB
         psync_gate["pluginSyncGate() = CH(process.env.[env-flag])<br/>env-gated, DEFAULT OFF<br/>session init: if(pluginSyncGate()) pluginSyncTrigger()<br/>(NOT GrowthBook server-push)"]:::baseline
         psync_list["EBz()/YT9() desired-state fetch<br/>GET [org-oauth-endpoint]:orgUUID/<br/>plugins/list-plugins?enabled_only=true<br/>auth:'teleport-org' (org admin → member trust path)"]:::gap
         psync_dl["yBz download<br/>GET .../plugins/{name}/download<br/>arraybuffer, maxContentLength kBz<br/>nflagResolverA() name sanitizer + path-traversal reject<br/>512MB cap SBz=536870912<br/>manifest → ~/.claude/plugins/synced/manifest.json"]:::gap
-        psync_register["tH() MCP-register (NO consent in caller)<br/>serverMapBuilder() builds server map incl. type==='stdio' (subprocess)<br/>mH(lH,{authoritative:!1,caller:vH}) headless refresh<br/>'Headless MCP refresh: added=N'<br/>timeout LT9 default 10s → plugin-sync-timeout-event"]:::risk
+        psync_register["tH() MCP-register (NO consent in caller)<br/>serverMapBuilder() builds server map incl.<br/>type==='stdio' (subprocess)<br/>mH(lH,{authoritative:!1,caller:vH}) headless refresh<br/>'Headless MCP refresh: added=N'<br/>timeout LT9 default 10s → plugin-sync-timeout-event"]:::risk
         psync_asym["Asymmetry: skills-sync sibling lIz()<br/>hardcodes hooks:void 0 (×2 in v158)<br/>→ synced skills CANNOT auto-register hooks;<br/>plugin leg has NO equivalent suppression"]:::gap
     end
 

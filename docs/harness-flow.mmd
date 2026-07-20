@@ -116,14 +116,14 @@ flowchart LR
         direction TB
         plugin_mkt["Marketplace GCS+git<br/>claude-plugins-official"]:::core
         plugin_load["Plugin loader<br/>skills+agents+hooks+mcp+lsp+monitors"]:::core
-        plugin-hint-events["Hint system<br/>&lt;claude-code-hint&gt;"]:::core
+        hint_telemetrys["Hint system<br/>&lt;claude-code-hint&gt;"]:::core
         plugin_cli["claude plugin install|enable|disable<br/>list|update|marketplace"]:::core
         official_marketplace["Official MCP marketplace<br/>auto-installer (v2.1.112)<br/>[env-flag]<br/>[marketplace-autoinstall-gate]<br/>states: policy_blocked / already_installed / git_unavailable"]:::core
     end
     %% ===== P — v2.1.111+ New Systems =====
     subgraph NEW111["P — v2.1.111+ Systems"]
         direction TB
-        opus47-launch["Opus 4.7 launch modal<br/>opus47-launch-shown<br/>opus47LaunchSeenCount"]:::core
+        model_launch_modal["Opus 4.7 launch modal<br/>opus47-launch-shown<br/>opus47LaunchSeenCount"]:::core
         bash_prompt_flag["bash_prompt_flag flag<br/>strips parallel-Bash instructions<br/>from Bash tool description"]:::core
         powershell_tool_gate["powershell_tool_gate flag<br/>PowerShell tool on Windows<br/>[env-flag]"]:::core
         memory_survey_flag["memory_survey_flag / memory survey<br/>trigger: /memor(y|ies)/ regex<br/>co-event: [memory-survey-co-event]"]:::core
@@ -254,7 +254,7 @@ flowchart LR
     %% ===== Y — v129 _PROTO_ destructure-rename field-level leak (#110 PROMOTED CRITICAL via probe-r MITM) =====
     subgraph PROTOLEAK["Y — _PROTO_ destructure-rename leak (v2.1.129 #110 — PROMOTED CRITICAL via probe-r MITM 2026-05-06)"]
         direction TB
-        proto_emitters["13 active emitters in v129<br/>(plugin install/uninstall/enable/disable/update_command,<br/>plugin-hint-event_*, folder-shadow-event, name-collision-event,<br/>skill-load-event, skill-invoke-event, command-fork-event,<br/>input-event)<br/>Each adds _PROTO_plugin_name / _PROTO_skill_name /<br/>_PROTO_marketplace_name to event.additional"]:::gap
+        proto_emitters["13 active emitters in v129<br/>(plugin install/uninstall/enable/disable/update_command,<br/>hint_telemetry_*, folder-shadow-event, name-collision-event,<br/>skill-load-event, skill-invoke-event, command-fork-event,<br/>input-event)<br/>Each adds _PROTO_plugin_name / _PROTO_skill_name /<br/>_PROTO_marketplace_name to event.additional"]:::gap
         proto_egress["Egress site destructures _PROTO_* into local vars<br/>then re-attaches as TOP-LEVEL event fields:<br/>plugin_name / skill_name / marketplace_name"]:::gap
         proto_endpoint["1P telemetry endpoint:<br/>api.anthropic.com[event-logging-endpoint]<br/>Top-level fields (raw): skill_name, plugin_name,<br/>marketplace_name, device_id, email, auth"]:::gap
         proto_redactor["Sibling redactor jyH() strips remaining _PROTO_*<br/>in residual j object but does NOT block<br/>the destructured raw values explicitly re-attached at egress"]:::core
@@ -469,7 +469,7 @@ flowchart LR
     flags --> hook_pipeline
     flags -. "[relay-chain-gate]" .-> bash_prompt_flag
     flags -. "[powershell-tool-gate]" .-> powershell_tool_gate
-    flags -. "[opus47-launch-gate]" .-> opus47-launch
+    flags -. "[opus47-launch-gate]" .-> model_launch_modal
     identity --> soul
     soul --> companion_cfg
     companion_cfg --> claudejson
@@ -519,7 +519,7 @@ flowchart LR
     plugin_load --> mcp_client
     plugin_load --> skill_loader
     plugin_load --> hook_pipeline
-    plugin-hint-events -. "model hint" .-> stream_handler
+    hint_telemetrys -. "model hint" .-> stream_handler
     sched_fn --> tel_main
     msgs_api --> tel_main
     mcp_client --> tel_main
@@ -530,7 +530,7 @@ flowchart LR
     plugin_load --> tel_ext
     dream_agent --> tel_ext
     stream_handler --> tel_ext
-    opus47-launch --> tel_v111
+    model_launch_modal --> tel_v111
     memory_survey_flag --> tel_v111
     tel_main --> tel_transport
     tel_ccr --> tel_transport

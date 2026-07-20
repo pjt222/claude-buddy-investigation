@@ -194,9 +194,9 @@
     {
       "id": "PLUGINS",
       "label": "N \u2014 Plugins (22 events)",
-      "nodes": 4,
+      "nodes": 5,
       "internal_edges": 2,
-      "crossing_edges": 8,
+      "crossing_edges": 9,
       "neighbours": [
         "CORE",
         "EXTH",
@@ -211,9 +211,9 @@
     {
       "id": "NEW111",
       "label": "P \u2014 v2.1.111+ Systems",
-      "nodes": 5,
+      "nodes": 6,
       "internal_edges": 0,
-      "crossing_edges": 9,
+      "crossing_edges": 11,
       "neighbours": [
         "CORE",
         "SPINE",

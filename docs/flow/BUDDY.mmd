@@ -12,6 +12,10 @@ flowchart LR
         intro_inject["companion_intro<br/>(dead filter v2.1.97+)"]:::removed
     end
 
+    %% invisible links: stack 3 disconnected groups vertically rather than side by side
+    identity ~~~ turn_watcher
+    turn_watcher ~~~ sprite_ui
+
     identity --> soul
     soul --> companion_cfg
     turn_watcher --> bi_sender

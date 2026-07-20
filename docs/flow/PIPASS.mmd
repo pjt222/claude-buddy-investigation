@@ -1,6 +1,6 @@
 flowchart LR
     %% PIPASS — Q1 — Pi-Passport (third-party gate evasion + Claude-Code bypass) [hardened postQ3Q4 2026-05-10]
-    subgraph PIPASS["Q1 — Pi-Passport (third-party gate evasion + Claude-Code bypass) [hardened postQ3Q4 2026-05-10]"]
+    subgraph PIPASS["Q1 — Pi-Passport (third-party gate evasion + Claude-Code<br/>bypass) [hardened postQ3Q4 2026-05-10]"]
         direction TB
         pp_creds["~/.claude/.credentials.json<br/>OAuth bearer + refreshToken<br/>(stolen-token threat surface)"]:::ours
         pp_refresh["refresh-token.mjs<br/>POST platform.claude.com[oauth-token-endpoint]<br/>client_id 9d1c250a-... (binary's<br/>secondary CLIENT_ID; primary fails)<br/>+S2 randomBytes tmp / +S3 redirect:error<br/>+S4 UUID-validate --client-id"]:::ours
@@ -13,6 +13,11 @@ flowchart LR
         pp_classifier["Classifier corpus + rule-fallback<br/>41 samples (22 mitm + 19 sensitivity)<br/>gate requires density+structure,<br/>not keyword OR-rule<br/>Path A executed: model.rds deleted,<br/>glm() retired, (?m) regex fixed"]:::ours
         pp_test_suite["54-test suite (was 41)<br/>+9 R7 index handler integration<br/>+4 R2/R5 unit"]:::ours
     end
+
+    %% invisible links: stack 4 disconnected groups vertically rather than side by side
+    pp_creds ~~~ pp_anthropic_api
+    pp_anthropic_api ~~~ pp_runner
+    pp_runner ~~~ pp_test_suite
 
     pp_creds -- "read accessToken" --> pp_launcher
     pp_creds -- "read refreshToken" --> pp_refresh

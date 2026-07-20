@@ -1,10 +1,10 @@
 flowchart LR
     %% VELVETGUARD — AH — Read-Before-Edit/Write Guard Skip (v2.1.166 #152 LOW — data-integrity only, no permission reach; → W-VELVET)
-    subgraph VELVETGUARD["AH — Read-Before-Edit/Write Guard Skip (v2.1.166 #152 LOW — data-integrity only, no permission reach; → W-VELVET)"]
+    subgraph VELVETGUARD["AH — Read-Before-Edit/Write Guard Skip (v2.1.166 #152<br/>LOW — data-integrity only, no permission reach; →<br/>W-VELVET)"]
         direction TB
         vg_flag["flagReader('[feature-flag]',!1) (Edit)<br/>flagReader('[feature-flag]',!1) (Write)<br/>GrowthBook cachedGrowthBookFeatures, DEFAULT FALSE<br/>same channel as #108/#113"]:::gap
         vg_skip["SERVER FLIP TRUE → guardSkipped=true<br/>skips 'File has not been read yet' guard<br/>→ Edit/Write proceeds on un-Read file<br/>(blind-overwrite / stale-content)"]:::gap
-        vg_nope["NO permission reach (verified)<br/>not co-located with [sandbox-classifier-gate]/acceptEdits/canUseTool<br/>data-integrity speed-bump, not a privilege gate"]:::baseline
+        vg_nope["NO permission reach (verified)<br/>not co-located with<br/>[sandbox-classifier-gate]/acceptEdits/canUseTool<br/>data-integrity speed-bump, not a privilege gate"]:::baseline
     end
 
     vg_flag --> vg_skip

@@ -1,6 +1,6 @@
 flowchart LR
     %% BYOC_DD — AB — BYOC Datadog Killswitch (v2.1.138 partial #105 remediation, BYOC subset only)
-    subgraph BYOC_DD["AB — BYOC Datadog Killswitch (v2.1.138 partial #105 remediation, BYOC subset only)"]
+    subgraph BYOC_DD["AB — BYOC Datadog Killswitch (v2.1.138 partial #105<br/>remediation, BYOC subset only)"]
         direction TB
         byoc_predicate["_PK() predicate:<br/>process.env.[env-flag]==='byoc'<br/>&& !EH(env.[env-flag])"]:::core
         byoc_scope["Customer-segment killswitch only<br/>(BYOC contract surface; main consumer<br/>Pro/Max remains exposed when<br/>[feature-flag] server-flipped on)"]:::gap

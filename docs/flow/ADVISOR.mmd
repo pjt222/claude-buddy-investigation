@@ -6,9 +6,14 @@ flowchart LR
         advisor_schema["tool schema<br/>advisor_20260301"]:::core
         advisor_prompt["system prompt [advisor-prompt-A]/[advisor-prompt-B]"]:::core
         advisor_tool["advisor() tool-use<br/>inside Messages API"]:::core
-        advisor_cost["[advisor-cost-tracker]/[advisor-cost-calc]/[advisor-cost-budget] cost tracking"]:::core
+        advisor_cost["[advisor-cost-tracker]/[advisor-cost-calc]/[advisor-cost-budget]<br/>cost tracking"]:::core
         advisor_cli["--advisor / /advisor<br/>(hidden until rollout)"]:::gap
     end
+
+    %% invisible links: stack 4 disconnected groups vertically rather than side by side
+    advisor_gate ~~~ advisor_prompt
+    advisor_prompt ~~~ advisor_tool
+    advisor_tool ~~~ advisor_cli
 
     advisor_gate --> advisor_schema
     advisor_tool --> advisor_cost

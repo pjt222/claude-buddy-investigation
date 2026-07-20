@@ -1,14 +1,14 @@
 flowchart LR
     %% COWORKBRIDGE — AF — Cowork/CCR-v2 Remote-Environment Bridge + Two-Stage Classifier (v2.1.160 — no finding; runner-side; watch W1/W2)
-    subgraph COWORKBRIDGE["AF — Cowork/CCR-v2 Remote-Environment Bridge + Two-Stage Classifier (v2.1.160 — no finding; runner-side; watch W1/W2)"]
+    subgraph COWORKBRIDGE["AF — Cowork/CCR-v2 Remote-Environment Bridge + Two-Stage<br/>Classifier (v2.1.160 — no finding; runner-side; watch<br/>W1/W2)"]
         direction TB
         cb_gate["Bridge activation (RUNNER-SIDE only)<br/>[env-flag]==='bridge'<br/>|| IS_COWORK || [env-flag]<br/>(cloud env, NOT local CLI)"]:::baseline
         cb_api["Bridge lease/work protocol<br/>POST /v1/environments/...<br/>DELETE /v1/environments/... (deregister)<br/>POST /v1/sessions/...<br/>POST .../work/.../heartbeat (lease_extended)"]:::baseline
         cb_token["Session-ingress auth<br/>[ingress-token] in secrets store (secretsRead)<br/>[env-flag]<br/>[ingress-url] &larr; [config].[base-url-key]<br/>runner token [runner-token-path]"]:::gap
         cb_egress["[egress-gateway] CONNECT proxy (127.0.0.1)<br/>^CONNECT\\s+(\\S+)\\s+HTTP — 405 non-CONNECT<br/>ALLOW/DENY POLICY UNVERIFIED → W2<br/>(169.254 literal = NO_PROXY bypass list,<br/>NOT an SSRF denylist — corrected)"]:::gap
-        cb_classifier["Two-stage auto-mode classifier (DEFENSE)<br/>twoStageClassifierGate()=[feature-flag].twoStageClassifier ?? true<br/>stage1+stage2, FAIL-CLOSED<br/>'blocking it for safety' — opposite of #108<br/>+ sub-agent-output 'SECURITY WARNING' surface (W5)"]:::baseline
+        cb_classifier["Two-stage auto-mode classifier (DEFENSE)<br/>twoStageClassifierGate()=[feature-flag].twoStageClassifier<br/>?? true<br/>stage1+stage2, FAIL-CLOSED<br/>'blocking it for safety' — opposite of #108<br/>+ sub-agent-output 'SECURITY WARNING' surface (W5)"]:::baseline
         cb_watch["Watch W1: server steers permission-classifier<br/>model/staging via [feature-flag].model<br/>+ [feature-flag] (fail-closed today)"]:::gap
-        am_exfil["v2.1.205 auto-mode EXFIL-COMMAND awareness (DEFENSE)<br/>AUTO_MODE_REPO_VISIBILITY + GIT_STATUS_UPLOADS (both default-off)<br/>classifier flags push/remote-set-url/pr/issue/release/fork as exfil-capable<br/>repo public/private (client-computed, sanitized) + git-status --porcelain PATHS<br/>enrich the FIRST-PARTY classifier as a risk HINT (never file content, capped)<br/>no visibility branch flips a permission — net-defensive, not #108"]:::baseline
+        am_exfil["v2.1.205 auto-mode EXFIL-COMMAND awareness (DEFENSE)<br/>AUTO_MODE_REPO_VISIBILITY + GIT_STATUS_UPLOADS (both<br/>default-off)<br/>classifier flags<br/>push/remote-set-url/pr/issue/release/fork as<br/>exfil-capable<br/>repo public/private (client-computed, sanitized) +<br/>git-status --porcelain PATHS<br/>enrich the FIRST-PARTY classifier as a risk HINT (never<br/>file content, capped)<br/>no visibility branch flips a permission — net-defensive,<br/>not #108"]:::baseline
     end
 
     cb_gate --> cb_api

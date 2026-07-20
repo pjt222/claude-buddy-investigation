@@ -1,11 +1,11 @@
 flowchart LR
     %% PLUGINCRED — AG — Plugin-Autoupdate Git Credential-Helper Re-enable (v2.1.174 #151 HIGH — server-flippable; local, NOT CCR-gated; #136/#140 family; → W-CREDHELPER)
-    subgraph PLUGINCRED["AG — Plugin-Autoupdate Git Credential-Helper Re-enable (v2.1.174 #151 HIGH — server-flippable; local, NOT CCR-gated; #136/#140 family; → W-CREDHELPER)"]
+    subgraph PLUGINCRED["AG — Plugin-Autoupdate Git Credential-Helper Re-enable<br/>(v2.1.174 #151 HIGH — server-flippable; local, NOT<br/>CCR-gated; #136/#140 family; → W-CREDHELPER)"]
         direction TB
-        pc_gate["Background plugin autoupdate pluginAutoupdate()<br/>gated autoUpdaterEnabledGate()=autoUpdaterEnabled() && !FORCE_AUTOUPDATE_PLUGINS<br/>LOCAL auto-updater (NOT REMOTE/bridge/IS_COWORK)<br/>background timer, no user interaction"]:::baseline
+        pc_gate["Background plugin autoupdate pluginAutoupdate()<br/>gated autoUpdaterEnabledGate()=autoUpdaterEnabled() &&<br/>!FORCE_AUTOUPDATE_PLUGINS<br/>LOCAL auto-updater (NOT REMOTE/bridge/IS_COWORK)<br/>background timer, no user interaction"]:::baseline
         pc_flag["flagReader('[feature-flag]',!1)<br/>GrowthBook server-push, DEFAULT FALSE<br/>[credential-helper-flag]:!_ → default true = SAFE<br/>(git -c credential.helper= suppresses helper)"]:::gap
-        pc_flip["SERVER FLIP TRUE → [credential-helper-flag]=false<br/>→ user's git credential helper RUNS during<br/>automatic 'git fetch origin' (marketplaceFetch→gitFetchWrapper→p6)"]:::risk
-        pc_host["Marketplace git host scope = arbitrary<br/>Hg6: new URL(H.url).hostname<br/>marketplaceHostValidator blocks ONLY backslash-host (UNC/traversal)<br/>extraKnownMarketplaces = managed/enterprise config"]:::risk
+        pc_flip["SERVER FLIP TRUE → [credential-helper-flag]=false<br/>→ user's git credential helper RUNS during<br/>automatic 'git fetch origin'<br/>(marketplaceFetch→gitFetchWrapper→p6)"]:::risk
+        pc_host["Marketplace git host scope = arbitrary<br/>Hg6: new URL(H.url).hostname<br/>marketplaceHostValidator blocks ONLY backslash-host<br/>(UNC/traversal)<br/>extraKnownMarketplaces = managed/enterprise config"]:::risk
     end
 
     pc_gate --> pc_flag

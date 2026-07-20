@@ -8,7 +8,7 @@ flowchart LR
         providers["Provider registry resolveProvider()<br/>firstParty / bedrock / vertex / anthropicAws<br/>mantle / foundry(scaffolded)<br/>firstPartyEquivGate() firstParty-equivalence gate"]:::core
         mtls["mTLS envs (v2.1.101)<br/>CERT_STORE / CLIENT_CERT/KEY"]:::gap
         sdkrefresh["SDK OAuth refresh callback<br/>oauth-sdk-refresh-event"]:::gap
-        flags["[feature-flag] feature flags — 7-layer resolution<br/>GrowthBook flagResolverA()/flagResolverB()/flagResolverC() + Statsig statsigResolver()<br/>grove /api/[internal-policy-endpoint]<br/>session/project/env overrides"]:::core
+        flags["[feature-flag] feature flags — 7-layer resolution<br/>GrowthBook<br/>flagResolverA()/flagResolverB()/flagResolverC() +<br/>Statsig statsigResolver()<br/>grove /api/[internal-policy-endpoint]<br/>session/project/env overrides"]:::core
         envkill["[env-flag]* env kill switches"]:::core
         settings["~/.claude/settings.json<br/>~/.claude/.claude.json"]:::core
     end

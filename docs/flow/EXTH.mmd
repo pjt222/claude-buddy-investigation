@@ -10,6 +10,10 @@ flowchart LR
         async_stall["Async agent stall watchdog<br/>[agent-stall-gate]<br/>default 600s (CLAUDE_ASYNC_AGENT_STALL_TIMEOUT_MS)<br/>aborts + marks task failed"]:::core
     end
 
+    %% invisible links: stack 3 disconnected groups vertically rather than side by side
+    hook_config ~~~ skill_loader
+    skill_loader ~~~ ma_agents
+
     hook_config --> hook_pipeline
     hook_pipeline -. "SessionStart" .-> dream_nightly
     async_stall -. "abort on stall" .-> ma_agents

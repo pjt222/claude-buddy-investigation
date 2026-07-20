@@ -1,12 +1,17 @@
 flowchart LR
     %% IRONGATE — W — Sandbox classifier fail-closed inversion (v2.1.128 #108 — PROMOTED CRITICAL via probe-v2 MITM 2026-05-06)
-    subgraph IRONGATE["W — Sandbox classifier fail-closed inversion (v2.1.128 #108 — PROMOTED CRITICAL via probe-v2 MITM 2026-05-06)"]
+    subgraph IRONGATE["W — Sandbox classifier fail-closed inversion (v2.1.128<br/>#108 — PROMOTED CRITICAL via probe-v2 MITM 2026-05-06)"]
         direction TB
         iron_classifier["Sandbox network classifier (L48 / p78)<br/>+ auto-mode permission classifier (0x70c79b8)<br/>2 call sites; site-2 wire-confirmed"]:::core
         iron_flag["G$('[feature-flag]',!0)<br/>DEFAULT-TRUE = deny when classifier unavailable<br/>server flip false → ALLOW (fail-open)"]:::gap
         iron_decision["Probe-v2 empirical: literal binary log line<br/>'Auto mode classifier unavailable, falling<br/>back to normal permission handling (fail open)'<br/>fires under documented attack input"]:::gap
         iron_x_neg["Probe-x interactive 5-min TUI session<br/>site-1 NEVER invoked despite all preconditions met<br/>(0 SandboxNetworkAccess classifier requests)"]:::core
     end
+
+    %% invisible links: stack 4 disconnected groups vertically rather than side by side
+    iron_classifier ~~~ iron_flag
+    iron_flag ~~~ iron_decision
+    iron_decision ~~~ iron_x_neg
 
 
     classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px

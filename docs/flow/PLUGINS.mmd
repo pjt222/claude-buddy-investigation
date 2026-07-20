@@ -4,9 +4,14 @@ flowchart LR
         direction TB
         plugin_mkt["Marketplace GCS+git<br/>claude-plugins-official"]:::core
         plugin_load["Plugin loader<br/>skills+agents+hooks+mcp+lsp+monitors"]:::core
+        hint_telemetrys["Hint system<br/>&lt;claude-code-hint&gt;"]:::core
         plugin_cli["claude plugin install|enable|disable<br/>list|update|marketplace"]:::core
-        official_marketplace["Official MCP marketplace<br/>auto-installer (v2.1.112)<br/>[env-flag]<br/>[marketplace-autoinstall-gate]<br/>states: policy_blocked / already_installed / git_unavailable"]:::core
+        official_marketplace["Official MCP marketplace<br/>auto-installer (v2.1.112)<br/>[env-flag]<br/>[marketplace-autoinstall-gate]<br/>states: policy_blocked / already_installed /<br/>git_unavailable"]:::core
     end
+
+    %% invisible links: stack 3 disconnected groups vertically rather than side by side
+    plugin_mkt ~~~ hint_telemetrys
+    hint_telemetrys ~~~ plugin_cli
 
     plugin_mkt --> plugin_load
     official_marketplace --> plugin_load

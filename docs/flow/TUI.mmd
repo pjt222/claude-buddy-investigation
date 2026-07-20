@@ -3,7 +3,7 @@ flowchart LR
     subgraph TUI["K — TUI Renderer (three-tier)"]
         direction TB
         tui_fullscreen["Tier 1: Ink Flexbox<br/>fullscreenGate()=true<br/>[ink-flexbox-gate] / [env-flag]<br/>OSC 8 hyperlinks"]:::core
-        tui_decstbm["Tier 2: decstbmRenderer DECSTBM renderer<br/>[decstbm-gate] / [env-flag]<br/>scroll-region + nativeHistory[10K]<br/>syncViewport / tickPump / draw<br/>gate: TTY + not-tmux-CC + decstbmCapabilityCheck + not-Zellij + not-fullscreen"]:::gap
+        tui_decstbm["Tier 2: decstbmRenderer DECSTBM renderer<br/>[decstbm-gate] / [env-flag]<br/>scroll-region + nativeHistory[10K]<br/>syncViewport / tickPump / draw<br/>gate: TTY + not-tmux-CC + decstbmCapabilityCheck +<br/>not-Zellij + not-fullscreen"]:::gap
         tui_minimal["Tier 3: minimal Fragment<br/>(fallback)"]:::core
     end
 

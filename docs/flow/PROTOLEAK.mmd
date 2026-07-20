@@ -1,14 +1,21 @@
 flowchart LR
     %% PROTOLEAK — Y — _PROTO_ destructure-rename leak (v2.1.129 #110 — PROMOTED CRITICAL via probe-r MITM 2026-05-06)
-    subgraph PROTOLEAK["Y — _PROTO_ destructure-rename leak (v2.1.129 #110 — PROMOTED CRITICAL via probe-r MITM 2026-05-06)"]
+    subgraph PROTOLEAK["Y — _PROTO_ destructure-rename leak (v2.1.129 #110 —<br/>PROMOTED CRITICAL via probe-r MITM 2026-05-06)"]
         direction TB
-        proto_emitters["13 active emitters in v129<br/>(plugin install/uninstall/enable/disable/update_command,<br/>plugin-hint-event_*, folder-shadow-event, name-collision-event,<br/>skill-load-event, skill-invoke-event, command-fork-event,<br/>input-event)<br/>Each adds _PROTO_plugin_name / _PROTO_skill_name /<br/>_PROTO_marketplace_name to event.additional"]:::gap
+        proto_emitters["13 active emitters in v129<br/>(plugin install/uninstall/enable/disable/update_command,<br/>hint_telemetry_*, folder-shadow-event,<br/>name-collision-event,<br/>skill-load-event, skill-invoke-event,<br/>command-fork-event,<br/>input-event)<br/>Each adds _PROTO_plugin_name / _PROTO_skill_name /<br/>_PROTO_marketplace_name to event.additional"]:::gap
         proto_egress["Egress site destructures _PROTO_* into local vars<br/>then re-attaches as TOP-LEVEL event fields:<br/>plugin_name / skill_name / marketplace_name"]:::gap
         proto_endpoint["1P telemetry endpoint:<br/>api.anthropic.com[event-logging-endpoint]<br/>Top-level fields (raw): skill_name, plugin_name,<br/>marketplace_name, device_id, email, auth"]:::gap
-        proto_redactor["Sibling redactor jyH() strips remaining _PROTO_*<br/>in residual j object but does NOT block<br/>the destructured raw values explicitly re-attached at egress"]:::core
-        proto_wire["Probe-r empirical wire capture:<br/>356 raw skill_name (355 unique)<br/>+ 9 plugin_name (2 unique: caveman, rust-analyzer-lsp)<br/>+ 9 marketplace_name (2 unique: caveman, claude-plugins-official)<br/>on 2 event_logging batches from a single bootstrap"]:::gap
-        proto_dormant["_PROTO_code → repl_code slot present at destructure<br/>but no emitter populates it in v123/v126/v128/v129/v131/v132/v138<br/>(forward-compat slot — escalate watch if setter ever added)"]:::core
+        proto_redactor["Sibling redactor jyH() strips remaining _PROTO_*<br/>in residual j object but does NOT block<br/>the destructured raw values explicitly re-attached at<br/>egress"]:::core
+        proto_wire["Probe-r empirical wire capture:<br/>356 raw skill_name (355 unique)<br/>+ 9 plugin_name (2 unique: caveman, rust-analyzer-lsp)<br/>+ 9 marketplace_name (2 unique: caveman,<br/>claude-plugins-official)<br/>on 2 event_logging batches from a single bootstrap"]:::gap
+        proto_dormant["_PROTO_code → repl_code slot present at destructure<br/>but no emitter populates it in<br/>v123/v126/v128/v129/v131/v132/v138<br/>(forward-compat slot — escalate watch if setter ever<br/>added)"]:::core
     end
+
+    %% invisible links: stack 6 disconnected groups vertically rather than side by side
+    proto_emitters ~~~ proto_egress
+    proto_egress ~~~ proto_endpoint
+    proto_endpoint ~~~ proto_redactor
+    proto_redactor ~~~ proto_wire
+    proto_wire ~~~ proto_dormant
 
 
     classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px

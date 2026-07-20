@@ -3,7 +3,7 @@ flowchart LR
     subgraph CORE["A — Core Runtime (per-turn loop)"]
         direction TB
         startup["Startup bootstrap<br/>getStartupInfo family"]:::core
-        model_router["Model router modelRouterSelect() / resolveModelSpec(spec,mainLoop,override,permMode)<br/>opus-4-7 / opus-4-6 / sonnet-4-6 / haiku<br/>xhigh_effort→4-7 / max_effort→4-6<br/>[env-flag] override<br/>[1m] tier suffix: useOneMillionCtx()&&!suppressTierSuffix()<br/>inherit path via inheritModelSpec()"]:::core
+        model_router["Model router modelRouterSelect() /<br/>resolveModelSpec(spec,mainLoop,override,permMode)<br/>opus-4-7 / opus-4-6 / sonnet-4-6 / haiku<br/>xhigh_effort→4-7 / max_effort→4-6<br/>[env-flag] override<br/>[1m] tier suffix:<br/>useOneMillionCtx()&&!suppressTierSuffix()<br/>inherit path via inheritModelSpec()"]:::core
         msgs_api["Messages API<br/>POST /v1/messages"]:::core
         turn_loop["Per-turn loop<br/>(ordering unverified)"]:::gap
         stream_handler["Streaming handler<br/>[advisor-response-type] / tool_result"]:::core

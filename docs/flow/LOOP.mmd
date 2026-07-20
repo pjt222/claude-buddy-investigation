@@ -10,6 +10,9 @@ flowchart LR
         loop_slash["/loop slash command"]:::core
     end
 
+    %% invisible links: stack 2 disconnected groups vertically rather than side by side
+    sched_tool ~~~ sentinels
+
     sched_tool --> sched_fn
     sched_fn --> cron_create
     cron_create --> loop_state

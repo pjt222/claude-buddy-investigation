@@ -1,8 +1,8 @@
 flowchart LR
     %% STARTUP_NOTICE — AC — TUI Startup-Notice Injection (v2.1.140 #127 HIGH — Critical refuted session-70: Ink &lt;Text&gt; strips dangerous escapes)
-    subgraph STARTUP_NOTICE["AC — TUI Startup-Notice Injection (v2.1.140 #127 HIGH — Critical refuted session-70: Ink &lt;Text&gt; strips dangerous escapes)"]
+    subgraph STARTUP_NOTICE["AC — TUI Startup-Notice Injection (v2.1.140 #127 HIGH —<br/>Critical refuted session-70: Ink &lt;Text&gt; strips<br/>dangerous escapes)"]
         direction TB
-        sn_default["Default state on wire:<br/>{value:&#39;&#39;, on:false, off:true, source:&#39;defaultValue&#39;}<br/>(dormant for this account)"]:::baseline
+        sn_default["Default state on wire:<br/>{value:&#39;&#39;, on:false, off:true,<br/>source:&#39;defaultValue&#39;}<br/>(dormant for this account)"]:::baseline
         sn_inject["Server inject via [config-channel-endpoint]&lt;id&gt;:<br/>[feature-flag].value = &lt;attacker payload&gt;"]:::risk
         sn_render["Sole consumer cor() → Ink &lt;Text&gt; (children:t.text)<br/>cell-based screen buffer parses + re-emits<br/>(NOT a raw stdout.write sink)"]:::baseline
         sn_color["color: x1b[31m...x1b[0m → SURVIVES<br/>(chalk re-emits x1b[0m→x1b[39m: parsed, not raw)<br/>residual = styled-text spoofing in trusted banner"]:::gap

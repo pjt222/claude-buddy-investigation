@@ -1,11 +1,11 @@
 flowchart LR
     %% PLUGINOVERRIDE — AK — Official-Plugin Prompt-Override Injection (v2.1.208 #165 HIGH — server-push overrides official/inline plugin MCP instructions + tool descriptions into model context)
-    subgraph PLUGINOVERRIDE["AK — Official-Plugin Prompt-Override Injection (v2.1.208 #165 HIGH — server-push overrides official/inline plugin MCP instructions + tool descriptions into model context)"]
+    subgraph PLUGINOVERRIDE["AK — Official-Plugin Prompt-Override Injection (v2.1.208<br/>#165 HIGH — server-push overrides official/inline plugin<br/>MCP instructions + tool descriptions into model context)"]
         direction TB
-        po_gate["Qe('[feature-flag]',{})<br/>GrowthBook typed flag, DEFAULT {} (inert until push)<br/>builder pluginOverrideBuilder gate: VA/GPn (official marketplace)<br/>OR x7n (inline builtin) — 3rd-party plugins EXCLUDED"]:::gap
+        po_gate["Qe('[feature-flag]',{})<br/>GrowthBook typed flag, DEFAULT {} (inert until push)<br/>builder pluginOverrideBuilder gate: VA/GPn (official<br/>marketplace)<br/>OR x7n (inline builtin) — 3rd-party plugins EXCLUDED"]:::gap
         po_default["Default {} → baked-in first-party text<br/>schema-fail also falls back (fail-SAFE); NOT #108"]:::baseline
-        po_inject["Server inject via [config-channel-endpoint]*:<br/>payload[pluginName] = {server_instructions,<br/>server_instructions_by_server, tools,<br/>param_descriptions, prompts, skills, search_hints}<br/>zod pluginOverrideSchema TYPE-only (A.string) — NO content sanitization"]:::risk
-        po_sink["Consumers apply VERBATIM to model context:<br/>pluginOverrideConsumer → MCP server_instructions handed to the model;<br/>tool inputSchema.description / prompt / param / skill replaced.<br/>server_instructions 2048-cap UNESCAPED, other maps uncapped.<br/>#106-class, distinct flag/key/sink; 3 independent derivations"]:::core
+        po_inject["Server inject via [config-channel-endpoint]*:<br/>payload[pluginName] = {server_instructions,<br/>server_instructions_by_server, tools,<br/>param_descriptions, prompts, skills, search_hints}<br/>zod pluginOverrideSchema TYPE-only (A.string) — NO<br/>content sanitization"]:::risk
+        po_sink["Consumers apply VERBATIM to model context:<br/>pluginOverrideConsumer → MCP server_instructions handed<br/>to the model;<br/>tool inputSchema.description / prompt / param / skill<br/>replaced.<br/>server_instructions 2048-cap UNESCAPED, other maps<br/>uncapped.<br/>#106-class, distinct flag/key/sink; 3 independent<br/>derivations"]:::core
     end
 
     po_gate --> po_default

@@ -1,6 +1,6 @@
 flowchart LR
     %% BRIEFINJ — T — Brief Stop-Hook GrowthBook Injection (v2.1.126 #106 CRITICAL)
-    subgraph BRIEFINJ["T — Brief Stop-Hook GrowthBook Injection (v2.1.126 #106 CRITICAL)"]
+    subgraph BRIEFINJ["T — Brief Stop-Hook GrowthBook Injection (v2.1.126 #106<br/>CRITICAL)"]
         direction TB
         brief_gate["eZ('[feature-flag]',!1,FI_)<br/>brief-mode entry switch<br/>server-flippable, no user opt-in"]:::core
         brief_text_flag["G$('[feature-flag]','')<br/>byte 117293158 — string-default reader<br/>EMPTY DEFAULT (overrides hardcoded UI_)"]:::gap
@@ -8,6 +8,9 @@ flowchart LR
         brief_no_pin["#106 round-5: no cert pinning<br/>UNABLE_TO_VERIFY_LEAF_SIGNATURE uniform<br/>network-MITM threat realistic"]:::gap
         brief_targeting["per-account targeting<br/>accountUUID + email + organizationUUID<br/>+ subscriptionType + deviceID<br/>POST [config-channel-endpoint]* envelope"]:::core
     end
+
+    %% invisible links: stack 2 disconnected groups vertically rather than side by side
+    brief_gate ~~~ brief_targeting
 
     brief_gate --> brief_text_flag
     brief_text_flag --> brief_inj

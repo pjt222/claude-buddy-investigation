@@ -1,13 +1,13 @@
 flowchart LR
     %% PROBESANDBOX — AD — Runtime-Probe Harness (probe-sandbox + PTY automation, sessions 55-59)
-    subgraph PROBESANDBOX["AD — Runtime-Probe Harness (probe-sandbox + PTY automation, sessions 55-59)"]
+    subgraph PROBESANDBOX["AD — Runtime-Probe Harness (probe-sandbox + PTY<br/>automation, sessions 55-59)"]
         direction TB
         ps_compose["tools/probe-sandbox/<br/>two-service docker compose<br/>mitm (mitmdump 12.2.2) + probe (claude-code)<br/>egress forced through mitm:8080 on probenet"]:::ours
         ps_creds["Bearer creds RO-mounted from host<br/>container-local writable copy<br/>TTL gate ≥1h (refuses near-expiry probes)"]:::ours
         ps_addon["MITM addon force-injects GrowthBook<br/>flag values into [config-channel-endpoint]* responses<br/>(get_text/set_text for gzip/zstd round-trip)"]:::ours
         ps_tui["probes/lib/tui-driver.exp<br/>expect-driven PTY keystroke automation<br/>seeds minimal $HOME/.claude.json<br/>walks onboarding past theme picker"]:::ours
         ps_113["#113 probe — inject [feature-flag]<br/>{external:2.1.137, external_force_downgrade:true}<br/>→ [feature-flag] fired<br/>{from:2.1.143, to:2.1.137}; Auto-updating… rendered<br/>WIRE-CONFIRMED v143 + v145"]:::risk
-        ps_127["#127 probe — inject [feature-flag]<br/>session-59: bumped Critical on a color-only substring grep<br/>session-70 byte-test (v191): only color survives Ink &lt;Text&gt;<br/>cursor/clipboard/DSR/OSC8 STRIPPED → DEMOTED High"]:::gap
+        ps_127["#127 probe — inject [feature-flag]<br/>session-59: bumped Critical on a color-only substring<br/>grep<br/>session-70 byte-test (v191): only color survives Ink<br/>&lt;Text&gt;<br/>cursor/clipboard/DSR/OSC8 STRIPPED → DEMOTED High"]:::gap
         ps_115["#115 probe — inject [feature-flag]<br/>predicate hQ$() never fires on --print OR TUI<br/>beta-headers byte-identical baseline vs canary<br/>NEGATIVE → informational; REMEDIATED v156:<br/>flag+mechanism removed ([model-selector] 3/3/0) → CLOSED"]:::baseline
     end
 

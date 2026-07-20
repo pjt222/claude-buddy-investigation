@@ -11,8 +11,8 @@ flowchart LR
     TEL["Telemetry (fan-in)<br/><small>6 nodes</small>"]
     CCR["CCR Cloud-Runner<br/><small>7 nodes</small>"]
     DREAM["Auto-Dream (5 events)<br/><small>4 nodes</small>"]
-    PLUGINS["Plugins (22 events)<br/><small>4 nodes</small>"]
-    NEW111["v2.1.111+ Systems<br/><small>5 nodes</small>"]
+    PLUGINS["Plugins (22 events)<br/><small>5 nodes</small>"]
+    NEW111["v2.1.111+ Systems<br/><small>6 nodes</small>"]
     TUI["TUI Renderer (three-tier)<br/><small>3 nodes</small>"]
     DAEMON["30 events)<br/><small>20 nodes</small>"]
     HARBOR["runtime-confirmed; v126 unchanged)<br/><small>10 nodes</small>"]
@@ -39,10 +39,10 @@ flowchart LR
     PLUGINOVERRIDE["server-push overrides official/inline plugin MCP instructions + tool descriptions into model context)<br/><small>4 nodes</small>"]
     PROMPTVARIANT["server-selectable system-prompt text variants; NOT #106: no server-authored string)<br/><small>4 nodes</small>"]
 
+    SPINE -->|4| NEW111
     CCR -->|4| TEL
     NEW111 -->|4| CORE
     SPINE -->|3| CORE
-    SPINE -->|3| NEW111
     SPINE -->|3| HARBOR
     SPINE -->|2| EXTH
     ADVISOR -->|2| CORE
@@ -50,6 +50,7 @@ flowchart LR
     CCR -->|2| CORE
     PLUGINS -->|2| EXTH
     CORE -->|2| TEL
+    NEW111 -->|2| TEL
     OURS -->|2| BUDDY
     SPINE -->|2| TUI
     SPINE -->|2| DAEMON
@@ -86,11 +87,11 @@ flowchart LR
     SPINE --> DREAM
     CORE --> PLUGINS
     PLUGINS --> MCP
+    PLUGINS --> CORE
     LOOP --> TEL
     MCP --> TEL
     PLUGINS --> TEL
     DREAM --> TEL
-    NEW111 --> TEL
     CORE --> NEW111
     EXTH --> OURS
     OURS --> MCP

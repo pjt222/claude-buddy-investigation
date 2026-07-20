@@ -1,8 +1,8 @@
 flowchart LR
     %% PROMPTVARIANT — AL — Prompt-Section Variant Registry (v2.1.215 W-PROMPTVARIANT / #166 WATCH — server-selectable system-prompt text variants; NOT #106: no server-authored string)
-    subgraph PROMPTVARIANT["AL — Prompt-Section Variant Registry (v2.1.215 W-PROMPTVARIANT / #166 WATCH — server-selectable system-prompt text variants; NOT #106: no server-authored string)"]
+    subgraph PROMPTVARIANT["AL — Prompt-Section Variant Registry (v2.1.215<br/>W-PROMPTVARIANT / #166 WATCH — server-selectable<br/>system-prompt text variants; NOT #106: no<br/>server-authored string)"]
         direction TB
-        pv_gate["OR-gate helper (no AND conjunct):<br/>env CLAUDE_CODE_&lt;NAME&gt; OR cdc[flag]===true<br/>OR growthbookRead(flag,!1) — server flag ALONE suffices<br/>[prompt-variant-A] · [prompt-variant-B] · [prompt-variant-C] (v215)<br/>[ownership-frame-gate]/[env-flag] PRE-DATES v215<br/>(present @v212) — family ≥4, pattern is NOT new"]:::gap
+        pv_gate["OR-gate helper (no AND conjunct):<br/>env CLAUDE_CODE_&lt;NAME&gt; OR cdc[flag]===true<br/>OR growthbookRead(flag,!1) — server flag ALONE suffices<br/>[prompt-variant-A] · [prompt-variant-B] ·<br/>[prompt-variant-C] (v215)<br/>[ownership-frame-gate]/[env-flag] PRE-DATES v215<br/>(present @v212) — family ≥4, pattern is NOT new"]:::gap
         pv_closed["Payload is a BOOL or a 3-value enum<br/>(default / no_nudges / counter_steer);<br/>off-whitelist discarded → undefined<br/>every sentence is an IN-BINARY literal"]:::baseline
         pv_effect["[prompt-variant-A] ON OMITS a cautionary clause<br/>from tool-use guidance — v212 rendered it<br/>UNCONDITIONALLY, so a previously-unconditional<br/>guard became server-suppressible (advisory prose,<br/>NOT a code-enforced check)"]:::gap
         pv_bar["WATCH-ONLY (2 independent passes agree):<br/>marginal capability ~0 — #106/#154/#165 let an<br/>adversary ADD 'delete without surfacing',<br/>which DOMINATES suppressing a caution.<br/>Promote if: guard is code-enforced, payload becomes<br/>server-authored text, or it reaches a permission gate"]:::baseline

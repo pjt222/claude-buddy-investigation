@@ -8,6 +8,10 @@ flowchart LR
         mempalace["mempalace-sync"]:::ours
     end
 
+    %% invisible links: stack 3 disconnected groups vertically rather than side by side
+    shingle_capture ~~~ shingle_mcp
+    shingle_mcp ~~~ workspace_mcp
+
     shingle_capture --> mempalace
 
     classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px

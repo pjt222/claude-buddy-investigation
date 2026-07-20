@@ -1,6 +1,6 @@
 flowchart LR
     %% FORCED_DG — Z — Forced-Downgrade + AC3 Partial-Defense (v2.1.138 #113 + #114 HIGH)
-    subgraph FORCED_DG["Z — Forced-Downgrade + AC3 Partial-Defense (v2.1.138 #113 + #114 HIGH)"]
+    subgraph FORCED_DG["Z — Forced-Downgrade + AC3 Partial-Defense (v2.1.138<br/>#113 + #114 HIGH)"]
         direction TB
         fd_reader["mo('[feature-flag]',{})<br/>typed eval-SDK reader (object form;<br/>alongside scalar reader J$)"]:::gap
         fd_parse["vP7() returns {maxVersion, forceDowngradeEnabled}<br/>RL6.parse(external semver)<br/>vflagReader() = startup downgrade decision"]:::gap
@@ -9,6 +9,10 @@ flowchart LR
         fd_ac3["#114 insertMessageChain: M=null bypass<br/>shouldSkipPersistence chain:<br/>uDH() → tI() OR env [env-flag]<br/>tI() reads Q$.sessionPersistenceDisabled<br/>Trigger: --no-session-persistence (--print only)<br/>+ SDK persistSession:false<br/>+ env [env-flag]"]:::gap
         fd_wrappers["Round-3 SDK wrapper survey:<br/>97 third-party repos use --no-session-persistence<br/>5/7 sampled default UNCONDITIONALLY<br/>(lcm/claudebox/chunkhound/dyad/raptor)<br/>~71% of public ecosystem on bypass-vulnerable path"]:::gap
     end
+
+    %% invisible links: stack 3 disconnected groups vertically rather than side by side
+    fd_reader ~~~ fd_floor
+    fd_floor ~~~ fd_ac3
 
     fd_reader --> fd_parse --> fd_floor
     fd_canary --> fd_parse
