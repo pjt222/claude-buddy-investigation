@@ -187,18 +187,14 @@ function switchTab(tabId) {
       panel.removeAttribute('hidden');
       const panelEl = document.getElementById('panel-' + tabId);
       if (panelEl) panelEl.focus();
-      // Trigger visible class on all animatable elements in the revealed panel
-      // so IntersectionObserver doesn't miss them (they were hidden when registered)
-      setTimeout(() => {
-        panel.querySelectorAll(
-          '.section > h2, .section > .section-intro, .detail-card, .species-card, ' +
-          '.trigger-card, .security-card, .finding-card, .strategy-card, .command-row, ' +
-          '.question-item, .stat-card, .rarity-bar, .trait-group, .timing-card, ' +
-          '.owl-profile, .nav-card, .timeline-node, .arch-compare-panel, .gate-check'
-        ).forEach((el, idx) => {
-          setTimeout(() => el.classList.add('visible'), idx * 30);
-        });
-      }, 50);
+      // Hand the newly-shown panel to the same observer the rest of the page uses. It was
+      // display:none until now, so nothing in it had ever intersected.
+      //
+      // This replaces a blanket reveal that queued `idx * 30ms` per element across the
+      // WHOLE panel: at 149 elements the last one appeared 4.5s after the click, and
+      // everything below the fold burned delay nobody was watching. Now on-screen content
+      // fades in within the capped stagger and the rest reveals as it is scrolled to.
+      observeReveals(panel);
     } else {
       panel.setAttribute('hidden', '');
     }
@@ -253,6 +249,31 @@ function initTabKeyboard() {
 }
 
 // --- Scroll Animations ---
+// Elements that fade in as they scroll into view. Module-scope because BOTH the initial
+// page load and every tab switch need it — they used to carry separate copies and separate
+// reveal mechanisms, which is what made a tab switch take seconds.
+const REVEAL_SELECTOR =
+  '.section > h2, .section > .section-intro, .detail-card, .species-card, ' +
+  '.trigger-card, .security-card, .finding-card, .strategy-card, .command-row, ' +
+  '.question-item, .stat-card, .rarity-bar, .trait-group, .timing-card, ' +
+  '.owl-profile, .nav-card, .timeline-node, .arch-compare-panel, .gate-check';
+
+let revealObserver = null;
+
+// Hand a subtree to the reveal observer. Elements already on screen fade in on the next
+// frame; the rest wait until they are scrolled to, exactly like the initial page load.
+function observeReveals(root) {
+  if (!revealObserver) {
+    // No observer (unsupported, or init failed): reveal immediately rather than leave
+    // content hidden. The .js-anim gate is normally absent in that case anyway.
+    root.querySelectorAll(REVEAL_SELECTOR).forEach(el => el.classList.add('visible'));
+    return;
+  }
+  root.querySelectorAll(REVEAL_SELECTOR).forEach(el => {
+    if (!el.classList.contains('visible')) revealObserver.observe(el);
+  });
+}
+
 function initScrollAnimations() {
   // Turn the hidden-until-revealed state ON only now, immediately before the observer that
   // undoes it starts running. style.css gates opacity:0 behind .js-anim precisely so that a
@@ -260,33 +281,40 @@ function initScrollAnimations() {
   if (!('IntersectionObserver' in window)) return;   // no observer: never hide anything
   document.documentElement.classList.add('js-anim');
 
-  const SELECTOR =
-    '.section > h2, .section > .section-intro, .detail-card, .species-card, ' +
-    '.trigger-card, .security-card, .finding-card, .strategy-card, .command-row, ' +
-    '.question-item, .stat-card, .rarity-bar, .trait-group, .timing-card, ' +
-    '.owl-profile, .nav-card, .timeline-node, .arch-compare-panel, .gate-check';
+  const SELECTOR = REVEAL_SELECTOR;
+
+  const MAX_STAGGER_MS = 300;   // a cascade is decoration; it must never gate reading
 
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        // Stagger siblings
-        const parent = entry.target.parentElement;
-        const siblings = Array.from(parent.children).filter(el => el.matches(SELECTOR));
-        const sibIdx = siblings.indexOf(entry.target);
-        const delay = sibIdx >= 0 ? sibIdx * 60 : 0;
+      if (!entry.isIntersecting) return;
+      // Stagger siblings, but cap the total. A group of 20 cards used to finish 1.2s after
+      // the first, and the old tab-switch path stacked delays across the WHOLE panel.
+      const parent = entry.target.parentElement;
+      const siblings = Array.from(parent.children).filter(el => el.matches(SELECTOR));
+      const sibIdx = siblings.indexOf(entry.target);
+      const delay = sibIdx >= 0 ? Math.min(sibIdx * 60, MAX_STAGGER_MS) : 0;
 
-        setTimeout(() => {
-          entry.target.classList.add('visible');
-        }, delay);
-      }
+      // Stop tracking as soon as it is revealed: a tab switch re-registers whole panels, so
+      // without this the observer accumulates entries for elements already faded in.
+      observer.unobserve(entry.target);
+      setTimeout(() => {
+        entry.target.classList.add('visible');
+      }, delay);
     });
   }, {
     threshold: 0.1,
     rootMargin: '0px 0px -50px 0px'
   });
 
-  // Observe elements in visible panels only (buddy panel is default)
-  document.querySelectorAll('#panel-buddy ' + SELECTOR + ', #hero ' + SELECTOR + ', #stats ' + SELECTOR + ', #timeline ' + SELECTOR + ', #subsystem-nav ' + SELECTOR).forEach(el => observer.observe(el));
+  revealObserver = observer;
+
+  // Observe what is on screen at load. Panels other than the default are display:none, so
+  // they are registered by switchTab() when they are actually shown.
+  ['#panel-buddy', '#hero', '#stats', '#timeline', '#subsystem-nav'].forEach(sel => {
+    const root = document.querySelector(sel);
+    if (root) observeReveals(root);
+  });
 }
 
 // --- Radar Charts ---
