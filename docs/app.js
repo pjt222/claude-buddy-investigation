@@ -254,6 +254,12 @@ function initTabKeyboard() {
 
 // --- Scroll Animations ---
 function initScrollAnimations() {
+  // Turn the hidden-until-revealed state ON only now, immediately before the observer that
+  // undoes it starts running. style.css gates opacity:0 behind .js-anim precisely so that a
+  // failure anywhere above this line leaves the page readable instead of blank.
+  if (!('IntersectionObserver' in window)) return;   // no observer: never hide anything
+  document.documentElement.classList.add('js-anim');
+
   const SELECTOR =
     '.section > h2, .section > .section-intro, .detail-card, .species-card, ' +
     '.trigger-card, .security-card, .finding-card, .strategy-card, .command-row, ' +
@@ -681,17 +687,58 @@ function initHarnessFullscreen() {
 }
 
 // --- Init ---
+// Run one init step in isolation. Previously these were eleven bare calls in a single
+// handler, so the FIRST throw killed every later one: with the Three.js CDN blocked,
+// initThree() threw and took the scroll-reveal, hash routing, click handlers and tab
+// keyboard with it — 87% of content stayed at opacity:0 and no tab could be switched.
+// A decorative background must never be able to do that.
+function safeInit(name, fn) {
+  try {
+    fn();
+    return true;
+  } catch (err) {
+    console.error('[init] ' + name + ' failed (continuing):', err);
+    return false;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  applyCounts();
-  initThree();
-  populateSpecies();
-  drawRadarCharts();
-  initScrollAnimations();
-  initHashRouting();
-  initClickHandlers();
-  initTabKeyboard();
-  layoutTimelineSnake();
+  safeInit('applyCounts', applyCounts);
+  safeInit('three', initThree);                 // decorative; failure must stay contained
+  safeInit('species', populateSpecies);
+  safeInit('radarCharts', drawRadarCharts);
+
+  // If the reveal observer cannot start, drop the gate so nothing stays hidden.
+  if (!safeInit('scrollAnimations', initScrollAnimations)) {
+    document.documentElement.classList.remove('js-anim');
+  }
+
+  // Navigation: without these the site is unreadable past the first panel, so they are
+  // deliberately sequenced AFTER the decorative work and each guarded on its own.
+  safeInit('hashRouting', initHashRouting);
+  safeInit('clickHandlers', initClickHandlers);
+  safeInit('tabKeyboard', initTabKeyboard);
+  safeInit('timelineSnake', layoutTimelineSnake);
   window.addEventListener('resize', onSnakeResize);
-  initShingleFlight();
-  initHarnessFullscreen();
+  safeInit('shingleFlight', initShingleFlight);
+  safeInit('harnessFullscreen', initHarnessFullscreen);
 });
+
+// Last-resort net: if anything above still left content hidden, reveal it. Covers a throw
+// inside the observer callback itself, which no try/catch at init time can see.
+window.setTimeout(function () {
+  const root = document.documentElement;
+  if (!root.classList.contains('js-anim')) return;
+  const stillHidden = document.querySelectorAll(
+    '.section > h2:not(.visible), .detail-card:not(.visible), .stat-card:not(.visible)');
+  let offscreen = 0;
+  stillHidden.forEach(function (el) {
+    const r = el.getBoundingClientRect();
+    if (r.top < window.innerHeight && r.bottom > 0) offscreen++;   // in view but not revealed
+  });
+  if (offscreen > 0) {
+    console.warn('[init] ' + offscreen + ' in-view element(s) never revealed; dropping the '
+      + 'animation gate so content is visible.');
+    root.classList.remove('js-anim');
+  }
+}, 4000);

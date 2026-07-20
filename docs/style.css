@@ -16,7 +16,8 @@
   --bg-card-hover: #151622;
   --border: #1a1b2e;
   --text: #c8c8d8;
-  --text-dim: #6a6a88;
+  --text-dim: #8484a9;   /* 5.57:1 on --bg. Was #6a6a88 = 3.83:1, which failed WCAG AA
+                            for normal text across ~36% of the page (measured 2026-07-20). */
   --text-bright: #eeeef8;
 
   --critical: #ff4466;
@@ -898,26 +899,32 @@ em { color: var(--v8); font-style: normal; }
 .q-partial { color: var(--v8) !important; }
 .q-unresolvable { color: var(--text-dim) !important; }
 
-/* === Scroll animations === */
-.section > h2,
-.section > .section-intro,
-.detail-card,
-.species-card,
-.trigger-card,
-.security-card,
-.finding-card,
-.strategy-card,
-.command-row,
-.question-item,
-.stat-card,
-.rarity-bar,
-.trait-group,
-.timing-card,
-.owl-profile,
-.nav-card,
-.timeline-node,
-.arch-compare-panel,
-.gate-check {
+/* === Scroll animations ===
+   Gated on .js-anim, which app.js adds only once the reveal observer is actually
+   running. Previously opacity:0 was the unconditional default and JS was required to
+   undo it, so a single script failure (a blocked CDN) left 87% of the page invisible
+   and every tab dead. Absent the class, content renders normally and the animation is
+   simply skipped. */
+.js-anim .section > h2,
+.js-anim .section > .section-intro,
+.js-anim .detail-card,
+.js-anim .species-card,
+.js-anim .trigger-card,
+.js-anim .security-card,
+.js-anim .finding-card,
+.js-anim .strategy-card,
+.js-anim .command-row,
+.js-anim .question-item,
+.js-anim .stat-card,
+.js-anim .rarity-bar,
+.js-anim .trait-group,
+.js-anim .timing-card,
+.js-anim .owl-profile,
+.js-anim .nav-card,
+.js-anim .timeline-node,
+.js-anim .arch-compare-panel,
+.js-anim .gate-check
+{
   opacity: 0;
   transform: translateY(20px);
   transition: opacity 0.5s ease, transform 0.5s ease;
