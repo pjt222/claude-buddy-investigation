@@ -576,7 +576,7 @@ Current binary **v2.1.215** (npm `latest` = `next` = 215); the marked-stable bin
 
 ### Tally (current as of v2.1.217, Session 81)
 
-Severities mirror `docs/counts.js` (authoritative). The live GitHub-label re-derivation across the repo issue set: **14 critical / 39 high / 60 medium / 15 low** across **168** total repo issues. The movement from the Session-80 tally is **high 38 → 39** (**#168**, the server-pushed multiple-choice-tool instruction string) and **low 14 → 15** (**#169**, the unbounded server-pushed subagent recursion-depth ceiling); the critical count is **unchanged**. The original tooling-audit baseline census stands at **30 items** (7 critical / 9 high / 10 medium / 3 low / 1 observation).
+Severities mirror `docs/counts.js` (authoritative). The live GitHub-label re-derivation across the repo issue set: **14 critical / 39 high / 61 medium / 15 low** across **169** total repo issues. The movement from the Session-80 tally is **high 38 → 39** (**#169**, the server-pushed multiple-choice-tool instruction string) and **low 14 → 15** (**#169**, the unbounded server-pushed subagent recursion-depth ceiling); the critical count is **unchanged**. The original tooling-audit baseline census stands at **30 items** (7 critical / 9 high / 10 medium / 3 low / 1 observation).
 
 The server-flippable DEFAULT-TRUE set moved **43 → 45** (**43 boolean + 2 typed**), re-derived at **member** level — the added set is exactly two flags, the removed set is empty, and **both additions are benign** (a local-housekeeping toggle and an MCP tool-error-handling toggle whose default branch is the stricter one). Server-pushed configuration cache keys hold at **9** with identical members.
 
