@@ -6,7 +6,7 @@
       "label": "Startup Spine \u2014 gate every subsystem",
       "nodes": 9,
       "internal_edges": 8,
-      "crossing_edges": 32,
+      "crossing_edges": 34,
       "neighbours": [
         "ADVISOR",
         "BRIEFINJ",
@@ -26,17 +26,19 @@
         "PLUGINS",
         "PROBESANDBOX",
         "PROMPTVARIANT",
+        "QUESTIONPROMPT",
         "STATE",
+        "SUBAGENTDEPTH",
         "TUI"
       ],
-      "neighbour_count": 20
+      "neighbour_count": 22
     },
     {
       "id": "CORE",
       "label": "A \u2014 Core Runtime (per-turn loop)",
       "nodes": 6,
       "internal_edges": 5,
-      "crossing_edges": 36,
+      "crossing_edges": 37,
       "neighbours": [
         "ADVISOR",
         "BRIEFINJ",
@@ -54,13 +56,14 @@
         "PLUGINS",
         "PLUGINSYNC",
         "PROMPTVARIANT",
+        "QUESTIONPROMPT",
         "SPINE",
         "STATE",
         "TEL",
         "TUI",
         "VELVETGUARD"
       ],
-      "neighbour_count": 21
+      "neighbour_count": 22
     },
     {
       "id": "BUDDY",
@@ -483,12 +486,13 @@
       "label": "AK \u2014 Official-Plugin Prompt-Override Injection (v2.1.208 #165 HIGH \u2014 server-push overrides official/inline plugin MCP instructions + tool descriptions into model context)",
       "nodes": 4,
       "internal_edges": 3,
-      "crossing_edges": 2,
+      "crossing_edges": 3,
       "neighbours": [
         "CORE",
-        "PLUGINS"
+        "PLUGINS",
+        "QUESTIONPROMPT"
       ],
-      "neighbour_count": 2
+      "neighbour_count": 3
     },
     {
       "id": "PROMPTVARIANT",
@@ -502,6 +506,30 @@
         "SPINE"
       ],
       "neighbour_count": 3
+    },
+    {
+      "id": "QUESTIONPROMPT",
+      "label": "AM \u2014 AskUserQuestion Prompt-String Injection (v2.1.216 #168 HIGH \u2014 server-pushed STRING interpolated verbatim into the question-tool instruction text)",
+      "nodes": 4,
+      "internal_edges": 3,
+      "crossing_edges": 3,
+      "neighbours": [
+        "CORE",
+        "PLUGINOVERRIDE",
+        "SPINE"
+      ],
+      "neighbour_count": 3
+    },
+    {
+      "id": "SUBAGENTDEPTH",
+      "label": "AN \u2014 Server-Tunable Subagent Depth Ceiling (v2.1.217 #169 LOW \u2014 resource breadth, NOT authorization; net posture IMPROVED)",
+      "nodes": 4,
+      "internal_edges": 3,
+      "crossing_edges": 1,
+      "neighbours": [
+        "SPINE"
+      ],
+      "neighbour_count": 1
     }
   ]
 }

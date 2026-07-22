@@ -437,6 +437,34 @@ flowchart LR
     flags -. "OR-reachable via GrowthBook or cdc" .-> pv_gate
     pv_effect -. "selects among in-binary prompt literals (no verbatim server text)" .-> msgs_api
     pv_gate -. "SAME dynamic system-prompt section registry that co-registers [system-prompt-string] (#154)" .-> hb_gate
+    %% ===== AM — v216 AskUserQuestion Prompt-String Injection (#168 HIGH) =====
+    subgraph QUESTIONPROMPT["AM — AskUserQuestion Prompt-String Injection (v2.1.216 #168 HIGH — server-pushed STRING interpolated verbatim into the question-tool instruction text)"]
+        direction TB
+        cw_gate["Ke('tengu_[question-tool-prompt-string]','')<br/>string-typed GrowthBook flag, DEFAULT '' (inert until push)<br/>reader Ke → qXn: server payload map → disk<br/>cachedGrowthBookFeatures → literal default<br/>read UNCONDITIONALLY — no model/auth/tier gate"]:::risk
+        cw_sibling["Contrast sibling tengu_[question-tool-prompt-sibling]:<br/>read ONLY inside a model gate if(tE(model)).<br/>[question-tool-prompt-string] has NO such conjunct — applies to<br/>every account regardless of model or tier"]:::gap
+        cw_valid["Validation is typeof r==='string' ? r.trim() : ''<br/>a TYPE check and a whitespace trim, nothing else.<br/>NO length cap · NO schema · NO allowlist"]:::gap
+        cw_sink["Concatenated onto the return of the question tool's<br/>async prompt({model}) builder → ships to the model<br/>on /v1/messages. APPENDS (does not override) —<br/>a mitigation, not a class change.<br/>#106-class; HIGH not Critical: not yet wire-confirmed"]:::core
+        cw_gate --> cw_sibling
+        cw_sibling --> cw_valid
+        cw_valid --> cw_sink
+    end
+    %% ===== AskUserQuestion prompt-string edges (AM, v2.1.216 #168) =====
+    flags -. "GrowthBook string flag, empty default" .-> cw_gate
+    cw_sink -. "verbatim server string in question-tool instructions (#168)" .-> msgs_api
+    cw_gate -. "same uncertified config channel as #106/#154/#165" .-> po_gate
+    %% ===== AN — v217 Server-Tunable Subagent Depth Ceiling (#169 LOW) =====
+    subgraph SUBAGENTDEPTH["AN — Server-Tunable Subagent Depth Ceiling (v2.1.217 #169 LOW — resource breadth, NOT authorization; net posture IMPROVED)"]
+        direction TB
+        ht_gate["Nue(): env [env-flag]<br/>→ else server-pushed getFeatureValue('tengu_[subagent-depth-cap]',1)<br/>→ else local default 1; memoized once per process"]:::gap
+        ht_valid["Accepts Number.isInteger(v) &amp;&amp; v&gt;=1<br/>NO UPPER CLAMP — a push of any size is honoured.<br/>Env branch NaN-fail-open REFUTED:<br/>registry entry is int({min:1,digitsOnly:true})"]:::gap
+        ht_effect["Consumer throws subagent_depth_cap when depth&gt;=cap;<br/>same accessor decides whether nested workers<br/>receive the spawn tool at all"]:::baseline
+        ht_bar["NOT #108 — no permission/sandbox/auto-approve<br/>path is inverted. Shipped posture IMPROVED:<br/>v215 hardcoded 5 → v217 default 1, SHRINKING<br/>the #31 AC3 nesting surface. Filed for the<br/>unbounded remote knob, not the default"]:::baseline
+        ht_gate --> ht_valid
+        ht_valid --> ht_effect
+        ht_effect --> ht_bar
+    end
+    %% ===== Subagent depth-ceiling edges (AN, v2.1.217 #169) =====
+    flags -. "server-pushed integer, no upper clamp" .-> ht_gate
     %% ===== Cowork/CCR-v2 Bridge edges (AF, v2.1.160) =====
     startup -. "if ENVIRONMENT_KIND=='bridge'" .-> cb_gate
     cb_egress -. "sandbox egress (cloud-side, unverified)" .-> providers

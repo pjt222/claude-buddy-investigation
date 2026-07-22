@@ -1,0 +1,20 @@
+flowchart LR
+    %% SUBAGENTDEPTH — AN — Server-Tunable Subagent Depth Ceiling (v2.1.217 #169 LOW — resource breadth, NOT authorization; net posture IMPROVED)
+    subgraph SUBAGENTDEPTH["AN — Server-Tunable Subagent Depth Ceiling (v2.1.217<br/>#169 LOW — resource breadth, NOT authorization; net<br/>posture IMPROVED)"]
+        direction TB
+        ht_gate["Nue(): env [env-flag]<br/>→ else server-pushed<br/>getFeatureValue('tengu_[subagent-depth-cap]',1)<br/>→ else local default 1; memoized once per process"]:::gap
+        ht_valid["Accepts Number.isInteger(v) &amp;&amp; v&gt;=1<br/>NO UPPER CLAMP — a push of any size is honoured.<br/>Env branch NaN-fail-open REFUTED:<br/>registry entry is int({min:1,digitsOnly:true})"]:::gap
+        ht_effect["Consumer throws subagent_depth_cap when depth&gt;=cap;<br/>same accessor decides whether nested workers<br/>receive the spawn tool at all"]:::baseline
+        ht_bar["NOT #108 — no permission/sandbox/auto-approve<br/>path is inverted. Shipped posture IMPROVED:<br/>v215 hardcoded 5 → v217 default 1, SHRINKING<br/>the #31 AC3 nesting surface. Filed for the<br/>unbounded remote knob, not the default"]:::baseline
+    end
+
+    ht_gate --> ht_valid
+    ht_valid --> ht_effect
+    ht_effect --> ht_bar
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

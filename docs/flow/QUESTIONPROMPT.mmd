@@ -1,0 +1,20 @@
+flowchart LR
+    %% QUESTIONPROMPT — AM — AskUserQuestion Prompt-String Injection (v2.1.216 #168 HIGH — server-pushed STRING interpolated verbatim into the question-tool instruction text)
+    subgraph QUESTIONPROMPT["AM — AskUserQuestion Prompt-String Injection (v2.1.216<br/>#168 HIGH — server-pushed STRING interpolated verbatim<br/>into the question-tool instruction text)"]
+        direction TB
+        cw_gate["Ke('tengu_[question-tool-prompt-string]','')<br/>string-typed GrowthBook flag, DEFAULT '' (inert until<br/>push)<br/>reader Ke → qXn: server payload map → disk<br/>cachedGrowthBookFeatures → literal default<br/>read UNCONDITIONALLY — no model/auth/tier gate"]:::risk
+        cw_sibling["Contrast sibling tengu_[question-tool-prompt-sibling]:<br/>read ONLY inside a model gate if(tE(model)).<br/>[question-tool-prompt-string] has NO such conjunct —<br/>applies to<br/>every account regardless of model or tier"]:::gap
+        cw_valid["Validation is typeof r==='string' ? r.trim() : ''<br/>a TYPE check and a whitespace trim, nothing else.<br/>NO length cap · NO schema · NO allowlist"]:::gap
+        cw_sink["Concatenated onto the return of the question tool's<br/>async prompt({model}) builder → ships to the model<br/>on /v1/messages. APPENDS (does not override) —<br/>a mitigation, not a class change.<br/>#106-class; HIGH not Critical: not yet wire-confirmed"]:::core
+    end
+
+    cw_gate --> cw_sibling
+    cw_sibling --> cw_valid
+    cw_valid --> cw_sink
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px
