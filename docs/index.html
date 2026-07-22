@@ -528,7 +528,7 @@
               <div class="timeline-date">2026-07-22</div>
             </div>
             <div class="timeline-dot"></div>
-            <div class="timeline-label">v216&rarr;v217 (session-81): <strong>TWO new findings, zero regressions, and the most remediation-dense window since v205.</strong> A <strong>pure-<code>.bun</code>-JS window</strong> &mdash; <code>.text</code> and <code>.rodata</code> are byte-identical across all three builds, section count 42 flat, Bun <code>1.4.0+f6d0fcd24</code> flat, zero embedded blobs. The binary grew +3.18&nbsp;MiB but printable text grew only <strong>~566&nbsp;KB (17&percnt;)</strong>; the binary-to-strings growth ratios of 6.2&times; and 5.4&times; are consistent across both increments, which is the signature of embedded bytecode scaling with source rather than a hidden payload. The new source splits across ~8 modest subsystems &mdash; <strong>no mega-feature, no new <code>/v1/</code> endpoints, no new egress hosts</strong>. <strong>#169 <code>&lt;flag-name&gt;</code> (HIGH, #106-class, new at v216)</strong> is a string-typed GrowthBook flag with an <strong>empty default</strong> whose value is interpolated <em>verbatim</em> into the <code>AskUserQuestion</code> tool&rsquo;s <code>prompt()</code> instruction text, which ships to the model on <code>/v1/messages</code>. Its sibling <code>&lt;flag-name&gt;</code> is read only inside a model gate, but <strong>[question-tool-prompt-string] is read unconditionally</strong> &mdash; no model, auth, or tier gate &mdash; and passes only a <code>typeof</code> check and a <code>.trim()</code>, with <strong>no length cap and no schema</strong>. It appends rather than overrides, a mitigation but not a class change; a question-asking tool is a notably sensitive host for injected instructions, since its output is the set of options a human is asked to choose between. High rather than Critical purely because the reach is call-site-derived and not yet wire-confirmed. <strong>#169 <code>&lt;flag-name&gt;</code> (LOW, new at v217)</strong>: the subagent spawn-depth ceiling stopped being a hardcoded constant and became operator-env &rarr; <strong>server-pushed integer</strong> &rarr; local default, with a validator accepting any integer &ge;1 and <strong>no upper clamp</strong>; the same accessor also decides whether nested workers receive the spawn tool at all. Explicitly <em>not</em> #108 &mdash; it governs resource breadth, not authorization &mdash; and the shipped posture actually <em>improved</em> (v215&rsquo;s hardcoded <code>5</code> became a default of <code>1</code>, shrinking the #31 AC3 nesting surface), so the finding is the unbounded remote knob, not the default. DEFAULT-TRUE <strong>43&rarr;45</strong>, re-derived at member level: the added set is exactly <code>[bridge-placeholder-sweep]</code> + <code>[mcp-error-throw-gate]</code>, the removed set is empty, and both are benign (the REPL flag&rsquo;s TRUE default is the <em>stricter</em> branch). <strong>Vendor remediation</strong> included three sandbox-escape fixes (<code>.claude</code> symlink write redirection, symlinked-cwd background-session escape, and worktree <code>git -C</code>/<code>GIT_DIR</code> redirection), Bash compound-<code>&amp;&amp;</code>-with-redirect permission checking, a Windows network-path read prompt, PowerShell invisible-Unicode permission validation, and an OTEL managed-endpoint override fix. <strong>One candidate was refuted rather than filed:</strong> <code>[internal-env-var]=="review"</code> does skip the org-entitlement layer of the workflow gate, but no flag read participates and local reachability is nil &rarr; <strong>W-REVIEWORIGIN</strong>. Two family-name traps also refuted: <code>&lt;flag-name&gt;</code> is <em>not</em> #154-class (it picks between two compiled-in English wordings) and the <code>[prompt-variant-gate]</code> block does <em>not</em> route models. 12/12 standing anchors byte-stable; <code>[memory-secret-guard]</code> 7/7/7; cdc 9 flat. Tally 14C/39H/61M/15L across 169 issues.</div>
+            <div class="timeline-label">v216&rarr;v217 (session-81, wire-confirmed session-82): <strong>TWO new findings &mdash; one now Critical &mdash; zero regressions, and the most remediation-dense window since v205.</strong> A <strong>pure-<code>.bun</code>-JS window</strong> &mdash; <code>.text</code> and <code>.rodata</code> are byte-identical across all three builds, section count 42 flat, Bun <code>1.4.0+f6d0fcd24</code> flat, zero embedded blobs. The binary grew +3.18&nbsp;MiB but printable text grew only <strong>~566&nbsp;KB (17&percnt;)</strong>; the binary-to-strings growth ratios of 6.2&times; and 5.4&times; are consistent across both increments, which is the signature of embedded bytecode scaling with source rather than a hidden payload. The new source splits across ~8 modest subsystems &mdash; <strong>no mega-feature, no new <code>/v1/</code> endpoints, no new egress hosts</strong>. <strong>#168 <code>&lt;flag-name&gt;</code> (CRITICAL, #106-class, new at v216)</strong> is a string-typed GrowthBook flag with an <strong>empty default</strong> whose value is interpolated <em>verbatim</em> into the <code>AskUserQuestion</code> tool&rsquo;s <code>prompt()</code> instruction text, which ships to the model on <code>/v1/messages</code>. Its sibling <code>&lt;flag-name&gt;</code> is read only inside a model gate, but <strong>[question-tool-prompt-string] is read unconditionally</strong> &mdash; no model, auth, or tier gate &mdash; and passes only a <code>typeof</code> check and a <code>.trim()</code>, with <strong>no length cap and no schema</strong>. It appends rather than overrides, a mitigation but not a class change; a question-asking tool is a notably sensitive host for injected instructions, since its output is the set of options a human is asked to choose between. Filed High at session-81 on a call-site decode, then <strong>WIRE-CONFIRMED and promoted to Critical at session-82</strong>: a marked string injected into <code>features["&lt;flag-name&gt;"].value</code> on the eval-SDK response arrived on <code>/v1/messages</code> at <code>$.tools[2].description</code> &mdash; the <code>AskUserQuestion</code> tool description &mdash; spliced <em>mid-instruction</em> between two paragraphs of the genuine text, with no delimiter, attribution, or quoting to mark it as foreign. The sibling <code>[question-tool-prompt-sibling]</code> arrived at its <code>defaultValue</code> (<code>on:False</code>) in the same capture, confirming on the wire that only <code>[question-tool-prompt-string]</code> is read unconditionally. It joins #106 and #154 as a wire-confirmed server-push injection primitive. <strong>#169 <code>&lt;flag-name&gt;</code> (LOW, new at v217)</strong>: the subagent spawn-depth ceiling stopped being a hardcoded constant and became operator-env &rarr; <strong>server-pushed integer</strong> &rarr; local default, with a validator accepting any integer &ge;1 and <strong>no upper clamp</strong>; the same accessor also decides whether nested workers receive the spawn tool at all. Explicitly <em>not</em> #108 &mdash; it governs resource breadth, not authorization &mdash; and the shipped posture actually <em>improved</em> (v215&rsquo;s hardcoded <code>5</code> became a default of <code>1</code>, shrinking the #31 AC3 nesting surface), so the finding is the unbounded remote knob, not the default. DEFAULT-TRUE <strong>43&rarr;45</strong>, re-derived at member level: the added set is exactly <code>[bridge-placeholder-sweep]</code> + <code>[mcp-error-throw-gate]</code>, the removed set is empty, and both are benign (the REPL flag&rsquo;s TRUE default is the <em>stricter</em> branch). <strong>Vendor remediation</strong> included three sandbox-escape fixes (<code>.claude</code> symlink write redirection, symlinked-cwd background-session escape, and worktree <code>git -C</code>/<code>GIT_DIR</code> redirection), Bash compound-<code>&amp;&amp;</code>-with-redirect permission checking, a Windows network-path read prompt, PowerShell invisible-Unicode permission validation, and an OTEL managed-endpoint override fix. <strong>One candidate was refuted rather than filed:</strong> <code>[internal-env-var]=="review"</code> does skip the org-entitlement layer of the workflow gate, but no flag read participates and local reachability is nil &rarr; <strong>W-REVIEWORIGIN</strong>. Two family-name traps also refuted: <code>&lt;flag-name&gt;</code> is <em>not</em> #154-class (it picks between two compiled-in English wordings) and the <code>[prompt-variant-gate]</code> block does <em>not</em> route models. 12/12 standing anchors byte-stable; <code>[memory-secret-guard]</code> 7/7/7; cdc 9 flat. Tally 15C/38H/61M/15L across 169 issues (session-82 relabel; the issue count is unchanged).</div>
             <span class="tl-badge">v217 current</span>
           </div>
         </div>
@@ -2272,7 +2272,7 @@ omitted per redaction policy (Tier 1).</code>
         </p>
 
         <!-- BEGIN generated:flow-gallery -->
-<!-- machine-generated by tools/gen-flow-gallery.py — do not hand-edit --><svg class="flow-mm-defs" width="0" height="0" aria-hidden="true" focusable="false"><symbol id="mm-map" viewBox="0 0 200 245"><rect width="200" height="245" class="mm-bg"/><a href="#flow-SUBAGENTDEPTH"><rect x="50.5" y="4.4" width="37.6" height="5.2" fill="var(--mm-SUBAGENTDEPTH, var(--mm-off))"><title>Server-Tunable Subagent Depth Ceiling (v2.1.217 #169 LOW — resource breadth, NOT authorization; net posture IMPROVED)</title></rect></a><a href="#flow-QUESTIONPROMPT"><rect x="100.3" y="152.2" width="33.3" height="8.2" fill="var(--mm-QUESTIONPROMPT, var(--mm-off))"><title>AskUserQuestion Prompt-String Injection (v2.1.216 #168 HIGH — server-pushed STRING interpolated verbatim into the question-tool instruction text)</title></rect></a><a href="#flow-PROMPTVARIANT"><rect x="119.6" y="1.9" width="32.2" height="11.4" fill="var(--mm-PROMPTVARIANT, var(--mm-off))"><title>Prompt-Section Variant Registry (v2.1.215 W-PROMPTVARIANT / #166 WATCH — server-selectable system-prompt text variants; NOT #106: no server-authored string)</title></rect></a><a href="#flow-PLUGINOVERRIDE"><rect x="109.5" y="144.5" width="33.5" height="7.1" fill="var(--mm-PLUGINOVERRIDE, var(--mm-off))"><title>Official-Plugin Prompt-Override Injection (v2.1.208 #165 HIGH — server-push overrides official/inline plugin MCP instructions + tool descriptions into model context)</title></rect></a><a href="#flow-HERONBROOK"><rect x="127.9" y="13.5" width="32.5" height="5.6" fill="var(--mm-HERONBROOK, var(--mm-off))"><title>Heron-Brook System-Prompt Injection (v2.1.179 #154 CRITICAL — server-pushed string reaches /v1/messages system prompt verbatim)</title></rect></a><a href="#flow-VELVETGUARD"><rect x="162.8" y="15.3" width="19.5" height="4.8" fill="var(--mm-VELVETGUARD, var(--mm-off))"><title>Read-Before-Edit/Write Guard Skip (v2.1.166 #152 LOW — data-integrity only, no permission reach; → W-VELVET)</title></rect></a><a href="#flow-PLUGINCRED"><rect x="69.9" y="9.8" width="36.8" height="4.5" fill="var(--mm-PLUGINCRED, var(--mm-off))"><title>Plugin-Autoupdate Git Credential-Helper Re-enable (v2.1.174 #151 HIGH — server-flippable; local, NOT CCR-gated; #136/#140 family; → W-CREDHELPER)</title></rect></a><a href="#flow-COWORKBRIDGE"><rect x="69.9" y="122.4" width="36.8" height="20.3" fill="var(--mm-COWORKBRIDGE, var(--mm-off))"><title>Cowork/CCR-v2 Remote-Environment Bridge + Two-Stage Classifier (v2.1.160 — no finding; runner-side; watch W1/W2)</title></rect></a><a href="#flow-PLUGINSYNC"><rect x="69.9" y="186.8" width="45.6" height="8.5" fill="var(--mm-PLUGINSYNC, var(--mm-off))"><title>Plugins-Sync Headless stdio-MCP Register (v2.1.158 #140 HIGH — no consent prompt in sync caller; asymmetric to skills-sync hooks:void 0)</title></rect></a><a href="#flow-PROBESANDBOX"><rect x="0.1" y="24.6" width="56.3" height="16.0" fill="var(--mm-PROBESANDBOX, var(--mm-off))"><title>Runtime-Probe Harness (probe-sandbox + PTY automation, sessions 55-59)</title></rect></a><a href="#flow-STARTUP_NOTICE"><rect x="50.5" y="40.8" width="37.6" height="16.6" fill="var(--mm-STARTUP_NOTICE, var(--mm-off))"><title>TUI Startup-Notice Injection (v2.1.140 #127 HIGH — Critical refuted session-70: Ink &amp;lt;Text&amp;gt; strips dangerous escapes)</title></rect></a><a href="#flow-MIDCONV"><rect x="50.5" y="14.5" width="27.6" height="10.0" fill="var(--mm-MIDCONV, var(--mm-off))"><title>Mid-Conversation System Predicate (#115 — REMEDIATED v2.1.156)</title></rect></a><a href="#flow-FORCED_DG"><rect x="59.8" y="57.6" width="28.4" height="11.5" fill="var(--mm-FORCED_DG, var(--mm-off))"><title>Forced-Downgrade + AC3 Partial-Defense (v2.1.138 #113 + #114 HIGH)</title></rect></a><a href="#flow-TPGATE"><rect x="145.4" y="35.6" width="22.3" height="5.7" fill="var(--mm-TPGATE, var(--mm-off))"><title>Anthropic Third-Party-App Classifier</title></rect></a><a href="#flow-PIPASS"><rect x="109.5" y="54.1" width="33.5" height="24.2" fill="var(--mm-PIPASS, var(--mm-off))"><title>Pi-Passport (third-party gate evasion + Claude-Code bypass) [hardened postQ3Q4 2026-05-10]</title></rect></a><a href="#flow-OURS"><rect x="119.6" y="41.5" width="62.7" height="3.7" fill="var(--mm-OURS, var(--mm-off))"><title>Our Tooling</title></rect></a><a href="#flow-DATADOG"><rect x="50.5" y="69.2" width="37.6" height="8.8" fill="var(--mm-DATADOG, var(--mm-off))"><title>Datadog Third-Party Processor (v2.1.126 #105 — extends #92)</title></rect></a><a href="#flow-BRIEFINJ"><rect x="33.9" y="179.5" width="44.2" height="7.1" fill="var(--mm-BRIEFINJ, var(--mm-off))"><title>Brief Stop-Hook GrowthBook Injection (v2.1.126 #106 CRITICAL)</title></rect></a><a href="#flow-HARBOR"><rect x="119.6" y="19.2" width="32.2" height="16.2" fill="var(--mm-HARBOR, var(--mm-off))"><title>Harbor MCP Channels (v2.1.121 #102 + #104 — runtime-confirmed; v126 unchanged)</title></rect></a><a href="#flow-DAEMON"><rect x="69.9" y="211.0" width="82.0" height="25.3" fill="var(--mm-DAEMON, var(--mm-off))"><title>Background Daemon (v2.1.119 — 30 events)</title></rect></a><a href="#flow-TUI"><rect x="69.9" y="116.3" width="28.2" height="5.9" fill="var(--mm-TUI, var(--mm-off))"><title>TUI Renderer (three-tier)</title></rect></a><a href="#flow-NEW111"><rect x="50.5" y="197.0" width="27.6" height="10.7" fill="var(--mm-NEW111, var(--mm-off))"><title>v2.1.111+ Systems</title></rect></a><a href="#flow-PLUGINS"><rect x="91.4" y="142.9" width="15.2" height="9.1" fill="var(--mm-PLUGINS, var(--mm-off))"><title>Plugins (22 events)</title></rect></a><a href="#flow-DREAM"><rect x="171.2" y="52.4" width="24.6" height="3.0" fill="var(--mm-DREAM, var(--mm-off))"><title>Auto-Dream (5 events)</title></rect></a><a href="#flow-CCR"><rect x="119.6" y="200.3" width="23.4" height="10.6" fill="var(--mm-CCR, var(--mm-off))"><title>CCR Cloud-Runner</title></rect></a><a href="#flow-TEL"><rect x="190.6" y="176.5" width="9.3" height="68.5" fill="var(--mm-TEL, var(--mm-off))"><title>Telemetry (fan-in)</title></rect></a><a href="#flow-STATE"><rect x="154.1" y="92.3" width="28.2" height="3.0" fill="var(--mm-STATE, var(--mm-off))"><title>Session State</title></rect></a><a href="#flow-EXTH"><rect x="145.4" y="45.4" width="29.3" height="6.8" fill="var(--mm-EXTH, var(--mm-off))"><title>Hooks + Skills + Managed Agents</title></rect></a><a href="#flow-MCP"><rect x="119.6" y="190.7" width="23.4" height="9.2" fill="var(--mm-MCP, var(--mm-off))"><title>MCP (42 events)</title></rect></a><a href="#flow-LOOP"><rect x="177.2" y="158.4" width="22.7" height="17.8" fill="var(--mm-LOOP, var(--mm-off))"><title>Kairos Loop [AROUND]</title></rect></a><a href="#flow-ADVISOR"><rect x="127.9" y="102.4" width="61.5" height="5.4" fill="var(--mm-ADVISOR, var(--mm-off))"><title>Advisor [INSIDE]</title></rect></a><a href="#flow-BUDDY"><rect x="154.1" y="95.5" width="28.2" height="6.7" fill="var(--mm-BUDDY, var(--mm-off))"><title>Buddy [OUTSIDE]</title></rect></a><a href="#flow-CORE"><rect x="59.8" y="160.5" width="114.9" height="18.8" fill="var(--mm-CORE, var(--mm-off))"><title>Core Runtime (per-turn loop)</title></rect></a><a href="#flow-SPINE"><rect x="28.7" y="78.5" width="96.9" height="37.6" fill="var(--mm-SPINE, var(--mm-off))"><title>Startup Spine — gate every subsystem</title></rect></a><a href="#flow-STARTUPANNOUNCE"><rect x="-4.9" y="0.1" width="16.3" height="24.3" fill="var(--mm-STARTUPANNOUNCE, var(--mm-off))"><title>Startup-Announcements ANSI Injection (v2.1.187 #155 HIGH — server-pushed styled-text, Ink &amp;lt;Text&amp;gt; defends)</title></rect></a><a href="#flow-BYOC_DD"><rect x="-4.4" y="0.1" width="12.2" height="10.4" fill="var(--mm-BYOC_DD, var(--mm-off))"><title>BYOC Datadog Killswitch (v2.1.138 partial #105 remediation, BYOC subset only)</title></rect></a><a href="#flow-PROTOLEAK"><rect x="0.1" y="0.1" width="28.0" height="8.0" fill="var(--mm-PROTOLEAK, var(--mm-off))"><title>_PROTO_ destructure-rename leak (v2.1.129 #110 — PROMOTED CRITICAL via probe-r MITM 2026-05-06)</title></rect></a><a href="#flow-HARBORPRISM"><rect x="0.1" y="0.1" width="11.6" height="8.0" fill="var(--mm-HARBORPRISM, var(--mm-off))"><title>PR-status path-switcher (v2.1.128 #109 Med info)</title></rect></a><a href="#flow-IRONGATE"><rect x="-1.7" y="0.1" width="16.2" height="7.2" fill="var(--mm-IRONGATE, var(--mm-off))"><title>Sandbox classifier fail-closed inversion (v2.1.128 #108 — PROMOTED CRITICAL via probe-v2 MITM 2026-05-06)</title></rect></a><a href="#flow-SHAREONBOARD"><rect x="-1.1" y="0.1" width="19.7" height="5.4" fill="var(--mm-SHAREONBOARD, var(--mm-off))"><title>ShareOnboardingGuide unauth-public share URL (v2.1.128 #107 HIGH; round-3 incognito → CRITICAL contradicted by round-4 scrapling)</title></rect></a></symbol></svg>
+<!-- machine-generated by tools/gen-flow-gallery.py — do not hand-edit --><svg class="flow-mm-defs" width="0" height="0" aria-hidden="true" focusable="false"><symbol id="mm-map" viewBox="0 0 200 247"><rect width="200" height="247" class="mm-bg"/><a href="#flow-SUBAGENTDEPTH"><rect x="50.5" y="4.4" width="37.6" height="5.2" fill="var(--mm-SUBAGENTDEPTH, var(--mm-off))"><title>Server-Tunable Subagent Depth Ceiling (v2.1.217 #169 LOW — resource breadth, NOT authorization; net posture IMPROVED)</title></rect></a><a href="#flow-QUESTIONPROMPT"><rect x="100.3" y="151.8" width="33.3" height="11.1" fill="var(--mm-QUESTIONPROMPT, var(--mm-off))"><title>AskUserQuestion Prompt-String Injection (v2.1.216 #168 CRITICAL, WIRE-CONFIRMED v217 — server-pushed STRING lands verbatim in the tool description on /v1/messages)</title></rect></a><a href="#flow-PROMPTVARIANT"><rect x="119.6" y="1.9" width="32.2" height="11.4" fill="var(--mm-PROMPTVARIANT, var(--mm-off))"><title>Prompt-Section Variant Registry (v2.1.215 W-PROMPTVARIANT / #166 WATCH — server-selectable system-prompt text variants; NOT #106: no server-authored string)</title></rect></a><a href="#flow-PLUGINOVERRIDE"><rect x="109.5" y="144.1" width="33.5" height="7.0" fill="var(--mm-PLUGINOVERRIDE, var(--mm-off))"><title>Official-Plugin Prompt-Override Injection (v2.1.208 #165 HIGH — server-push overrides official/inline plugin MCP instructions + tool descriptions into model context)</title></rect></a><a href="#flow-HERONBROOK"><rect x="127.9" y="13.4" width="32.5" height="5.6" fill="var(--mm-HERONBROOK, var(--mm-off))"><title>Heron-Brook System-Prompt Injection (v2.1.179 #154 CRITICAL — server-pushed string reaches /v1/messages system prompt verbatim)</title></rect></a><a href="#flow-VELVETGUARD"><rect x="162.8" y="15.3" width="19.5" height="4.8" fill="var(--mm-VELVETGUARD, var(--mm-off))"><title>Read-Before-Edit/Write Guard Skip (v2.1.166 #152 LOW — data-integrity only, no permission reach; → W-VELVET)</title></rect></a><a href="#flow-PLUGINCRED"><rect x="69.9" y="9.8" width="36.8" height="4.5" fill="var(--mm-PLUGINCRED, var(--mm-off))"><title>Plugin-Autoupdate Git Credential-Helper Re-enable (v2.1.174 #151 HIGH — server-flippable; local, NOT CCR-gated; #136/#140 family; → W-CREDHELPER)</title></rect></a><a href="#flow-COWORKBRIDGE"><rect x="69.9" y="122.1" width="36.8" height="20.3" fill="var(--mm-COWORKBRIDGE, var(--mm-off))"><title>Cowork/CCR-v2 Remote-Environment Bridge + Two-Stage Classifier (v2.1.160 — no finding; runner-side; watch W1/W2)</title></rect></a><a href="#flow-PLUGINSYNC"><rect x="69.9" y="189.0" width="45.6" height="8.4" fill="var(--mm-PLUGINSYNC, var(--mm-off))"><title>Plugins-Sync Headless stdio-MCP Register (v2.1.158 #140 HIGH — no consent prompt in sync caller; asymmetric to skills-sync hooks:void 0)</title></rect></a><a href="#flow-PROBESANDBOX"><rect x="0.1" y="24.6" width="56.3" height="16.0" fill="var(--mm-PROBESANDBOX, var(--mm-off))"><title>Runtime-Probe Harness (probe-sandbox + PTY automation, sessions 55-59)</title></rect></a><a href="#flow-STARTUP_NOTICE"><rect x="50.5" y="40.7" width="37.6" height="16.6" fill="var(--mm-STARTUP_NOTICE, var(--mm-off))"><title>TUI Startup-Notice Injection (v2.1.140 #127 HIGH — Critical refuted session-70: Ink &amp;lt;Text&amp;gt; strips dangerous escapes)</title></rect></a><a href="#flow-MIDCONV"><rect x="50.5" y="14.4" width="27.6" height="9.9" fill="var(--mm-MIDCONV, var(--mm-off))"><title>Mid-Conversation System Predicate (#115 — REMEDIATED v2.1.156)</title></rect></a><a href="#flow-FORCED_DG"><rect x="59.8" y="57.5" width="28.4" height="11.4" fill="var(--mm-FORCED_DG, var(--mm-off))"><title>Forced-Downgrade + AC3 Partial-Defense (v2.1.138 #113 + #114 HIGH)</title></rect></a><a href="#flow-TPGATE"><rect x="145.4" y="35.5" width="22.3" height="5.7" fill="var(--mm-TPGATE, var(--mm-off))"><title>Anthropic Third-Party-App Classifier</title></rect></a><a href="#flow-PIPASS"><rect x="109.5" y="53.9" width="33.5" height="24.2" fill="var(--mm-PIPASS, var(--mm-off))"><title>Pi-Passport (third-party gate evasion + Claude-Code bypass) [hardened postQ3Q4 2026-05-10]</title></rect></a><a href="#flow-OURS"><rect x="119.6" y="41.4" width="62.7" height="3.7" fill="var(--mm-OURS, var(--mm-off))"><title>Our Tooling</title></rect></a><a href="#flow-DATADOG"><rect x="50.5" y="69.1" width="37.6" height="8.7" fill="var(--mm-DATADOG, var(--mm-off))"><title>Datadog Third-Party Processor (v2.1.126 #105 — extends #92)</title></rect></a><a href="#flow-BRIEFINJ"><rect x="33.9" y="181.7" width="44.2" height="7.1" fill="var(--mm-BRIEFINJ, var(--mm-off))"><title>Brief Stop-Hook GrowthBook Injection (v2.1.126 #106 CRITICAL)</title></rect></a><a href="#flow-HARBOR"><rect x="119.6" y="19.2" width="32.2" height="16.2" fill="var(--mm-HARBOR, var(--mm-off))"><title>Harbor MCP Channels (v2.1.121 #102 + #104 — runtime-confirmed; v126 unchanged)</title></rect></a><a href="#flow-DAEMON"><rect x="69.9" y="213.1" width="82.0" height="25.3" fill="var(--mm-DAEMON, var(--mm-off))"><title>Background Daemon (v2.1.119 — 30 events)</title></rect></a><a href="#flow-TUI"><rect x="69.9" y="116.0" width="28.2" height="5.9" fill="var(--mm-TUI, var(--mm-off))"><title>TUI Renderer (three-tier)</title></rect></a><a href="#flow-NEW111"><rect x="50.5" y="199.1" width="27.6" height="10.7" fill="var(--mm-NEW111, var(--mm-off))"><title>v2.1.111+ Systems</title></rect></a><a href="#flow-PLUGINS"><rect x="91.4" y="142.6" width="15.2" height="9.0" fill="var(--mm-PLUGINS, var(--mm-off))"><title>Plugins (22 events)</title></rect></a><a href="#flow-DREAM"><rect x="171.2" y="52.2" width="24.6" height="3.0" fill="var(--mm-DREAM, var(--mm-off))"><title>Auto-Dream (5 events)</title></rect></a><a href="#flow-CCR"><rect x="119.6" y="202.4" width="23.4" height="10.5" fill="var(--mm-CCR, var(--mm-off))"><title>CCR Cloud-Runner</title></rect></a><a href="#flow-TEL"><rect x="190.6" y="178.6" width="9.3" height="68.3" fill="var(--mm-TEL, var(--mm-off))"><title>Telemetry (fan-in)</title></rect></a><a href="#flow-STATE"><rect x="154.1" y="92.0" width="28.2" height="3.0" fill="var(--mm-STATE, var(--mm-off))"><title>Session State</title></rect></a><a href="#flow-EXTH"><rect x="145.4" y="45.3" width="29.3" height="6.8" fill="var(--mm-EXTH, var(--mm-off))"><title>Hooks + Skills + Managed Agents</title></rect></a><a href="#flow-MCP"><rect x="119.6" y="192.8" width="23.4" height="9.2" fill="var(--mm-MCP, var(--mm-off))"><title>MCP (42 events)</title></rect></a><a href="#flow-LOOP"><rect x="177.2" y="161.0" width="22.7" height="17.4" fill="var(--mm-LOOP, var(--mm-off))"><title>Kairos Loop [AROUND]</title></rect></a><a href="#flow-ADVISOR"><rect x="127.9" y="102.1" width="61.5" height="5.4" fill="var(--mm-ADVISOR, var(--mm-off))"><title>Advisor [INSIDE]</title></rect></a><a href="#flow-BUDDY"><rect x="154.1" y="95.2" width="28.2" height="6.7" fill="var(--mm-BUDDY, var(--mm-off))"><title>Buddy [OUTSIDE]</title></rect></a><a href="#flow-CORE"><rect x="59.8" y="163.1" width="114.9" height="18.4" fill="var(--mm-CORE, var(--mm-off))"><title>Core Runtime (per-turn loop)</title></rect></a><a href="#flow-SPINE"><rect x="28.7" y="78.3" width="96.9" height="37.5" fill="var(--mm-SPINE, var(--mm-off))"><title>Startup Spine — gate every subsystem</title></rect></a><a href="#flow-STARTUPANNOUNCE"><rect x="-4.9" y="0.1" width="16.3" height="24.2" fill="var(--mm-STARTUPANNOUNCE, var(--mm-off))"><title>Startup-Announcements ANSI Injection (v2.1.187 #155 HIGH — server-pushed styled-text, Ink &amp;lt;Text&amp;gt; defends)</title></rect></a><a href="#flow-BYOC_DD"><rect x="-4.4" y="0.1" width="12.2" height="10.4" fill="var(--mm-BYOC_DD, var(--mm-off))"><title>BYOC Datadog Killswitch (v2.1.138 partial #105 remediation, BYOC subset only)</title></rect></a><a href="#flow-PROTOLEAK"><rect x="0.1" y="0.1" width="28.0" height="7.9" fill="var(--mm-PROTOLEAK, var(--mm-off))"><title>_PROTO_ destructure-rename leak (v2.1.129 #110 — PROMOTED CRITICAL via probe-r MITM 2026-05-06)</title></rect></a><a href="#flow-HARBORPRISM"><rect x="0.1" y="0.1" width="11.6" height="7.9" fill="var(--mm-HARBORPRISM, var(--mm-off))"><title>PR-status path-switcher (v2.1.128 #109 Med info)</title></rect></a><a href="#flow-IRONGATE"><rect x="-1.7" y="0.1" width="16.2" height="7.2" fill="var(--mm-IRONGATE, var(--mm-off))"><title>Sandbox classifier fail-closed inversion (v2.1.128 #108 — PROMOTED CRITICAL via probe-v2 MITM 2026-05-06)</title></rect></a><a href="#flow-SHAREONBOARD"><rect x="-1.1" y="0.1" width="19.7" height="5.4" fill="var(--mm-SHAREONBOARD, var(--mm-off))"><title>ShareOnboardingGuide unauth-public share URL (v2.1.128 #107 HIGH; round-3 incognito → CRITICAL contradicted by round-4 scrapling)</title></rect></a></symbol></svg>
 <p class="flow-gallery-intro">The architecture map is split into 40 clusters
 (231 nodes total). Each panel is one cluster, rendered at a readable size; the
 small map beside it shows where that cluster sits in the whole diagram. Click any region of
@@ -2287,7 +2287,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Startup Spine — gate every subsystem diagram at full size">
       <img src="flow/SPINE.svg" alt="Startup Spine — gate every subsystem: 9 nodes, 8 internal connections. Connects to 22 other cluster(s): ADVISOR, BRIEFINJ, BUDDY, CCR, CORE, COWORKBRIDGE, DAEMON, DATADOG, DREAM, EXTH, HARBOR, LOOP, MCP, NEW111, PLUGINCRED, PLUGINS, PROBESANDBOX, PROMPTVARIANT, QUESTIONPROMPT, STATE, SUBAGENTDEPTH, TUI." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-SPINE:var(--mm-on)" role="img" aria-label="Minimap: Startup Spine — gate every subsystem highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-SPINE:var(--mm-on)" role="img" aria-label="Minimap: Startup Spine — gate every subsystem highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2302,7 +2302,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Core Runtime (per-turn loop) diagram at full size">
       <img src="flow/CORE.svg" alt="Core Runtime (per-turn loop): 6 nodes, 5 internal connections. Connects to 22 other cluster(s): ADVISOR, BRIEFINJ, BUDDY, CCR, COWORKBRIDGE, DAEMON, EXTH, LOOP, MCP, NEW111, PIPASS, PLUGINCRED, PLUGINOVERRIDE, PLUGINS, PLUGINSYNC, PROMPTVARIANT, QUESTIONPROMPT, SPINE, STATE, TEL, TUI, VELVETGUARD." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-CORE:var(--mm-on)" role="img" aria-label="Minimap: Core Runtime (per-turn loop) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-CORE:var(--mm-on)" role="img" aria-label="Minimap: Core Runtime (per-turn loop) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2317,7 +2317,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Buddy [OUTSIDE] diagram at full size">
       <img src="flow/BUDDY.svg" alt="Buddy [OUTSIDE]: 8 nodes, 5 internal connections. Connects to 4 other cluster(s): CORE, OURS, SPINE, STATE." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-BUDDY:var(--mm-on)" role="img" aria-label="Minimap: Buddy [OUTSIDE] highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-BUDDY:var(--mm-on)" role="img" aria-label="Minimap: Buddy [OUTSIDE] highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2332,7 +2332,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Advisor [INSIDE] diagram at full size">
       <img src="flow/ADVISOR.svg" alt="Advisor [INSIDE]: 6 nodes, 2 internal connections. Connects to 2 other cluster(s): CORE, SPINE." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-ADVISOR:var(--mm-on)" role="img" aria-label="Minimap: Advisor [INSIDE] highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-ADVISOR:var(--mm-on)" role="img" aria-label="Minimap: Advisor [INSIDE] highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2347,7 +2347,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Kairos Loop [AROUND] diagram at full size">
       <img src="flow/LOOP.svg" alt="Kairos Loop [AROUND]: 6 nodes, 4 internal connections. Connects to 3 other cluster(s): CORE, SPINE, TEL." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-LOOP:var(--mm-on)" role="img" aria-label="Minimap: Kairos Loop [AROUND] highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-LOOP:var(--mm-on)" role="img" aria-label="Minimap: Kairos Loop [AROUND] highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2362,7 +2362,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the MCP (42 events) diagram at full size">
       <img src="flow/MCP.svg" alt="MCP (42 events): 6 nodes, 5 internal connections. Connects to 7 other cluster(s): CORE, HARBOR, OURS, PLUGINS, PLUGINSYNC, SPINE, TEL." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-MCP:var(--mm-on)" role="img" aria-label="Minimap: MCP (42 events) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-MCP:var(--mm-on)" role="img" aria-label="Minimap: MCP (42 events) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2377,7 +2377,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Hooks + Skills + Managed Agents diagram at full size">
       <img src="flow/EXTH.svg" alt="Hooks + Skills + Managed Agents: 6 nodes, 3 internal connections. Connects to 5 other cluster(s): CORE, OURS, PLUGINS, SPINE, STATE." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-EXTH:var(--mm-on)" role="img" aria-label="Minimap: Hooks + Skills + Managed Agents highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-EXTH:var(--mm-on)" role="img" aria-label="Minimap: Hooks + Skills + Managed Agents highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2392,7 +2392,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Session State diagram at full size">
       <img src="flow/STATE.svg" alt="Session State: 4 nodes, 1 internal connections. Connects to 4 other cluster(s): BUDDY, CORE, EXTH, SPINE." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-STATE:var(--mm-on)" role="img" aria-label="Minimap: Session State highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-STATE:var(--mm-on)" role="img" aria-label="Minimap: Session State highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2407,7 +2407,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Telemetry (fan-in) diagram at full size">
       <img src="flow/TEL.svg" alt="Telemetry (fan-in): 6 nodes, 5 internal connections. Connects to 8 other cluster(s): CCR, CORE, DAEMON, DREAM, LOOP, MCP, NEW111, PLUGINS." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-TEL:var(--mm-on)" role="img" aria-label="Minimap: Telemetry (fan-in) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-TEL:var(--mm-on)" role="img" aria-label="Minimap: Telemetry (fan-in) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2422,7 +2422,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the CCR Cloud-Runner diagram at full size">
       <img src="flow/CCR.svg" alt="CCR Cloud-Runner: 7 nodes, 7 internal connections. Connects to 4 other cluster(s): CORE, DAEMON, SPINE, TEL." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-CCR:var(--mm-on)" role="img" aria-label="Minimap: CCR Cloud-Runner highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-CCR:var(--mm-on)" role="img" aria-label="Minimap: CCR Cloud-Runner highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2437,7 +2437,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Auto-Dream (5 events) diagram at full size">
       <img src="flow/DREAM.svg" alt="Auto-Dream (5 events): 4 nodes, 3 internal connections. Connects to 2 other cluster(s): SPINE, TEL." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-DREAM:var(--mm-on)" role="img" aria-label="Minimap: Auto-Dream (5 events) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-DREAM:var(--mm-on)" role="img" aria-label="Minimap: Auto-Dream (5 events) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2452,7 +2452,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Plugins (22 events) diagram at full size">
       <img src="flow/PLUGINS.svg" alt="Plugins (22 events): 5 nodes, 2 internal connections. Connects to 7 other cluster(s): CORE, EXTH, MCP, PLUGINOVERRIDE, PLUGINSYNC, SPINE, TEL." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-PLUGINS:var(--mm-on)" role="img" aria-label="Minimap: Plugins (22 events) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-PLUGINS:var(--mm-on)" role="img" aria-label="Minimap: Plugins (22 events) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2467,7 +2467,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the v2.1.111+ Systems diagram at full size">
       <img src="flow/NEW111.svg" alt="v2.1.111+ Systems: 6 nodes, 0 internal connections. Connects to 3 other cluster(s): CORE, SPINE, TEL." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-NEW111:var(--mm-on)" role="img" aria-label="Minimap: v2.1.111+ Systems highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-NEW111:var(--mm-on)" role="img" aria-label="Minimap: v2.1.111+ Systems highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2482,7 +2482,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the TUI Renderer (three-tier) diagram at full size">
       <img src="flow/TUI.svg" alt="TUI Renderer (three-tier): 3 nodes, 2 internal connections. Connects to 2 other cluster(s): CORE, SPINE." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-TUI:var(--mm-on)" role="img" aria-label="Minimap: TUI Renderer (three-tier) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-TUI:var(--mm-on)" role="img" aria-label="Minimap: TUI Renderer (three-tier) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2497,7 +2497,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Background Daemon (v2.1.119 — 30 events) diagram at full size">
       <img src="flow/DAEMON.svg" alt="Background Daemon (v2.1.119 — 30 events): 20 nodes, 20 internal connections. Connects to 4 other cluster(s): CCR, CORE, SPINE, TEL." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-DAEMON:var(--mm-on)" role="img" aria-label="Minimap: Background Daemon (v2.1.119 — 30 events) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-DAEMON:var(--mm-on)" role="img" aria-label="Minimap: Background Daemon (v2.1.119 — 30 events) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2512,7 +2512,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Harbor MCP Channels (v2.1.121 #102 + #104 — runtime-confirmed; v126 unchanged) diagram at full size">
       <img src="flow/HARBOR.svg" alt="Harbor MCP Channels (v2.1.121 #102 + #104 — runtime-confirmed; v126 unchanged): 10 nodes, 9 internal connections. Connects to 2 other cluster(s): MCP, SPINE." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-HARBOR:var(--mm-on)" role="img" aria-label="Minimap: Harbor MCP Channels (v2.1.121 #102 + #104 — runtime-confirmed; v126 unchanged) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-HARBOR:var(--mm-on)" role="img" aria-label="Minimap: Harbor MCP Channels (v2.1.121 #102 + #104 — runtime-confirmed; v126 unchanged) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2527,7 +2527,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Brief Stop-Hook GrowthBook Injection (v2.1.126 #106 CRITICAL) diagram at full size">
       <img src="flow/BRIEFINJ.svg" alt="Brief Stop-Hook GrowthBook Injection (v2.1.126 #106 CRITICAL): 5 nodes, 3 internal connections. Connects to 2 other cluster(s): CORE, SPINE." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-BRIEFINJ:var(--mm-on)" role="img" aria-label="Minimap: Brief Stop-Hook GrowthBook Injection (v2.1.126 #106 CRITICAL) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-BRIEFINJ:var(--mm-on)" role="img" aria-label="Minimap: Brief Stop-Hook GrowthBook Injection (v2.1.126 #106 CRITICAL) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2542,7 +2542,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Datadog Third-Party Processor (v2.1.126 #105 — extends #92) diagram at full size">
       <img src="flow/DATADOG.svg" alt="Datadog Third-Party Processor (v2.1.126 #105 — extends #92): 5 nodes, 4 internal connections. Connects to 1 other cluster(s): SPINE." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-DATADOG:var(--mm-on)" role="img" aria-label="Minimap: Datadog Third-Party Processor (v2.1.126 #105 — extends #92) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-DATADOG:var(--mm-on)" role="img" aria-label="Minimap: Datadog Third-Party Processor (v2.1.126 #105 — extends #92) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2557,7 +2557,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Our Tooling diagram at full size">
       <img src="flow/OURS.svg" alt="Our Tooling: 4 nodes, 1 internal connections. Connects to 3 other cluster(s): BUDDY, EXTH, MCP." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-OURS:var(--mm-on)" role="img" aria-label="Minimap: Our Tooling highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-OURS:var(--mm-on)" role="img" aria-label="Minimap: Our Tooling highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2572,7 +2572,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Pi-Passport (third-party gate evasion + Claude-Code bypass) [hardened postQ3Q4 2026-05-10] diagram at full size">
       <img src="flow/PIPASS.svg" alt="Pi-Passport (third-party gate evasion + Claude-Code bypass) [hardened postQ3Q4 2026-05-10]: 10 nodes, 7 internal connections. Connects to 2 other cluster(s): CORE, TPGATE." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-PIPASS:var(--mm-on)" role="img" aria-label="Minimap: Pi-Passport (third-party gate evasion + Claude-Code bypass) [hardened postQ3Q4 2026-05-10] highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-PIPASS:var(--mm-on)" role="img" aria-label="Minimap: Pi-Passport (third-party gate evasion + Claude-Code bypass) [hardened postQ3Q4 2026-05-10] highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2587,7 +2587,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Anthropic Third-Party-App Classifier diagram at full size">
       <img src="flow/TPGATE.svg" alt="Anthropic Third-Party-App Classifier: 3 nodes, 1 internal connections. Connects to 1 other cluster(s): PIPASS." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-TPGATE:var(--mm-on)" role="img" aria-label="Minimap: Anthropic Third-Party-App Classifier highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-TPGATE:var(--mm-on)" role="img" aria-label="Minimap: Anthropic Third-Party-App Classifier highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2602,7 +2602,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the ShareOnboardingGuide unauth-public share URL (v2.1.128 #107 HIGH; round-3 incognito → CRITICAL contradicted by round-4 scrapling) diagram at full size">
       <img src="flow/SHAREONBOARD.svg" alt="ShareOnboardingGuide unauth-public share URL (v2.1.128 #107 HIGH; round-3 incognito → CRITICAL contradicted by round-4 scrapling): 5 nodes, 0 internal connections. Self-contained: no connections to other clusters." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-SHAREONBOARD:var(--mm-on)" role="img" aria-label="Minimap: ShareOnboardingGuide unauth-public share URL (v2.1.128 #107 HIGH; round-3 incognito → CRITICAL contradicted by round-4 scrapling) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-SHAREONBOARD:var(--mm-on)" role="img" aria-label="Minimap: ShareOnboardingGuide unauth-public share URL (v2.1.128 #107 HIGH; round-3 incognito → CRITICAL contradicted by round-4 scrapling) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2617,7 +2617,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Sandbox classifier fail-closed inversion (v2.1.128 #108 — PROMOTED CRITICAL via probe-v2 MITM 2026-05-06) diagram at full size">
       <img src="flow/IRONGATE.svg" alt="Sandbox classifier fail-closed inversion (v2.1.128 #108 — PROMOTED CRITICAL via probe-v2 MITM 2026-05-06): 4 nodes, 0 internal connections. Self-contained: no connections to other clusters." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-IRONGATE:var(--mm-on)" role="img" aria-label="Minimap: Sandbox classifier fail-closed inversion (v2.1.128 #108 — PROMOTED CRITICAL via probe-v2 MITM 2026-05-06) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-IRONGATE:var(--mm-on)" role="img" aria-label="Minimap: Sandbox classifier fail-closed inversion (v2.1.128 #108 — PROMOTED CRITICAL via probe-v2 MITM 2026-05-06) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2632,7 +2632,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the PR-status path-switcher (v2.1.128 #109 Med info) diagram at full size">
       <img src="flow/HARBORPRISM.svg" alt="PR-status path-switcher (v2.1.128 #109 Med info): 4 nodes, 0 internal connections. Self-contained: no connections to other clusters." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-HARBORPRISM:var(--mm-on)" role="img" aria-label="Minimap: PR-status path-switcher (v2.1.128 #109 Med info) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-HARBORPRISM:var(--mm-on)" role="img" aria-label="Minimap: PR-status path-switcher (v2.1.128 #109 Med info) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2647,7 +2647,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the _PROTO_ destructure-rename leak (v2.1.129 #110 — PROMOTED CRITICAL via probe-r MITM 2026-05-06) diagram at full size">
       <img src="flow/PROTOLEAK.svg" alt="_PROTO_ destructure-rename leak (v2.1.129 #110 — PROMOTED CRITICAL via probe-r MITM 2026-05-06): 6 nodes, 0 internal connections. Self-contained: no connections to other clusters." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-PROTOLEAK:var(--mm-on)" role="img" aria-label="Minimap: _PROTO_ destructure-rename leak (v2.1.129 #110 — PROMOTED CRITICAL via probe-r MITM 2026-05-06) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-PROTOLEAK:var(--mm-on)" role="img" aria-label="Minimap: _PROTO_ destructure-rename leak (v2.1.129 #110 — PROMOTED CRITICAL via probe-r MITM 2026-05-06) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2662,7 +2662,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Forced-Downgrade + AC3 Partial-Defense (v2.1.138 #113 + #114 HIGH) diagram at full size">
       <img src="flow/FORCED_DG.svg" alt="Forced-Downgrade + AC3 Partial-Defense (v2.1.138 #113 + #114 HIGH): 6 nodes, 3 internal connections. Connects to 1 other cluster(s): PROBESANDBOX." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-FORCED_DG:var(--mm-on)" role="img" aria-label="Minimap: Forced-Downgrade + AC3 Partial-Defense (v2.1.138 #113 + #114 HIGH) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-FORCED_DG:var(--mm-on)" role="img" aria-label="Minimap: Forced-Downgrade + AC3 Partial-Defense (v2.1.138 #113 + #114 HIGH) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2677,7 +2677,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Mid-Conversation System Predicate (#115 — REMEDIATED v2.1.156) diagram at full size">
       <img src="flow/MIDCONV.svg" alt="Mid-Conversation System Predicate (#115 — REMEDIATED v2.1.156): 6 nodes, 5 internal connections. Connects to 1 other cluster(s): PROBESANDBOX." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-MIDCONV:var(--mm-on)" role="img" aria-label="Minimap: Mid-Conversation System Predicate (#115 — REMEDIATED v2.1.156) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-MIDCONV:var(--mm-on)" role="img" aria-label="Minimap: Mid-Conversation System Predicate (#115 — REMEDIATED v2.1.156) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2692,7 +2692,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the BYOC Datadog Killswitch (v2.1.138 partial #105 remediation, BYOC subset only) diagram at full size">
       <img src="flow/BYOC_DD.svg" alt="BYOC Datadog Killswitch (v2.1.138 partial #105 remediation, BYOC subset only): 2 nodes, 1 internal connections. Self-contained: no connections to other clusters." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-BYOC_DD:var(--mm-on)" role="img" aria-label="Minimap: BYOC Datadog Killswitch (v2.1.138 partial #105 remediation, BYOC subset only) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-BYOC_DD:var(--mm-on)" role="img" aria-label="Minimap: BYOC Datadog Killswitch (v2.1.138 partial #105 remediation, BYOC subset only) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2707,7 +2707,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the TUI Startup-Notice Injection (v2.1.140 #127 HIGH — Critical refuted session-70: Ink &amp;lt;Text&amp;gt; strips dangerous escapes) diagram at full size">
       <img src="flow/STARTUP_NOTICE.svg" alt="TUI Startup-Notice Injection (v2.1.140 #127 HIGH — Critical refuted session-70: Ink &amp;lt;Text&amp;gt; strips dangerous escapes): 7 nodes, 6 internal connections. Connects to 1 other cluster(s): PROBESANDBOX." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-STARTUP_NOTICE:var(--mm-on)" role="img" aria-label="Minimap: TUI Startup-Notice Injection (v2.1.140 #127 HIGH — Critical refuted session-70: Ink &amp;lt;Text&amp;gt; strips dangerous escapes) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-STARTUP_NOTICE:var(--mm-on)" role="img" aria-label="Minimap: TUI Startup-Notice Injection (v2.1.140 #127 HIGH — Critical refuted session-70: Ink &amp;lt;Text&amp;gt; strips dangerous escapes) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2722,7 +2722,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Runtime-Probe Harness (probe-sandbox + PTY automation, sessions 55-59) diagram at full size">
       <img src="flow/PROBESANDBOX.svg" alt="Runtime-Probe Harness (probe-sandbox + PTY automation, sessions 55-59): 7 nodes, 6 internal connections. Connects to 4 other cluster(s): FORCED_DG, MIDCONV, SPINE, STARTUP_NOTICE." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-PROBESANDBOX:var(--mm-on)" role="img" aria-label="Minimap: Runtime-Probe Harness (probe-sandbox + PTY automation, sessions 55-59) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-PROBESANDBOX:var(--mm-on)" role="img" aria-label="Minimap: Runtime-Probe Harness (probe-sandbox + PTY automation, sessions 55-59) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2737,7 +2737,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Plugins-Sync Headless stdio-MCP Register (v2.1.158 #140 HIGH — no consent prompt in sync caller; asymmetric to skills-sync hooks:void 0) diagram at full size">
       <img src="flow/PLUGINSYNC.svg" alt="Plugins-Sync Headless stdio-MCP Register (v2.1.158 #140 HIGH — no consent prompt in sync caller; asymmetric to skills-sync hooks:void 0): 5 nodes, 4 internal connections. Connects to 3 other cluster(s): CORE, MCP, PLUGINS." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-PLUGINSYNC:var(--mm-on)" role="img" aria-label="Minimap: Plugins-Sync Headless stdio-MCP Register (v2.1.158 #140 HIGH — no consent prompt in sync caller; asymmetric to skills-sync hooks:void 0) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-PLUGINSYNC:var(--mm-on)" role="img" aria-label="Minimap: Plugins-Sync Headless stdio-MCP Register (v2.1.158 #140 HIGH — no consent prompt in sync caller; asymmetric to skills-sync hooks:void 0) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2752,7 +2752,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Cowork/CCR-v2 Remote-Environment Bridge + Two-Stage Classifier (v2.1.160 — no finding; runner-side; watch W1/W2) diagram at full size">
       <img src="flow/COWORKBRIDGE.svg" alt="Cowork/CCR-v2 Remote-Environment Bridge + Two-Stage Classifier (v2.1.160 — no finding; runner-side; watch W1/W2): 7 nodes, 6 internal connections. Connects to 2 other cluster(s): CORE, SPINE." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-COWORKBRIDGE:var(--mm-on)" role="img" aria-label="Minimap: Cowork/CCR-v2 Remote-Environment Bridge + Two-Stage Classifier (v2.1.160 — no finding; runner-side; watch W1/W2) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-COWORKBRIDGE:var(--mm-on)" role="img" aria-label="Minimap: Cowork/CCR-v2 Remote-Environment Bridge + Two-Stage Classifier (v2.1.160 — no finding; runner-side; watch W1/W2) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2767,7 +2767,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Plugin-Autoupdate Git Credential-Helper Re-enable (v2.1.174 #151 HIGH — server-flippable; local, NOT CCR-gated; #136/#140 family; → W-CREDHELPER) diagram at full size">
       <img src="flow/PLUGINCRED.svg" alt="Plugin-Autoupdate Git Credential-Helper Re-enable (v2.1.174 #151 HIGH — server-flippable; local, NOT CCR-gated; #136/#140 family; → W-CREDHELPER): 4 nodes, 3 internal connections. Connects to 2 other cluster(s): CORE, SPINE." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-PLUGINCRED:var(--mm-on)" role="img" aria-label="Minimap: Plugin-Autoupdate Git Credential-Helper Re-enable (v2.1.174 #151 HIGH — server-flippable; local, NOT CCR-gated; #136/#140 family; → W-CREDHELPER) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-PLUGINCRED:var(--mm-on)" role="img" aria-label="Minimap: Plugin-Autoupdate Git Credential-Helper Re-enable (v2.1.174 #151 HIGH — server-flippable; local, NOT CCR-gated; #136/#140 family; → W-CREDHELPER) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2782,7 +2782,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Read-Before-Edit/Write Guard Skip (v2.1.166 #152 LOW — data-integrity only, no permission reach; → W-VELVET) diagram at full size">
       <img src="flow/VELVETGUARD.svg" alt="Read-Before-Edit/Write Guard Skip (v2.1.166 #152 LOW — data-integrity only, no permission reach; → W-VELVET): 3 nodes, 2 internal connections. Connects to 1 other cluster(s): CORE." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-VELVETGUARD:var(--mm-on)" role="img" aria-label="Minimap: Read-Before-Edit/Write Guard Skip (v2.1.166 #152 LOW — data-integrity only, no permission reach; → W-VELVET) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-VELVETGUARD:var(--mm-on)" role="img" aria-label="Minimap: Read-Before-Edit/Write Guard Skip (v2.1.166 #152 LOW — data-integrity only, no permission reach; → W-VELVET) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2797,7 +2797,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Heron-Brook System-Prompt Injection (v2.1.179 #154 CRITICAL — server-pushed string reaches /v1/messages system prompt verbatim) diagram at full size">
       <img src="flow/HERONBROOK.svg" alt="Heron-Brook System-Prompt Injection (v2.1.179 #154 CRITICAL — server-pushed string reaches /v1/messages system prompt verbatim): 4 nodes, 3 internal connections. Connects to 1 other cluster(s): PROMPTVARIANT." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-HERONBROOK:var(--mm-on)" role="img" aria-label="Minimap: Heron-Brook System-Prompt Injection (v2.1.179 #154 CRITICAL — server-pushed string reaches /v1/messages system prompt verbatim) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-HERONBROOK:var(--mm-on)" role="img" aria-label="Minimap: Heron-Brook System-Prompt Injection (v2.1.179 #154 CRITICAL — server-pushed string reaches /v1/messages system prompt verbatim) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2812,7 +2812,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Startup-Announcements ANSI Injection (v2.1.187 #155 HIGH — server-pushed styled-text, Ink &amp;lt;Text&amp;gt; defends) diagram at full size">
       <img src="flow/STARTUPANNOUNCE.svg" alt="Startup-Announcements ANSI Injection (v2.1.187 #155 HIGH — server-pushed styled-text, Ink &amp;lt;Text&amp;gt; defends): 6 nodes, 5 internal connections. Self-contained: no connections to other clusters." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-STARTUPANNOUNCE:var(--mm-on)" role="img" aria-label="Minimap: Startup-Announcements ANSI Injection (v2.1.187 #155 HIGH — server-pushed styled-text, Ink &amp;lt;Text&amp;gt; defends) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-STARTUPANNOUNCE:var(--mm-on)" role="img" aria-label="Minimap: Startup-Announcements ANSI Injection (v2.1.187 #155 HIGH — server-pushed styled-text, Ink &amp;lt;Text&amp;gt; defends) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2827,7 +2827,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Official-Plugin Prompt-Override Injection (v2.1.208 #165 HIGH — server-push overrides official/inline plugin MCP instructions + tool descriptions into model context) diagram at full size">
       <img src="flow/PLUGINOVERRIDE.svg" alt="Official-Plugin Prompt-Override Injection (v2.1.208 #165 HIGH — server-push overrides official/inline plugin MCP instructions + tool descriptions into model context): 4 nodes, 3 internal connections. Connects to 3 other cluster(s): CORE, PLUGINS, QUESTIONPROMPT." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-PLUGINOVERRIDE:var(--mm-on)" role="img" aria-label="Minimap: Official-Plugin Prompt-Override Injection (v2.1.208 #165 HIGH — server-push overrides official/inline plugin MCP instructions + tool descriptions into model context) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-PLUGINOVERRIDE:var(--mm-on)" role="img" aria-label="Minimap: Official-Plugin Prompt-Override Injection (v2.1.208 #165 HIGH — server-push overrides official/inline plugin MCP instructions + tool descriptions into model context) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2842,22 +2842,22 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Prompt-Section Variant Registry (v2.1.215 W-PROMPTVARIANT / #166 WATCH — server-selectable system-prompt text variants; NOT #106: no server-authored string) diagram at full size">
       <img src="flow/PROMPTVARIANT.svg" alt="Prompt-Section Variant Registry (v2.1.215 W-PROMPTVARIANT / #166 WATCH — server-selectable system-prompt text variants; NOT #106: no server-authored string): 4 nodes, 3 internal connections. Connects to 3 other cluster(s): CORE, HERONBROOK, SPINE." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-PROMPTVARIANT:var(--mm-on)" role="img" aria-label="Minimap: Prompt-Section Variant Registry (v2.1.215 W-PROMPTVARIANT / #166 WATCH — server-selectable system-prompt text variants; NOT #106: no server-authored string) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-PROMPTVARIANT:var(--mm-on)" role="img" aria-label="Minimap: Prompt-Section Variant Registry (v2.1.215 W-PROMPTVARIANT / #166 WATCH — server-selectable system-prompt text variants; NOT #106: no server-authored string) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
 </figure>
 
 <figure class="flow-card" id="flow-QUESTIONPROMPT">
-  <figcaption class="flow-cap"><span class="flow-code">AM</span> <span class="flow-title">AskUserQuestion Prompt-String Injection (v2.1.216 #168 HIGH — server-pushed STRING interpolated verbatim into the question-tool instruction text)</span>
+  <figcaption class="flow-cap"><span class="flow-code">AM</span> <span class="flow-title">AskUserQuestion Prompt-String Injection (v2.1.216 #168 CRITICAL, WIRE-CONFIRMED v217 — server-pushed STRING lands verbatim in the tool description on /v1/messages)</span>
     <span class="flow-meta">4 nodes &middot; 3 internal &middot; links 3 cluster(s)</span>
   </figcaption>
   <div class="flow-body">
     <a class="flow-diagram" href="flow/QUESTIONPROMPT.svg" target="_blank" rel="noopener"
-       aria-label="Open the AskUserQuestion Prompt-String Injection (v2.1.216 #168 HIGH — server-pushed STRING interpolated verbatim into the question-tool instruction text) diagram at full size">
-      <img src="flow/QUESTIONPROMPT.svg" alt="AskUserQuestion Prompt-String Injection (v2.1.216 #168 HIGH — server-pushed STRING interpolated verbatim into the question-tool instruction text): 4 nodes, 3 internal connections. Connects to 3 other cluster(s): CORE, PLUGINOVERRIDE, SPINE." loading="lazy" decoding="async"/>
+       aria-label="Open the AskUserQuestion Prompt-String Injection (v2.1.216 #168 CRITICAL, WIRE-CONFIRMED v217 — server-pushed STRING lands verbatim in the tool description on /v1/messages) diagram at full size">
+      <img src="flow/QUESTIONPROMPT.svg" alt="AskUserQuestion Prompt-String Injection (v2.1.216 #168 CRITICAL, WIRE-CONFIRMED v217 — server-pushed STRING lands verbatim in the tool description on /v1/messages): 4 nodes, 3 internal connections. Connects to 3 other cluster(s): CORE, PLUGINOVERRIDE, SPINE." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-QUESTIONPROMPT:var(--mm-on)" role="img" aria-label="Minimap: AskUserQuestion Prompt-String Injection (v2.1.216 #168 HIGH — server-pushed STRING interpolated verbatim into the question-tool instruction text) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-QUESTIONPROMPT:var(--mm-on)" role="img" aria-label="Minimap: AskUserQuestion Prompt-String Injection (v2.1.216 #168 CRITICAL, WIRE-CONFIRMED v217 — server-pushed STRING lands verbatim in the tool description on /v1/messages) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2872,7 +2872,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
        aria-label="Open the Server-Tunable Subagent Depth Ceiling (v2.1.217 #169 LOW — resource breadth, NOT authorization; net posture IMPROVED) diagram at full size">
       <img src="flow/SUBAGENTDEPTH.svg" alt="Server-Tunable Subagent Depth Ceiling (v2.1.217 #169 LOW — resource breadth, NOT authorization; net posture IMPROVED): 4 nodes, 3 internal connections. Connects to 1 other cluster(s): SPINE." loading="lazy" decoding="async"/>
     </a>
-    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 245" width="200" height="245" style="--mm-SUBAGENTDEPTH:var(--mm-on)" role="img" aria-label="Minimap: Server-Tunable Subagent Depth Ceiling (v2.1.217 #169 LOW — resource breadth, NOT authorization; net posture IMPROVED) highlighted within the full architecture map"><use href="#mm-map"/></svg>
+    <div class="flow-mini"><svg class="flow-minimap" viewBox="0 0 200 247" width="200" height="247" style="--mm-SUBAGENTDEPTH:var(--mm-on)" role="img" aria-label="Minimap: Server-Tunable Subagent Depth Ceiling (v2.1.217 #169 LOW — resource breadth, NOT authorization; net posture IMPROVED) highlighted within the full architecture map"><use href="#mm-map"/></svg>
       <span class="flow-mini-cap">position in the full map</span>
     </div>
   </div>
@@ -2969,6 +2969,7 @@ a small map to jump to that cluster, or a diagram to open it full size.</p>
               <tr><td>#108 — Sandbox-classifier fail-open inversion</td><td><span class="tl-badge" style="background:rgba(248,113,113,0.15);color:#f87171;">WIRE-CONFIRMED v129</span></td><td>W</td></tr>
               <tr><td>#110 — _PROTO_ destructure-rename leak</td><td><span class="tl-badge" style="background:rgba(248,113,113,0.15);color:#f87171;">WIRE-CONFIRMED v129</span></td><td>Y</td></tr>
               <tr><td>#154 — &lt;flag-name&gt; server-push &rarr; system prompt (verbatim, no cap)</td><td><span class="tl-badge" style="background:rgba(248,113,113,0.15);color:#f87171;">WIRE-CONFIRMED v152&rarr;v191 (session-69)</span></td><td>&mdash;</td></tr>
+              <tr><td>#168 — &lt;flag-name&gt; server-push &rarr; AskUserQuestion tool description (verbatim, no cap)</td><td><span class="tl-badge" style="background:rgba(248,113,113,0.15);color:#f87171;">WIRE-CONFIRMED v217 (session-82)</span> landed at <code>$.tools[2].description</code>, spliced mid-instruction</td><td>AM</td></tr>
               <tr><td>#155 — &lt;flag-name&gt; server-push startup banner</td><td><span class="tl-badge" style="background:rgba(224,160,32,0.15);color:#e0a020;">HIGH (session-69)</span> styled-text only; OSC8/cursor/clipboard escapes <strong>stripped</strong> by Ink/chalk</td><td>&mdash;</td></tr>
               <tr><td>#152 — &lt;flag-name&gt; read-before-write guard skip</td><td><span class="tl-badge" style="background:rgba(96,165,250,0.15);color:#60a5fa;">BEHAVIORALLY MASKED</span> (model refuses write-without-read)</td><td>&mdash;</td></tr>
               <tr><td>#115 — Mid-conversation system predicate</td><td><span class="tl-badge" style="background:rgba(96,165,250,0.15);color:#60a5fa;">INFORMATIONAL</span> (runtime-negative)</td><td>AA</td></tr>

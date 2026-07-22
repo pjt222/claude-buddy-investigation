@@ -509,7 +509,7 @@
     },
     {
       "id": "QUESTIONPROMPT",
-      "label": "AM \u2014 AskUserQuestion Prompt-String Injection (v2.1.216 #168 HIGH \u2014 server-pushed STRING interpolated verbatim into the question-tool instruction text)",
+      "label": "AM \u2014 AskUserQuestion Prompt-String Injection (v2.1.216 #168 CRITICAL, WIRE-CONFIRMED v217 \u2014 server-pushed STRING lands verbatim in the tool description on /v1/messages)",
       "nodes": 4,
       "internal_edges": 3,
       "crossing_edges": 3,
