@@ -9,7 +9,7 @@ flowchart LR
         daemon_gate["allow_remote_control<br/>managed-policy kill-switch<br/>fail-closed upstream"]:::core
         daemon_fn["Fn() resolver<br/>managedPolicy.remoteControlAtStartup<br/>?? userSettings.remoteControlAtStartup<br/>(project-scope NOT consulted)"]:::core
         daemon_dialog["r74() dialog gate<br/>!remoteDialogSeen && NT() && OAuth<br/>(non-interactive skips dialog)<br/>dialog component i74 — title 'Remote Control'<br/>useEffect: remoteDialogSeen=true on MOUNT"]:::gap
-        daemon_spawn["Two install paths<br/>A: spawn-fork claude daemon run<br/>--origin auto (detached .unref())<br/>B: systemd-user / launchd<br/>--origin service; com.anthropic.claude-daemon"]:::core
+        daemon_launch["Two install paths<br/>A: spawn-fork claude daemon run<br/>--origin auto (detached .unref())<br/>B: systemd-user / launchd<br/>--origin service; com.anthropic.claude-daemon"]:::core
         daemon_env["K_5() env redact (spawn-fork only)<br/>clears INVOCATION_ID always<br/>strips OAuth token + OAUTH_TOKEN_FILE_DESCRIPTOR<br/>on Linux/Windows if refresh token in keychain<br/>INHERITS both on macOS (#101)"]:::gap
         daemon_loop["LY4() main loop<br/>spawnMode: same-dir | worktree<br/>staleCheckIntervalMs / idleGraceMs"]:::core
         daemon_lock["Single-instance lock<br/>daemon.json + process.kill(pid,0)<br/>ESRCH=proceed, reachable=exit"]:::core
@@ -24,24 +24,24 @@ flowchart LR
         daemon_frame["DCS escape framing<br/>\\x1B_cc-detach-msg;...\\x1B\\\\<br/>PTY-compatible IPC"]:::core
     end
 
-    daemon_qqh -. "blocks manual subcmds<br/>except 'run'" .-> daemon_spawn
+    daemon_qqh -. "blocks manual subcmds<br/>except 'run'" .-> daemon_launch
     daemon_czh -- "if true: allow --bg" --> daemon_dispatch_chain
-    daemon_dispatch_chain --> daemon_spawn
+    daemon_dispatch_chain --> daemon_launch
     daemon_czh -- "if true: mount fleet UI" --> daemon_sparewarm
-    daemon_sparewarm -. "spare-worker pre-warm" .-> daemon_spawn
+    daemon_sparewarm -. "spare-worker pre-warm" .-> daemon_launch
     daemon_gate --> daemon_fn
     daemon_fn --> daemon_dialog
-    daemon_dialog -- "consent" --> daemon_spawn
-    daemon_spawn --> daemon_env
+    daemon_dialog -- "consent" --> daemon_launch
+    daemon_launch --> daemon_env
     daemon_env --> daemon_loop
     daemon_loop --> daemon_lock
-    daemon_spawn --> daemon_persist
-    daemon_spawn --> daemon_zombie
+    daemon_launch --> daemon_persist
+    daemon_launch --> daemon_zombie
     daemon_loop --> daemon_sock_dir
     daemon_sock_dir --> daemon_sock_ctl
     daemon_sock_dir --> daemon_sock_rv
     daemon_sock_dir --> daemon_sock_pty
-    daemon_spawn -. "creates" .-> daemon_pipekey
+    daemon_launch -. "creates" .-> daemon_pipekey
     daemon_sock_ctl -. "DCS wrap" .-> daemon_frame
     daemon_sock_ctl -. "op: dispatch" .-> daemon_dispatch_schema
 

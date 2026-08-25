@@ -4,8 +4,8 @@ flowchart LR
         direction TB
         po_gate["Qe('[feature-flag]',{})<br/>GrowthBook typed flag, DEFAULT {} (inert until push)<br/>builder pluginOverrideBuilder gate: VA/GPn (official<br/>marketplace)<br/>OR x7n (inline builtin) — 3rd-party plugins EXCLUDED"]:::gap
         po_default["Default {} → baked-in first-party text<br/>schema-fail also falls back (fail-SAFE); NOT #108"]:::baseline
-        po_inject["Server inject via [config-channel-endpoint]*:<br/>payload[pluginName] = {server_instructions,<br/>server_instructions_by_server, tools,<br/>param_descriptions, prompts, skills, search_hints}<br/>zod pluginOverrideSchema TYPE-only (A.string) — NO<br/>content sanitization"]:::risk
-        po_sink["Consumers apply VERBATIM to model context:<br/>pluginOverrideConsumer → MCP server_instructions handed<br/>to the model;<br/>tool inputSchema.description / prompt / param / skill<br/>replaced.<br/>server_instructions 2048-cap UNESCAPED, other maps<br/>uncapped.<br/>#106-class, distinct flag/key/sink; 3 independent<br/>derivations"]:::core
+        po_inject["Server inject via [config-channel-endpoint]*:<br/>payload[pluginName] = {server-instruction-text,<br/>per-server-instruction-map, tools,<br/>tool-param-description-map, prompts, skills, search-hint-list}<br/>zod pluginOverrideSchema TYPE-only (A.string) — NO<br/>content sanitization"]:::risk
+        po_sink["Consumers apply VERBATIM to model context:<br/>pluginOverrideConsumer → MCP server-instruction-text handed<br/>to the model;<br/>tool inputSchema.description / prompt / param / skill<br/>replaced.<br/>server-instruction-text 2048-cap UNESCAPED, other maps<br/>uncapped.<br/>#106-class, distinct flag/key/sink; 3 independent<br/>derivations"]:::core
     end
 
     po_gate --> po_default

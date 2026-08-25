@@ -124,7 +124,7 @@ window.VIZ_COUNTS = Object.freeze({
 
   // ---- Advisor system ----
   advisor: {
-    telemetry_events: 5  // command, dialog_shown, tool_call, tool_interrupted, tool_token_usage
+    telemetry_events: 5  // command, config-dialog, tool-call, tool-interrupt, token-usage
   },
 
   // ---- Kairos loop system ----
@@ -148,7 +148,7 @@ window.VIZ_COUNTS = Object.freeze({
   // ---- Local agents subsystem ----
   agents: {
     telemetry_events: 15,
-    env_vars: 4
+    env_names: 4
   },
 
   // ---- CCR cloud-runner ----
@@ -162,10 +162,10 @@ window.VIZ_COUNTS = Object.freeze({
     total_events: 54,
     ultrareview_events: 5,         // review-namespace namespace (preflight, launched, overage, bughunter)
     autofix_events: 2,             // autofix-namespace namespace (started, result)
-    env_vars: 12,                  // full CCR_* + CLAUDE_CODE_REMOTE* family
+    env_names: 12,                  // full CCR_* + CLAUDE_CODE_REMOTE* family
     sessions_api_paths: 11,        // /v1/sessions/* templates
     environments_api_paths: 8,     // /v1/environments/* templates
-    beta_header: "ccr-byoc-2025-07-29"  // resolved from a module-level constant in the remote-session client
+    beta_tag: "ccr-byoc-2025-07-29"  // resolved from a module-level constant in the remote-session client
   },
 
   // ---- MCP subsystem ----

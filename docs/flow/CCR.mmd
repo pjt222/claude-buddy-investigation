@@ -5,7 +5,7 @@ flowchart LR
         ccr_gate["Gate: [ccr-gate]<br/>+ [remote-session-gate]<br/>+ allow_remote_sessions"]:::core
         teleport["Teleport (17 events)<br/>POST /v1/sessions/..."]:::core
         bridge["Bridge (30 events)<br/>POST /v1/environments/..."]:::core
-        ultrareview["Ultrareview (5 events)<br/>GET [ultrareview-endpoint]<br/>SDK: {subtype:ultrareview_launch}"]:::core
+        ultrareview["Ultrareview (5 events)<br/>GET [ultrareview-endpoint]<br/>SDK: {subtype:review-launch-subtype}"]:::core
         pr_autofix["Autofix-PR (2 events)<br/>POST [ccr-pr-endpoint]"]:::core
         trigger_tool["RemoteTrigger tool<br/>[remote-session-gate] gate<br/>ccr-triggers-2026-01-30<br/>actions: list/get/create/update/run"]:::core
         github_token_sync["[github-token-sync-gate]<br/>GitHub token-sync CCR access"]:::core

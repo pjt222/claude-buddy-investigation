@@ -141,7 +141,7 @@ flowchart LR
         ccr_gate["Gate: [ccr-gate]<br/>+ [remote-session-gate]<br/>+ allow_remote_sessions"]:::core
         teleport["Teleport (17 events)<br/>POST /v1/sessions/..."]:::core
         bridge["Bridge (30 events)<br/>POST /v1/environments/..."]:::core
-        ultrareview["Ultrareview (5 events)<br/>GET [ultrareview-endpoint]<br/>SDK: {subtype:ultrareview_launch}"]:::core
+        ultrareview["Ultrareview (5 events)<br/>GET [ultrareview-endpoint]<br/>SDK: {subtype:review-launch-subtype}"]:::core
         ccr_autofix["Autofix-PR (2 events)<br/>POST [ccr-pr-endpoint]"]:::core
         trigger_tool["RemoteTrigger tool<br/>[remote-session-gate] gate<br/>ccr-triggers-2026-01-30<br/>actions: list/get/create/update/run"]:::core
         gh_token_sync_gate["[github-token-sync-gate]<br/>GitHub token-sync CCR access"]:::core
@@ -192,7 +192,7 @@ flowchart LR
         daemon_gate["allow_remote_control<br/>managed-policy kill-switch<br/>fail-closed upstream"]:::core
         daemon_fn["Fn() resolver<br/>managedPolicy.remoteControlAtStartup<br/>?? userSettings.remoteControlAtStartup<br/>(project-scope NOT consulted)"]:::core
         daemon_dialog["r74() dialog gate<br/>!remoteDialogSeen && NT() && OAuth<br/>(non-interactive skips dialog)<br/>dialog component i74 — title 'Remote Control'<br/>useEffect: remoteDialogSeen=true on MOUNT"]:::gap
-        daemon_spawn["Two install paths<br/>A: spawn-fork claude daemon run<br/>--origin auto (detached .unref())<br/>B: systemd-user / launchd<br/>--origin service; com.anthropic.claude-daemon"]:::core
+        daemon_launch["Two install paths<br/>A: spawn-fork claude daemon run<br/>--origin auto (detached .unref())<br/>B: systemd-user / launchd<br/>--origin service; com.anthropic.claude-daemon"]:::core
         daemon_env["K_5() env redact (spawn-fork only)<br/>clears INVOCATION_ID always<br/>strips OAuth token + OAUTH_TOKEN_FILE_DESCRIPTOR<br/>on Linux/Windows if refresh token in keychain<br/>INHERITS both on macOS (#101)"]:::gap
         daemon_loop["LY4() main loop<br/>spawnMode: same-dir | worktree<br/>staleCheckIntervalMs / idleGraceMs"]:::core
         daemon_lock["Single-instance lock<br/>daemon.json + process.kill(pid,0)<br/>ESRCH=proceed, reachable=exit"]:::core
@@ -613,26 +613,26 @@ flowchart LR
     startup --> tui_fullscreen
     tel_team --> tel_transport
     %% ===== Daemon edges (R, v2.1.119) =====
-    daemon_qqh -. "blocks manual subcmds<br/>except 'run'" .-> daemon_spawn
+    daemon_qqh -. "blocks manual subcmds<br/>except 'run'" .-> daemon_launch
     flags -. "[feature-flag]<br/>(server-push channel)" .-> daemon_czh
     daemon_czh -- "if true: allow --bg" --> daemon_dispatch_chain
-    daemon_dispatch_chain --> daemon_spawn
+    daemon_dispatch_chain --> daemon_launch
     daemon_czh -- "if true: mount fleet UI" --> daemon_sparewarm
-    daemon_sparewarm -. "spare-worker pre-warm" .-> daemon_spawn
+    daemon_sparewarm -. "spare-worker pre-warm" .-> daemon_launch
     flags -. "allow_remote_control" .-> daemon_gate
     daemon_gate --> daemon_fn
     daemon_fn --> daemon_dialog
-    daemon_dialog -- "consent" --> daemon_spawn
-    daemon_spawn --> daemon_env
+    daemon_dialog -- "consent" --> daemon_launch
+    daemon_launch --> daemon_env
     daemon_env --> daemon_loop
     daemon_loop --> daemon_lock
-    daemon_spawn --> daemon_persist
-    daemon_spawn --> daemon_zombie
+    daemon_launch --> daemon_persist
+    daemon_launch --> daemon_zombie
     daemon_loop --> daemon_sock_dir
     daemon_sock_dir --> daemon_sock_ctl
     daemon_sock_dir --> daemon_sock_rv
     daemon_sock_dir --> daemon_sock_pty
-    daemon_spawn -. "creates" .-> daemon_pipekey
+    daemon_launch -. "creates" .-> daemon_pipekey
     daemon_sock_ctl -. "DCS wrap" .-> daemon_frame
     daemon_sock_ctl -. "op: dispatch" .-> daemon_dispatch_schema
     daemon_sock_ctl -- "inbound triggers" --> turn_loop

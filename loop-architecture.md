@@ -50,7 +50,7 @@ loop-scheduler fn (delaySeconds, prompt, reason)
      +--- persist {startedAt, lastScheduledFor} by prompt key
      +--- emit loop dynamic-wakeup scheduled telemetry {
      |        chosen_delay_seconds, clamped_delay_seconds,
-     |        was_clamped, reason (truncated to 200 chars)
+     |        clamp-applied, reason (truncated to 200 chars)
      |    }
      v
 Tool returns {scheduledFor, clampedDelaySeconds, wasClamped}
@@ -214,14 +214,14 @@ Fired every successful loop-scheduler call.
 {
   "chosen_delay_seconds":  1200,
   "clamped_delay_seconds": 1200,
-  "was_clamped":           false,
+  "clamp-applied":           false,
   "reason":                "checking long bun build"
 }
 ```
 
 - `chosen_delay_seconds`: raw model input (pre-clamp). `0` if the model passed a non-finite value.
 - `clamped_delay_seconds`: post-clamp actual schedule.
-- `was_clamped`: `true` if the model's chosen value was outside `[60, 3600]`.
+- `clamp-applied`: `true` if the model's chosen value was outside `[60, 3600]`.
 - `reason`: truncated to 200 chars.
 
 ### 7.2 Dynamic-wakeup aged-out event
