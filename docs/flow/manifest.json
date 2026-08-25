@@ -6,7 +6,7 @@
       "label": "Startup Spine \u2014 gate every subsystem",
       "nodes": 9,
       "internal_edges": 8,
-      "crossing_edges": 34,
+      "crossing_edges": 35,
       "neighbours": [
         "ADVISOR",
         "BRIEFINJ",
@@ -27,18 +27,19 @@
         "PROBESANDBOX",
         "PROMPTVARIANT",
         "QUESTIONPROMPT",
+        "SERVEDFLAGS",
         "STATE",
         "SUBAGENTDEPTH",
         "TUI"
       ],
-      "neighbour_count": 22
+      "neighbour_count": 23
     },
     {
       "id": "CORE",
       "label": "A \u2014 Core Runtime (per-turn loop)",
       "nodes": 6,
       "internal_edges": 5,
-      "crossing_edges": 37,
+      "crossing_edges": 40,
       "neighbours": [
         "ADVISOR",
         "BRIEFINJ",
@@ -46,9 +47,11 @@
         "CCR",
         "COWORKBRIDGE",
         "DAEMON",
+        "DEVBRIDGE",
         "EXTH",
         "LOOP",
         "MCP",
+        "MEMSTOREID",
         "NEW111",
         "PIPASS",
         "PLUGINCRED",
@@ -57,13 +60,14 @@
         "PLUGINSYNC",
         "PROMPTVARIANT",
         "QUESTIONPROMPT",
+        "RUNNERARGS",
         "SPINE",
         "STATE",
         "TEL",
         "TUI",
         "VELVETGUARD"
       ],
-      "neighbour_count": 22
+      "neighbour_count": 25
     },
     {
       "id": "BUDDY",
@@ -187,12 +191,13 @@
       "label": "M \u2014 Auto-Dream (5 events)",
       "nodes": 4,
       "internal_edges": 3,
-      "crossing_edges": 2,
+      "crossing_edges": 3,
       "neighbours": [
+        "MEMSTOREID",
         "SPINE",
         "TEL"
       ],
-      "neighbour_count": 2
+      "neighbour_count": 3
     },
     {
       "id": "PLUGINS",
@@ -522,12 +527,57 @@
     },
     {
       "id": "SUBAGENTDEPTH",
-      "label": "AN \u2014 Server-Tunable Subagent Depth Ceiling (v2.1.217 #169 LOW \u2014 resource breadth, NOT authorization; net posture IMPROVED)",
+      "label": "AN \u2014 Server-Tunable Subagent Depth Ceiling (v2.1.217 #169 LOW \u2014 resource breadth, NOT authorization; default ROLLED BACK 1\u21923 at v219)",
       "nodes": 4,
       "internal_edges": 3,
       "crossing_edges": 1,
       "neighbours": [
         "SPINE"
+      ],
+      "neighbour_count": 1
+    },
+    {
+      "id": "MEMSTOREID",
+      "label": "AO \u2014 Project-Memory Store Identity (v2.1.241 #174 MEDIUM \u2014 lossy path-to-id substitution; distinct projects silently share one store, read AND write)",
+      "nodes": 6,
+      "internal_edges": 5,
+      "crossing_edges": 2,
+      "neighbours": [
+        "CORE",
+        "DREAM"
+      ],
+      "neighbour_count": 2
+    },
+    {
+      "id": "SERVEDFLAGS",
+      "label": "AP1 \u2014 Served-flag state (#185 METHOD) \u2014 every prior census read the DEFAULT; nobody diffed it against what the server actually SERVED",
+      "nodes": 6,
+      "internal_edges": 6,
+      "crossing_edges": 1,
+      "neighbours": [
+        "SPINE"
+      ],
+      "neighbour_count": 1
+    },
+    {
+      "id": "RUNNERARGS",
+      "label": "AP2 \u2014 Self-hosted runner arg plane (#176 HIGH, v2.1.224+) \u2014 server-supplied argv filtered by a DENYLIST, not an allowlist",
+      "nodes": 7,
+      "internal_edges": 6,
+      "crossing_edges": 1,
+      "neighbours": [
+        "CORE"
+      ],
+      "neighbour_count": 1
+    },
+    {
+      "id": "DEVBRIDGE",
+      "label": "AP3 \u2014 [device-bridge] (#183, [device-shell-tool] 0\u219242) \u2014 a NEW CLASS of local execution that bypasses the local permission system",
+      "nodes": 6,
+      "internal_edges": 5,
+      "crossing_edges": 1,
+      "neighbours": [
+        "CORE"
       ],
       "neighbour_count": 1
     }

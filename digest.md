@@ -288,7 +288,7 @@ The nonessential-traffic kill-switch env var does **not** suppress the config-ev
 
 Severities mirror `docs/counts.js`. "Wire-confirmed" = observed on captured network traffic, not inferred from static decode.
 
-- **#31 AC3** — *Critical, UNDEFENDED on v152.* The subagent ghost-inbox / attribution-forgery class. v145 added a skill self-recursion guard — this is **orthogonal**: it blocks a forked skill from re-invoking *itself* in its own forked context, and does not touch the inbox-forge path. The relevant transcript-field and inbox-handler anchors are byte-stable v145→v147→v148→v152. AC3 remains an open undefended primitive.
+- **#31 AC3** — *Critical, UNDEFENDED on v152.* The subagent ghost-inbox / attribution-forgery class. v145 added a skill self-recursion guard — this is **orthogonal**: it blocks a forked skill from re-invoking *itself* in its own forked context, and does not touch the inbox-forge path. The relevant transcript-field and inbox-handler anchors are byte-stable v145→v147→v148→v152. AC3 remains an open undefended primitive. *(Status update: a real, partial defence landed in the v2.1.221 → v2.1.241 range — see Phase 10. The finding is **narrowed, not retired**, and the "undefended" wording here is the historical v152 status.)*
 - **#105** — *High, wire-confirmed.* Anthropic's own third-party telemetry sink; raw envelope identifiers plus a 47–60-field fingerprint. Extends an earlier envelope-leak finding. v144 expands the surface with a new hook-metrics event class.
 - **#106** — *Critical, wire-confirmed.* The Stop-hook reminder override reaches model context verbatim; no cap, no cert pinning. The reader is byte-stable v126→v145.
 - **#108** — *Critical, wire-confirmed (v129).* The permission-classifier fail-open inversion was empirically triggered; the binary log emits a literal `(fail open)` line.
@@ -322,7 +322,7 @@ The strongest framing is the pattern, not the individual omissions: a reasonable
 
 ## Phase 9: v2.1.153 → v2.1.217 — Continued Rolling Audit, Upstream Remediation, a #127 Demotion, and Three New Findings (#165, #168, #169)
 
-**Scope**: rolling per-version harness audit from v2.1.153 through v2.1.217 (current binary **v2.1.217**, npm `latest` = `next` = 217; the marked-stable binary advanced v2.1.205 → **v2.1.206**; coverage extends through session 81). The investigation stayed in wire-confirmation mode: new subsystems are decoded, priority-finding literals are bounded-grep re-verified each release, and only genuinely new server-reachable primitives are filed. All flag and reader-identifier names redacted; functional descriptions and finding numbers only.
+**Scope**: rolling per-version harness audit from v2.1.153 through v2.1.217 (at the close of this window the binary was **v2.1.217**, npm `latest` = `next` = 217, and the marked-stable binary had advanced v2.1.205 → **v2.1.206**; the window's coverage ran through session 81 — see Phase 10 for the current binary and the current coverage range). The investigation stayed in wire-confirmation mode: new subsystems are decoded, priority-finding literals are bounded-grep re-verified each release, and only genuinely new server-reachable primitives are filed. All flag and reader-identifier names redacted; functional descriptions and finding numbers only.
 
 ### v2.1.153 → v2.1.177 bridge (stable-runtime, genuine per-release builds)
 
@@ -560,7 +560,7 @@ A **third** new flag that looked like an auto-mode permission gate turned out to
 - **Server-push configuration cache keys flat at 9**, with **identical members**.
 - **All twelve standing finding anchors are byte-stable** across the window, and the **memory secret-skip guard remains intact** at a flat occurrence count on **both** the organization-memory and the **new session-memory** write paths.
 
-Standing findings **#106 / #110 / #154 / #151 / #127 / #155 / #165 reproduce byte-identical v215 → v217**; **#108 stays removed (0)**; **#31 AC3 remains UNDEFENDED** (its nesting surface narrowed slightly by the #169 default change, but the attribution gap itself is untouched).
+Standing findings **#106 / #110 / #154 / #151 / #127 / #155 / #165 reproduce byte-identical v215 → v217**; **#108 stays removed (0)**; **#31 AC3 remains UNDEFENDED** as of this window (its nesting surface narrowed slightly by the #169 default change, but the attribution gap itself is untouched) — **superseded from v2.1.221 onward**, where a partial defence narrows it (Phase 10).
 
 ### Tally (prior status, as of v2.1.212, Session 79)
 
@@ -574,13 +574,135 @@ The server-flippable DEFAULT-TRUE set is **43** (41 boolean + 2 typed), **FLAT**
 
 Current binary **v2.1.215** (npm `latest` = `next` = 215); the marked-stable binary advanced **v2.1.197 → v2.1.205**. Net direction across v213 → v215: a **quiet window** — three genuine per-release builds, one **attributed** bundler-runtime revision bump (the first non-pure-JavaScript window since v198, fully explained and carrying no first-party native code), two hardening confirmations (a fail-closed model-substitution opt-out; the daily-briefing surface fully retired with no successor), four benign new surfaces, and two WATCH items that both survived contrarian refinement as **watch-only**. The one event that looked like good news — a **#110 anchor count falling** — was decoded and is **a DRY refactor, not a remediation**: **#110 stands**. Standing against all of this, unchanged: the injection primitives **#106 / #154** (Critical), **#155 / #165 / #127 / #151** (High), and the undefended subagent-attribution gap **#31 AC3** (Critical).
 
-### Tally (current as of v2.1.217, Session 81)
+### Tally (prior status, as of v2.1.217, Session 81)
 
-Severities mirror `docs/counts.js` (authoritative). The live GitHub-label re-derivation across the repo issue set: **15 critical / 38 high / 61 medium / 15 low** across **169** total repo issues. The movement from the Session-80 tally is **high 38 → 39** (**#169**, the server-pushed multiple-choice-tool instruction string) and **low 14 → 15** (**#169**, the unbounded server-pushed subagent recursion-depth ceiling); the critical count is **unchanged**. The original tooling-audit baseline census stands at **30 items** (7 critical / 9 high / 10 medium / 3 low / 1 observation).
+Severities mirror `docs/counts.js` (authoritative). The live GitHub-label re-derivation across the repo issue set: **15 critical / 38 high / 61 medium / 15 low** across **169** total repo issues. The movement from the Session-80 tally is **high 38 → 39** (**#168**, the server-pushed multiple-choice-tool instruction string, which was *filed* High at v2.1.216) and **low 14 → 15** (**#169**, the unbounded server-pushed subagent recursion-depth ceiling); the header counts above already fold in **#168**'s later wire-confirmation and promotion **High → Critical**, which is why they read critical **14 → 15** with high settling back at **38**. The original tooling-audit baseline census stands at **30 items** (7 critical / 9 high / 10 medium / 3 low / 1 observation).
 
 The server-flippable DEFAULT-TRUE set moved **43 → 45** (**43 boolean + 2 typed**), re-derived at **member** level — the added set is exactly two flags, the removed set is empty, and **both additions are benign** (a local-housekeeping toggle and an MCP tool-error-handling toggle whose default branch is the stricter one). Server-pushed configuration cache keys hold at **9** with identical members.
 
 Current binary **v2.1.217** (npm `latest` = `next` = 217); the marked-stable binary advanced **v2.1.205 → v2.1.206**. Net direction across v216 → v217: a **pure-JavaScript window** (+3.18 MiB binary, ~566 KB of new printable text, native sections byte-identical, no embedded blob, no new API endpoints, no new egress hosts) that carried **two new findings** — **#168 CRITICAL**, a fourth member of the server-pushed-string-into-model-context family alongside #106 / #154 / #165, and **#169 LOW**, a compiled-in recursion-depth constant becoming an unbounded remote knob — against the **densest set of upstream remediations since v2.1.205**, including three symlink / worktree sandbox-escape fixes, three permission-evaluation fixes (compound redirects, Windows network paths, invisible Unicode), a stale-lockfile process-kill fix, and a managed-settings fix that stops a lower-scope override redirecting telemetry away from an organization's managed OpenTelemetry endpoint. Three candidates were **refuted rather than filed** — an entitlement-layer skip on the dynamic-workflow gate (real, but not flag-driven and effectively unreachable locally; carried as a WATCH), and two **family-name traps** where a shared naming prefix with a confirmed finding proved meaningless. Standing against all of this, unchanged: the injection primitives **#106 / #154 / #168** (Critical), **#155 / #165 / #127 / #151** (High), and the undefended subagent-attribution gap **#31 AC3** (Critical).
+
+---
+
+## Phase 10: v2.1.218 → v2.1.241 — A Silent Hooks-Trust Fix, an Availability Regression, and a Twenty-Window Decode That Changed the Method
+
+**Scope**: rolling per-version harness audit from v2.1.218 through v2.1.241 (current binary **v2.1.241**; **audited coverage now runs v2.1.89 → v2.1.241**; coverage extends through **session 87**). Three sub-windows: v218 (zero findings, one silent upstream fix), v219 → v220 (one Low finding plus a correction of our own), and the v221 → v241 block — **twenty windows decoded in a single pass**, restoring the "zero unaudited gaps" property the project is built on. All flag and reader-identifier names redacted; functional descriptions and finding numbers only.
+
+The most consequential result of this phase is **not a finding**. It is a **method gap** (#185): for a server-controlled configuration channel, reading the *default* out of the binary answers the wrong question, and the client has been holding the right answer all along.
+
+### v2.1.218 (Session 83): zero findings, zero regressions — and a silent security fix
+
+**ZERO new findings, ZERO regressions.** The window's headline is a fix that **never appeared in the public changelog**: a new enforcement guard **refuses to register hooks declared in an agent definition's frontmatter when that definition file came from a directory the user never accepted the trust dialog for**. The refusal blocks at **both** the main-thread and the subagent call sites, and the registration routine itself is **byte-equivalent** — the change lives entirely at the callers.
+
+This **narrows #97 / #98 for the untrusted-origin case only**. Hooks declared in **settings files** or contributed by **plugins** are unaffected, so **#97 / #98 remain open**.
+
+Two further hardening items shipped in the same window: a **memory mass-delete cap** that drops an entire delete batch when the missing-locally count exceeds a threshold — with its opt-out read from the **operator environment only, never through the server configuration channel** — and a **tokenizer-faithful asset-injection validator** replacing regex-based script matching.
+
+**One near-miss is worth publishing as method.** A decode pass described a settings-source label as "the server-pushed flag channel", which would have made it a **server-to-hook-command-execution Critical**. That label in fact denotes a **command-line settings source** — operator-controlled — so filing it as written would have produced a **false Critical**. A source label that merely *sounds* like the server channel is not the server channel; the discriminator has to be read at the assignment site, not inferred from the name.
+
+**DEFAULT-TRUE moved 45 → 48**, and one of the three is not a new gate at all but a **pre-existing flag whose shipped default was flipped on** — a distinction that only a member-level re-derivation surfaces.
+
+### v2.1.219 → v2.1.220 (Session 84): one finding (#171, Low), zero security regressions
+
+The window's real content is **v219** — a memory subsystem with **pinned auto-injection**, an **on-disk keyword index**, and **organisation / team mounts** (all local or operator channels; the team subtree is excluded from pinning). **v220 is a near-no-op** — and yet it carries the finding.
+
+**#171 — LOW: a dead strip-and-retry latch can block every auto-mode classification for a whole session.** v220 is the first release to attach a **dated beta header** to *both* stages of the auto-mode permission classifier. The **strip-and-retry latch** that exists precisely to survive the endpoint rejecting that header is bound to a value that is **only ever assigned null**, so its guard is unconditionally true and **the retry can never fire**. A server rejection therefore propagates straight into the fail-closed catch and **blocks every auto-mode classification for the rest of the session**. The direction is **fail-CLOSED**, so this is explicitly **not** an authorisation inversion and **not #108-class** — it is an **availability regression on the permission path**. Carried forward as a watch item on the latch.
+
+**Anchor re-baseline — and it is NOT a remediation.** The system-prompt injection finding **#154** moved **7 → 8** occurrences. The extra occurrence is a **new local fallback branch** that injects a **hardcoded default** when both server tiers return empty. **Both server tiers are unchanged**, so **#154 remains unremediated**, now anchored at 8.
+
+**A second finding held a completely flat occurrence count while its underlying default TRIPLED.** The server-pushed recursion-depth ceiling (**#169**) sat at an identical count across the window while its default moved **1 → 3** — structurally invisible to a count-based check, and caught only by **reading the public changelog**. Two method rules were earned here: **a flat occurrence count never proves a flag's default is unchanged**, and **the changelog is a first-class recon input**, surfacing changes that a flag / environment / endpoint diff cannot see by construction.
+
+**A correction of our own, filed as #172.** An earlier claim that team memory mounts arrive **only** through an operator environment variable was **wrong**. A **second, pre-existing route** exists whose returned stores become **recall-eligible**, so another **same-organisation** principal's content can be selected into a user's context **without that user ever naming the store**. It is still **not** a text-injection finding — the server selects *which* stores mount; it cannot supply the injected string.
+
+**Census correction.** The literal census of **server-pushed configuration cache keys** was corrected **9 → 10** (the long-carried 9 was stale), and it remains a **structural undercount**: one prompt-variant family reads that cache through a **computed** key, which a literal census cannot see at all.
+
+### v2.1.221 → v2.1.241 (Session 87): twenty windows decoded in one pass, ten issues filed (#176 – #185)
+
+Coverage moves to **v2.1.241** — the first advance since v220 — and the "**zero unaudited gaps**" property is **true again**.
+
+#### The headline is a method gap (#185): audit what was SERVED, not what shipped
+
+Every flag census this project had ever run read the **default** out of the binary and assigned severity from it. For a **server-controlled** configuration channel that answers the wrong question — the default is what *ships*, not what is *served*. The client has held the right answer all along, in **its own local cache of the values the server actually served**.
+
+Diffing a census against that cache **for the first time** showed:
+
+- **17 of the 55 newly-added default-OFF gates are switched ON for this account** — **four** of them paths that carry **externally-authored text into model context**;
+- the inverse check was **clean**: of **76 default-ON gates, only three are served off**, and **none of those three is a permission decision**.
+
+This is now **standing procedure**, and it **reversed a severity call mid-session**: a finding filed **High** was downgraded to **Low** on the reasoning that it also needed a *second* default-off gate flipped, then **restored to High** when the served-value cache showed **both gates already on**. The downgrade was right about defaults and wrong about reality.
+
+#### The pass also had a scoping error, caught by its own completeness critic
+
+The planned sweep covered only the **35 newly-added default-ON** gates. That is **backwards for this project's threat model**: every wire-confirmed finding in the server-push injection lineage (**#106 / #154 / #165 / #168**) is an **empty-or-false default that the server FILLS IN** — the permissive state is reached by a **push**, not by a withhold. The **55 default-OFF** gates were then swept properly: **54 of 54 covered**, and under adversarial verification **8 confirmed, 21 confirmed-but-overgraded, 2 refuted outright**. Two thirds of the escalations were **real mechanisms with inflated severity** — precisely the distribution a verification stage exists to produce.
+
+#### #176 — HIGH: a cloud runner applies server-supplied command-line arguments through a DENYLIST
+
+A runner applies **server-supplied command-line arguments** to the child process it spawns, filtered by a **denylist rather than an allowlist**. The nine denied entries are all **transport plumbing the runner sets itself**, so two security-relevant arguments remain reachable from the server: one that **appends server-controlled text to the child's system prompt**, and one that moves the child **out of permission checking entirely**.
+
+An honest bound keeps this from being larger than it is: the applier **skips empty values** and pushes each value as a **separate argument**, so **bare boolean flags cannot be smuggled through**. What argues the shape is unintended rather than deliberate is an **asymmetry inside the same binary** — a sibling bridge consumes an **identically-named argument map through a strict allowlist with its own telemetry**, and **that allowlist already existed before the runner shipped**. The newer subsystem chose the **weaker of two in-house patterns**. One denylist entry was **bisected to a silent addition mid-range**, which shows the surface is recognised internally as one that needs managing.
+
+#### #181 — HIGH: a server flag converts a mandatory human approval into a classifier decision
+
+A server-controlled, **default-off** flag converts the **mandatory human approval prompt on destructive external-tool calls in automatic mode** into a **classifier decision**. Walked by hand: with the flag off the approval fallback fires; with it on the fallback is **skipped** and the call is routed to the automatic-mode classifier **instead of to the user**. In a **remote or headless** session there is **no human on the other end of that prompt**, so the flip is the difference between **blocked and executed**.
+
+It is **fail-closed by default** and the classifier still runs, so it is **not a full inversion** — and the served-value cache shows it currently **OFF for this account**, which is worth stating plainly rather than leaving a reader to assume the worst.
+
+#### #182 — HIGH: a new cross-session message gate can be told to trust the sender's self-description
+
+A server-controlled flag makes a **new cross-session message gate trust a field the SENDER supplies about itself**, converting a **hold-for-human-review** into an **automatic accept** for a receiver running with permission prompts bypassed. This **contradicts the subsystem's own in-source contract**, which states in as many words that the sender-supplied origin field is **forgeable by any process running as the same user** and must never be used to key identity.
+
+#### #177, #178 and #184 — MEDIUM
+
+- **#177** — a server-controlled flag whose **off-state removes an identity-binding control and its teardown from a LIVE remote-control channel**, so a session **survives a local sign-out and a different account signing in**. Graded **Medium rather than an inversion** because the **entire subsystem is new in this range**: turning it off restores the older baseline rather than inverting a standing guarantee.
+- **#178** — a **cross-tool permission-response confusion** on the control channel, **remediated in-range** — with a **residual that is still live**, because the new guard **returns early when the tool-name field is not a string**, so a response that **omits the field entirely** resolves whatever pending request matches its identifier.
+- **#184** — a **fast path that auto-approves writes into verified linked repository worktrees outside the declared working set**, skipping the classifier. This is the **only confirmed permission widening** out of the entire default-off sweep.
+
+#### #183 — INFORMATIONAL (plus two Low): a new class of local execution
+
+A **remote session can drive shell commands on the user's LOCAL machine** over an outbound socket, with the **output returning to the REMOTE session's model** rather than to the local one. The important design fact is that this path **bypasses the local permission system entirely** — **no per-call permission check, no permission mode, no allow / deny rules, no local pre- or post-tool hooks** — substituting the **operating-system sandbox** instead, whose preconditions **fail closed at six checkpoints**, two of them guards written specifically against **sandbox-escape pivots**.
+
+It is **inert on a stock install**, sitting behind an explicit command-line action, **two default-off server flags**, an **organisation policy that fails closed**, a **signed device binding whose server echo the client verifies**, and a **sandbox opt-in that is off by default**. Filed **informational** because the substitution is coherent and the gating is genuinely layered — but it **belongs in the harness map**, because a reviewer who assumes that *all* local tool execution passes the permission check would now be **wrong**.
+
+#### #31 AC3 is NARROWED, not retired
+
+The inter-agent attribution-forgery finding gained a **real defence** in this range: a new **inbound gate that fails closed on every ambiguity**, keys peer identity on **kernel socket credentials** rather than on the message payload, and surfaces a **claimed** name separately from a **verified** process identity in a human approval dialog **whose text sanitisation was attacked and held**. The binary now **concedes the finding's core claim in source**.
+
+It is **not retired**, for four reasons the source itself concedes:
+
+1. the **verified identity never reaches the model** — the model-visible wrappers carry no such field;
+2. the **in-process send path calls the delivery primitives directly** and is therefore **never classified by the gate**;
+3. the verified identity is **absent on some platforms**, and it identifies the **connecting process**, not the message author;
+4. **process identifiers are recyclable**.
+
+Any statement that **#31 is simply undefended is now stale** and should not be repeated unqualified. The Phase 8 and Phase 9 registry entries above record the pre-v221 status and are preserved as history.
+
+#### Three counting traps fired in one session, all the same shape
+
+All three were a **zero occurrence count read as novelty**:
+
+- **names assembled at runtime from fragments** never enter the string pool, so they read as **absent while the code is present**;
+- one **apparently new subsystem** turned out to be a **telemetry SPELLING change** over a subsystem that already carried **172 occurrences** in the older build;
+- a conclusion of ours that a leak **fired on a new trigger** was **wrong** — the **label** was new but the **code path** was not, which makes it a **retroactive widening over behaviour the installed base was already running**. That reads **worse**, not better.
+
+The rule earned: **a literal count of zero is evidence of absence from the string pool, never proof of absence from the code** — and a negative case must be checked against the **behaviour's own literals**, not against the name of the thing being looked for.
+
+#### Recorded as carefully as the findings: a defended vector
+
+The same runner subsystem ships the **first named, logged sanitiser on the server-input channel anywhere in this codebase**. It **strips privileged operator tool names out of the server-supplied argument map before spawning**, with an **explicit log line**, and the child-environment builders **null out the subsystem's own secrets** so they are not inherited.
+
+It is now tracked as a **defence anchor** — an anchor whose **disappearance** is the alarm rather than its presence. That **inverts** how every other anchor in the set reads, and the ledger records it as such so that a future audit does not quietly drop it.
+
+#### Build shape: native-change attribution is complete for the range
+
+**Five runtime build-revision bumps correspond exactly to the five windows whose native sections moved** — **no unattributed native change anywhere in twenty windows**. The largest of those windows is also the **largest JavaScript window in the range**, a fact that the "largest native change" framing had buried.
+
+### Tally (current as of v2.1.241, Session 87)
+
+Severities mirror `docs/counts.js` (authoritative). The live GitHub-label re-derivation across the repo issue set: **15 critical / 41 high / 68 medium / 18 low** across **184** total repo issues. Movement from the Session-81 tally: **high 38 → 41** (**#176**, **#181**, **#182**); **medium 61 → 68** and **low 15 → 18** fold in the new Medium findings (**#172**, **#177**, **#178**, **#184**), the two Low items carried alongside **#183**, the **#171** availability regression, and the session's method / tooling trackers (including **#185**). The **critical count is unchanged at 15** — no new Critical was filed across twenty-four releases. The original tooling-audit baseline census stands at **30 items** (7 critical / 9 high / 10 medium / 3 low / 1 observation).
+
+The server-flippable **DEFAULT-TRUE set stands at 76** (**74 boolean + 2 typed**). It held at **48** (46 boolean + 2 typed) from v2.1.218 through v2.1.220 and then grew across the twenty-window v221 → v241 block. The **served-value** check is now part of the census rather than the default alone: **17 of the 55 newly-added default-off gates are ON for this account**, while only **three of 76 default-on gates are served off** — none of the three a permission decision.
+
+Current binary **v2.1.241**; **audited coverage runs v2.1.89 → v2.1.241**, and the "zero unaudited gaps" property is restored. Net direction across v218 → v241: **one silent upstream remediation** that narrows **#97 / #98** for untrusted-origin agent-frontmatter hooks only; **one availability regression** on the permission path (**#171**, fail-closed); **three new High findings** (**#176** denylist-filtered server-supplied child arguments, **#181** a mandatory human approval convertible into a classifier decision, **#182** a cross-session gate trusting sender-supplied origin); **four Medium** (**#172**, **#177**, **#178**, **#184**); a **new class of local execution documented as informational** (**#183**); and a **real, partial defence of #31 AC3** that narrows the finding without retiring it. Standing against all of this, unchanged: the injection primitives **#106 / #154 / #168** (Critical) and **#155 / #165 / #127 / #151** (High), with **#110** still unremediated and **#108** still removed (0).
 
 ---
 

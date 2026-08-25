@@ -1,11 +1,11 @@
 flowchart LR
-    %% SUBAGENTDEPTH — AN — Server-Tunable Subagent Depth Ceiling (v2.1.217 #169 LOW — resource breadth, NOT authorization; net posture IMPROVED)
-    subgraph SUBAGENTDEPTH["AN — Server-Tunable Subagent Depth Ceiling (v2.1.217<br/>#169 LOW — resource breadth, NOT authorization; net<br/>posture IMPROVED)"]
+    %% SUBAGENTDEPTH — AN — Server-Tunable Subagent Depth Ceiling (v2.1.217 #169 LOW — resource breadth, NOT authorization; default ROLLED BACK 1→3 at v219)
+    subgraph SUBAGENTDEPTH["AN — Server-Tunable Subagent Depth Ceiling (v2.1.217<br/>#169 LOW — resource breadth, NOT authorization; default<br/>ROLLED BACK 1→3 at v219)"]
         direction TB
-        ht_gate["Nue(): env [env-flag]<br/>→ else server-pushed<br/>getFeatureValue('tengu_[subagent-depth-cap]',1)<br/>→ else local default 1; memoized once per process"]:::gap
-        ht_valid["Accepts Number.isInteger(v) &amp;&amp; v&gt;=1<br/>NO UPPER CLAMP — a push of any size is honoured.<br/>Env branch NaN-fail-open REFUTED:<br/>registry entry is int({min:1,digitsOnly:true})"]:::gap
-        ht_effect["Consumer throws subagent_depth_cap when depth&gt;=cap;<br/>same accessor decides whether nested workers<br/>receive the spawn tool at all"]:::baseline
-        ht_bar["NOT #108 — no permission/sandbox/auto-approve<br/>path is inverted. Shipped posture IMPROVED:<br/>v215 hardcoded 5 → v217 default 1, SHRINKING<br/>the #31 AC3 nesting surface. Filed for the<br/>unbounded remote knob, not the default"]:::baseline
+        ht_gate["Nue(): env [env-flag]<br/>→ else server-pushed<br/>getFeatureValue('tengu_[subagent-depth-cap]',N)<br/>→ else local default; memoized once per process.<br/>Local default: 1 at v217–v218, <b>3 at v219–v220</b>"]:::gap
+        ht_valid["Accepts Number.isInteger(v) &amp;&amp; v&gt;=1<br/>NO UPPER CLAMP — a push of any size is honoured.<br/>Unchanged v217→v220. Env branch NaN-fail-open<br/>REFUTED: registry is int({min:1,digitsOnly:true})"]:::gap
+        ht_effect["Consumer throws subagent_depth_cap when depth&gt;=cap;<br/>same accessor decides whether nested workers<br/>receive the spawn tool at all.<br/>Blast radius bounded by the 200/session spawn cap"]:::baseline
+        ht_bar["NOT #108 — no permission/sandbox/auto-approve<br/>path is inverted. v217 SHRANK the #31 AC3 nesting<br/>surface (5→1); <b>v219 partially rolled that back<br/>(1→3)</b>.<br/>Count stayed FLAT 2/2/2 throughout — a changed<br/>DEFAULT is invisible to an occurrence-count check"]:::baseline
     end
 
     ht_gate --> ht_valid

@@ -1,0 +1,26 @@
+flowchart LR
+    %% RUNNERARGS — AP2 — Self-hosted runner arg plane (#176 HIGH, v2.1.224+) — server-supplied argv filtered by a DENYLIST, not an allowlist
+    subgraph RUNNERARGS["AP2 — Self-hosted runner arg plane (#176 HIGH,<br/>v2.1.224+) — server-supplied argv filtered by a<br/>DENYLIST, not an allowlist"]
+        direction TB
+        ra_src["GET /v1/code/sessions/{id}/remote returns<br/>[server-supplied-child-args], a server-controlled map"]:::gap
+        ra_filter["Filter = key-shape regex + a DENYLIST of NINE<br/>transport-plumbing flags the runner sets itself<br/>(sdk-url, resume, print, input/output-format,<br/>replay-user-messages, debug-file, mcp-config, settings)"]:::gap
+        ra_reach["REACHABLE, because absent from the denylist:<br/>--append-system-prompt  → server text into the child's<br/>system prompt (#106-class)<br/>--permission-mode bypassPermissions → child leaves<br/>permission checking (a valid .choices() value)"]:::risk
+        ra_bound["Honest bound: the applier skips EMPTY values and pushes<br/>each value as a separate argv entry, so bare boolean<br/>flags are NOT cleanly injectable"]:::baseline
+        ra_asym["Why it reads as unintended: the CCR bridge in the SAME<br/>binary consumes an identically-named map through a<br/>strict<br/>ALLOWLIST that already existed at v223 — the newer path<br/>chose the weaker of two in-house patterns"]:::risk
+        ra_fix["--settings bisected to a SILENT v2.1.229 addition:<br/>8 denylist entries at v224/v228, 9 at v229/v241"]:::baseline
+        ra_san["SECURITY-POSITIVE, same subsystem:<br/>[server-arg-sanitiser] strips self_hosted_runner_*<br/>operator tool names from the server-supplied tools<br/>value.<br/>FIRST named, logged sanitiser on the server-input<br/>channel<br/>in the #106/#154/#165/#168 lineage — tracked as a<br/>DEFENCE anchor"]:::baseline
+    end
+
+    ra_src --> ra_filter
+    ra_filter --> ra_reach
+    ra_reach --> ra_bound
+    ra_reach --> ra_asym
+    ra_filter --> ra_fix
+    ra_src --> ra_san
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

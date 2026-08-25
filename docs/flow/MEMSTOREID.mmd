@@ -1,0 +1,24 @@
+flowchart LR
+    %% MEMSTOREID — AO — Project-Memory Store Identity (v2.1.241 #174 MEDIUM — lossy path-to-id substitution; distinct projects silently share one store, read AND write)
+    subgraph MEMSTOREID["AO — Project-Memory Store Identity (v2.1.241 #174 MEDIUM<br/>— lossy path-to-id substitution; distinct projects<br/>silently share one store, read AND write)"]
+        direction TB
+        ms_derive["Store id = absolute project path with<br/>'/' replaced by '-' AND '_' replaced by '-'.<br/>Lossy substitution, NOT injective.<br/>The '_' arm was ADDED between 2026-03-22 and<br/>2026-04-16 (mtime bracket, not a measurement)"]:::gap
+        ms_collide["Two collision families:<br/>foo/bar collides with foo-bar (WIDE — ordinary layout)<br/>my_app collides with my-app (narrow)<br/>MEASURED v2.1.241: one planted canary, two distinct<br/>directories, both sessions returned it"]:::risk
+        ms_read["READ: a session in directory A loads project B's<br/>MEMORY.md and linked topic files into model context.<br/>The directory-trust prompt never names another<br/>project's memory as in scope"]:::risk
+        ms_write["WRITE: create-side uses the SAME derivation (MEASURED —<br/>delete both candidates, observe which the harness<br/>makes).<br/>A hostile directory deposits memory in the shared store;<br/>the victim project auto-loads it EVERY later session and<br/>it persists after the hostile directory is deleted.<br/>Chain INFERRED from read+create, NOT run end-to-end"]:::gap
+        ms_bar["NOT a privilege escalation — a same-UID attacker already<br/>reads the whole store tree. Medium because it is silent,<br/>persistent across sessions, and breaks an isolation<br/>property nothing documents as conditional.<br/>Fleet here: 53 slug dirs, 45 stores, 0 live collisions"]:::baseline
+        ms_ghost["Same root cause, data-loss arm: stores written before<br/>the '_' change sit at ids the harness will never emit<br/>again, so they are unreachable and indistinguishable<br/>from 'no memory was ever written'. Filed separately"]:::baseline
+    end
+
+    ms_derive --> ms_collide
+    ms_collide --> ms_read
+    ms_collide --> ms_write
+    ms_write --> ms_bar
+    ms_derive --> ms_ghost
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

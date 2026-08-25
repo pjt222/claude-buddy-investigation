@@ -1,0 +1,24 @@
+flowchart LR
+    %% DEVBRIDGE — AP3 — [device-bridge] (#183, [device-shell-tool] 0→42) — a NEW CLASS of local execution that bypasses the local permission system
+    subgraph DEVBRIDGE["AP3 — [device-bridge] (#183, [device-shell-tool] 0→42) —<br/>a NEW CLASS of local execution that bypasses the local<br/>permission system"]
+        direction TB
+        db_conn["Local CLI opens an OUTBOUND WSS to<br/>bridge.claudeusercontent.com/devices/{org}_{acct}/{dev}/bridge<br/>and runs an MCP SERVER over it.<br/>The CLOUD session is the client"]:::core
+        db_exec["[device-shell-tool]: shell on the user's LOCAL machine,<br/>bash -c, 45s cap, max 4 concurrent.<br/>Output returns to the CLOUD session's model,<br/>NOT the local one"]:::risk
+        db_bypass["KEY FACT: dispatches straight into the low-level shell<br/>executor. NO canUseTool, NO permission-mode, NO<br/>allow/deny<br/>rules, NO local PreToolUse/PostToolUse hooks.<br/>There is no local agent loop on this path"]:::risk
+        db_sandbox["Substituted control: the OS sandbox, failing CLOSED at<br/>six<br/>checkpoints — unavailable (the stock default),<br/>unsupported,<br/>failed-to-start, unconfined, allows-unix-sockets,<br/>injects-credentials. The last two are anti-pivot guards"]:::baseline
+        db_gate["INERT on a stock install: explicit --remote/--cloud,<br/>plus<br/>tengu_[remote-backend-gate] AND<br/>tengu_[device-bridge-gate] (both default<br/>FALSE), an org policy that fails closed, a signed EC<br/>P-256<br/>device bind whose echo the client verifies, and a<br/>sandbox<br/>settings opt-in that is off by default"]:::baseline
+        db_asym["Asymmetry: --permission-mode is NOT forwarded to cloud<br/>sessions, so the local user's mode choice does not<br/>constrain the cloud session driving [device-shell-tool]"]:::gap
+    end
+
+    db_conn --> db_exec
+    db_exec --> db_bypass
+    db_bypass --> db_sandbox
+    db_conn --> db_gate
+    db_exec --> db_asym
+
+    classDef core fill:#1f2937,stroke:#60a5fa,color:#f8fafc,stroke-width:1px
+    classDef gap fill:#3f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 4 3,stroke-width:1px
+    classDef removed fill:#1a1a1a,stroke:#6b7280,color:#9ca3af,stroke-dasharray: 2,stroke-width:1px
+    classDef ours fill:#1e293b,stroke:#a78bfa,color:#e9d5ff,stroke-width:1px
+    classDef baseline fill:#1f2937,stroke:#34d399,color:#d1fae5,stroke-width:1px
+    classDef risk fill:#3f1d1d,stroke:#fb7185,color:#fecdd3,stroke-width:2px

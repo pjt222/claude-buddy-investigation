@@ -376,7 +376,7 @@ flowchart LR
     end
     subgraph VELVETGUARD["AH — Read-Before-Edit/Write Guard Skip (v2.1.166 #152 LOW — data-integrity only, no permission reach; → W-VELVET)"]
         direction TB
-        vg_flag["flagReader('[feature-flag]',!1) (Edit)<br/>flagReader('[feature-flag]',!1) (Write)<br/>GrowthBook cachedGrowthBookFeatures, DEFAULT FALSE<br/>same channel as #108/#113"]:::gap
+        vg_flag["flagReader('[feature-flag]',!1) (Edit)<br/>flagReader('[feature-flag]',!1) (Write)<br/>GrowthBook [served-config-cache], DEFAULT FALSE<br/>same channel as #108/#113"]:::gap
         vg_skip["SERVER FLIP TRUE → guardSkipped=true<br/>skips 'File has not been read yet' guard<br/>→ Edit/Write proceeds on un-Read file<br/>(blind-overwrite / stale-content)"]:::gap
         vg_nope["NO permission reach (verified)<br/>not co-located with [sandbox-classifier-gate]/acceptEdits/canUseTool<br/>data-integrity speed-bump, not a privilege gate"]:::baseline
         vg_flag --> vg_skip
@@ -440,7 +440,7 @@ flowchart LR
     %% ===== AM — v216 AskUserQuestion Prompt-String Injection (#168 HIGH) =====
     subgraph QUESTIONPROMPT["AM — AskUserQuestion Prompt-String Injection (v2.1.216 #168 CRITICAL, WIRE-CONFIRMED v217 — server-pushed STRING lands verbatim in the tool description on /v1/messages)"]
         direction TB
-        cw_gate["Ke('tengu_[question-tool-prompt-string]','')<br/>string-typed GrowthBook flag, DEFAULT '' (inert until push)<br/>reader Ke → qXn: server payload map → disk<br/>cachedGrowthBookFeatures → literal default<br/>read UNCONDITIONALLY — no model/auth/tier gate"]:::risk
+        cw_gate["Ke('tengu_[question-tool-prompt-string]','')<br/>string-typed GrowthBook flag, DEFAULT '' (inert until push)<br/>reader Ke → qXn: server payload map → disk<br/>[served-config-cache] → literal default<br/>read UNCONDITIONALLY — no model/auth/tier gate"]:::risk
         cw_sibling["Contrast sibling tengu_[question-tool-prompt-sibling]:<br/>read ONLY inside a model gate if(tE(model)).<br/>[question-tool-prompt-string] has NO such conjunct — applies to<br/>every account regardless of model or tier"]:::gap
         cw_valid["Validation is typeof r==='string' ? r.trim() : ''<br/>a TYPE check and a whitespace trim, nothing else.<br/>NO length cap · NO schema · NO allowlist"]:::gap
         cw_sink["Concatenated onto the return of the question tool's<br/>async prompt({model}) builder → ships to the model<br/>on /v1/messages. APPENDS (does not override) —<br/>a mitigation, not a class change.<br/>#106-class. WIRE-CONFIRMED (session-82, v2.1.217):<br/>marker landed at $.tools[2].description — the<br/>AskUserQuestion tool description — spliced<br/>MID-INSTRUCTION, no delimiter or attribution.<br/>Sibling [question-tool-prompt-sibling] arrived at defaultValue on:False<br/>in the same capture. HIGH → CRITICAL"]:::risk
@@ -453,18 +453,86 @@ flowchart LR
     cw_sink -. "WIRE-CONFIRMED: verbatim server string at $.tools[2].description (#168)" .-> msgs_api
     cw_gate -. "same uncertified config channel as #106/#154/#165" .-> po_gate
     %% ===== AN — v217 Server-Tunable Subagent Depth Ceiling (#169 LOW) =====
-    subgraph SUBAGENTDEPTH["AN — Server-Tunable Subagent Depth Ceiling (v2.1.217 #169 LOW — resource breadth, NOT authorization; net posture IMPROVED)"]
+    subgraph SUBAGENTDEPTH["AN — Server-Tunable Subagent Depth Ceiling (v2.1.217 #169 LOW — resource breadth, NOT authorization; default ROLLED BACK 1→3 at v219)"]
         direction TB
-        ht_gate["Nue(): env [env-flag]<br/>→ else server-pushed getFeatureValue('tengu_[subagent-depth-cap]',1)<br/>→ else local default 1; memoized once per process"]:::gap
-        ht_valid["Accepts Number.isInteger(v) &amp;&amp; v&gt;=1<br/>NO UPPER CLAMP — a push of any size is honoured.<br/>Env branch NaN-fail-open REFUTED:<br/>registry entry is int({min:1,digitsOnly:true})"]:::gap
-        ht_effect["Consumer throws subagent_depth_cap when depth&gt;=cap;<br/>same accessor decides whether nested workers<br/>receive the spawn tool at all"]:::baseline
-        ht_bar["NOT #108 — no permission/sandbox/auto-approve<br/>path is inverted. Shipped posture IMPROVED:<br/>v215 hardcoded 5 → v217 default 1, SHRINKING<br/>the #31 AC3 nesting surface. Filed for the<br/>unbounded remote knob, not the default"]:::baseline
+        ht_gate["Nue(): env [env-flag]<br/>→ else server-pushed getFeatureValue('tengu_[subagent-depth-cap]',N)<br/>→ else local default; memoized once per process.<br/>Local default: 1 at v217–v218, <b>3 at v219–v220</b>"]:::gap
+        ht_valid["Accepts Number.isInteger(v) &amp;&amp; v&gt;=1<br/>NO UPPER CLAMP — a push of any size is honoured.<br/>Unchanged v217→v220. Env branch NaN-fail-open<br/>REFUTED: registry is int({min:1,digitsOnly:true})"]:::gap
+        ht_effect["Consumer throws subagent_depth_cap when depth&gt;=cap;<br/>same accessor decides whether nested workers<br/>receive the spawn tool at all.<br/>Blast radius bounded by the 200/session spawn cap"]:::baseline
+        ht_bar["NOT #108 — no permission/sandbox/auto-approve<br/>path is inverted. v217 SHRANK the #31 AC3 nesting<br/>surface (5→1); <b>v219 partially rolled that back (1→3)</b>.<br/>Count stayed FLAT 2/2/2 throughout — a changed<br/>DEFAULT is invisible to an occurrence-count check"]:::baseline
         ht_gate --> ht_valid
         ht_valid --> ht_effect
         ht_effect --> ht_bar
     end
     %% ===== Subagent depth-ceiling edges (AN, v2.1.217 #169) =====
     flags -. "server-pushed integer, no upper clamp" .-> ht_gate
+    %% ===== AO — v2.1.241 Project-Memory Store Identity (#174 MEDIUM) =====
+    subgraph MEMSTOREID["AO — Project-Memory Store Identity (v2.1.241 #174 MEDIUM — lossy path-to-id substitution; distinct projects silently share one store, read AND write)"]
+        direction TB
+        ms_derive["Store id = absolute project path with<br/>'/' replaced by '-' AND '_' replaced by '-'.<br/>Lossy substitution, NOT injective.<br/>The '_' arm was ADDED between 2026-03-22 and<br/>2026-04-16 (mtime bracket, not a measurement)"]:::gap
+        ms_collide["Two collision families:<br/>foo/bar collides with foo-bar (WIDE — ordinary layout)<br/>my_app collides with my-app (narrow)<br/>MEASURED v2.1.241: one planted canary, two distinct<br/>directories, both sessions returned it"]:::risk
+        ms_read["READ: a session in directory A loads project B's<br/>MEMORY.md and linked topic files into model context.<br/>The directory-trust prompt never names another<br/>project's memory as in scope"]:::risk
+        ms_write["WRITE: create-side uses the SAME derivation (MEASURED —<br/>delete both candidates, observe which the harness makes).<br/>A hostile directory deposits memory in the shared store;<br/>the victim project auto-loads it EVERY later session and<br/>it persists after the hostile directory is deleted.<br/>Chain INFERRED from read+create, NOT run end-to-end"]:::gap
+        ms_bar["NOT a privilege escalation — a same-UID attacker already<br/>reads the whole store tree. Medium because it is silent,<br/>persistent across sessions, and breaks an isolation<br/>property nothing documents as conditional.<br/>Fleet here: 53 slug dirs, 45 stores, 0 live collisions"]:::baseline
+        ms_ghost["Same root cause, data-loss arm: stores written before<br/>the '_' change sit at ids the harness will never emit<br/>again, so they are unreachable and indistinguishable<br/>from 'no memory was ever written'. Filed separately"]:::baseline
+        ms_derive --> ms_collide
+        ms_collide --> ms_read
+        ms_collide --> ms_write
+        ms_write --> ms_bar
+        ms_derive --> ms_ghost
+    end
+    %% ===== Memory-store-identity edges (AO, v2.1.241 #174) =====
+    dream_files -. "same per-project memory tree" .-> ms_derive
+    %% ===== AP — v2.1.221-241 decode (session-87): served-flag state, runner arg plane, device bridge =====
+    subgraph SERVEDFLAGS["AP1 — Served-flag state (#185 METHOD) — every prior census read the DEFAULT; nobody diffed it against what the server actually SERVED"]
+        direction TB
+        sf_cache["[served-config-cache] in ~/.claude.json<br/>540 features on this account.<br/>The client's own record of the values<br/>the server returned to it"]:::core
+        sf_gap["THE GAP: severity was always assigned from the<br/>in-binary default, i.e. 'what if nobody touches it'.<br/>Wrong question for a server-controlled channel"]:::gap
+        sf_false["17 of 55 new DEFAULT-FALSE gates are SERVED TRUE.<br/>Four are model-context-injection candidates:<br/>[artifact-comments-gate], [comment-source-order-gate], [comment-autoreact-gate], [vellum-gate]"]:::risk
+        sf_true["Inverse check CLEAN: of 74 default-TRUE bools only<br/>3 are served false ([startup-toggle], [outgoing-header-source-gate],<br/>[session-name-collision-gate]) — none a permission decision"]:::baseline
+        sf_flip["It REVERSED a severity call. #182 filed High,<br/>downgraded to Low on a two-flag-chain argument,<br/>RESTORED to High when the cache showed BOTH<br/>[cross-session-messaging-gate] and [sender-asserted-mode-gate] served true"]:::risk
+        sf_caveat["Caveats: one account + one machine; a cache can be<br/>stale; ABSENT is not 'served false' (absent = the code<br/>default applies). 17 flags are absent, not off"]:::baseline
+        sf_gap --> sf_cache
+        sf_cache --> sf_false
+        sf_cache --> sf_true
+        sf_false --> sf_flip
+        sf_cache --> sf_caveat
+    end
+    subgraph RUNNERARGS["AP2 — Self-hosted runner arg plane (#176 HIGH, v2.1.224+) — server-supplied argv filtered by a DENYLIST, not an allowlist"]
+        direction TB
+        ra_src["GET /v1/code/sessions/{id}/remote returns<br/>[server-supplied-child-args], a server-controlled map"]:::gap
+        ra_filter["Filter = key-shape regex + a DENYLIST of NINE<br/>transport-plumbing flags the runner sets itself<br/>(sdk-url, resume, print, input/output-format,<br/>replay-user-messages, debug-file, mcp-config, settings)"]:::gap
+        ra_reach["REACHABLE, because absent from the denylist:<br/>--append-system-prompt  → server text into the child's<br/>system prompt (#106-class)<br/>--permission-mode bypassPermissions → child leaves<br/>permission checking (a valid .choices() value)"]:::risk
+        ra_bound["Honest bound: the applier skips EMPTY values and pushes<br/>each value as a separate argv entry, so bare boolean<br/>flags are NOT cleanly injectable"]:::baseline
+        ra_asym["Why it reads as unintended: the CCR bridge in the SAME<br/>binary consumes an identically-named map through a strict<br/>ALLOWLIST that already existed at v223 — the newer path<br/>chose the weaker of two in-house patterns"]:::risk
+        ra_fix["--settings bisected to a SILENT v2.1.229 addition:<br/>8 denylist entries at v224/v228, 9 at v229/v241"]:::baseline
+        ra_san["SECURITY-POSITIVE, same subsystem:<br/>[server-arg-sanitiser] strips self_hosted_runner_*<br/>operator tool names from the server-supplied tools value.<br/>FIRST named, logged sanitiser on the server-input channel<br/>in the #106/#154/#165/#168 lineage — tracked as a DEFENCE anchor"]:::baseline
+        ra_src --> ra_filter
+        ra_filter --> ra_reach
+        ra_reach --> ra_bound
+        ra_reach --> ra_asym
+        ra_filter --> ra_fix
+        ra_src --> ra_san
+    end
+    subgraph DEVBRIDGE["AP3 — [device-bridge] (#183, [device-shell-tool] 0→42) — a NEW CLASS of local execution that bypasses the local permission system"]
+        direction TB
+        db_conn["Local CLI opens an OUTBOUND WSS to<br/>bridge.claudeusercontent.com/devices/{org}_{acct}/{dev}/bridge<br/>and runs an MCP SERVER over it.<br/>The CLOUD session is the client"]:::core
+        db_exec["[device-shell-tool]: shell on the user's LOCAL machine,<br/>bash -c, 45s cap, max 4 concurrent.<br/>Output returns to the CLOUD session's model,<br/>NOT the local one"]:::risk
+        db_bypass["KEY FACT: dispatches straight into the low-level shell<br/>executor. NO canUseTool, NO permission-mode, NO allow/deny<br/>rules, NO local PreToolUse/PostToolUse hooks.<br/>There is no local agent loop on this path"]:::risk
+        db_sandbox["Substituted control: the OS sandbox, failing CLOSED at six<br/>checkpoints — unavailable (the stock default), unsupported,<br/>failed-to-start, unconfined, allows-unix-sockets,<br/>injects-credentials. The last two are anti-pivot guards"]:::baseline
+        db_gate["INERT on a stock install: explicit --remote/--cloud, plus<br/>tengu_[remote-backend-gate] AND tengu_[device-bridge-gate] (both default<br/>FALSE), an org policy that fails closed, a signed EC P-256<br/>device bind whose echo the client verifies, and a sandbox<br/>settings opt-in that is off by default"]:::baseline
+        db_asym["Asymmetry: --permission-mode is NOT forwarded to cloud<br/>sessions, so the local user's mode choice does not<br/>constrain the cloud session driving [device-shell-tool]"]:::gap
+        db_conn --> db_exec
+        db_exec --> db_bypass
+        db_bypass --> db_sandbox
+        db_conn --> db_gate
+        db_exec --> db_asym
+    end
+    %% ===== v221-241 edges (AP, session-87) =====
+    flags -. "the SERVED value, not the default" .-> sf_cache
+    sf_false -. "#182 both gates served true" .-> sf_flip
+    ra_reach -. "server text reaches model context" .-> msgs_api
+    db_exec -. "remote-originated local shell, output to the CLOUD model" .-> msgs_api
+    ms_read -. "another project's memory reaches model context (#174)" .-> msgs_api
     %% ===== Cowork/CCR-v2 Bridge edges (AF, v2.1.160) =====
     startup -. "if ENVIRONMENT_KIND=='bridge'" .-> cb_gate
     cb_egress -. "sandbox egress (cloud-side, unverified)" .-> providers
