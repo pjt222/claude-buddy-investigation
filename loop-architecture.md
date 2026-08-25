@@ -39,7 +39,7 @@ loop-scheduler fn (delaySeconds, prompt, reason)
      |
      +--- validate prompt non-empty
      +--- lookup prior loop state by prompt hash
-     +--- aged-out check: now - startedAt >= recurringMaxAgeMs (7d default)?
+     +--- aged-out check: now - startedAt >= recurring-max-age (7d default)?
      |      YES -> persist {agedOut:true}; emit loop aged-out telemetry; return null
      +--- clamp delay to [MIN_LOOP_DELAY_SECONDS=60, MAX_LOOP_DELAY_SECONDS=3600]
      +--- derive target = now + clamped*1000; build cron "M H * * *" from target minutes/hours
@@ -191,14 +191,14 @@ From the v2.1.101 bundle — the defaults consumed by the config loader:
   oneShotMaxMs:      90_000,       // 90 s one-shot ceiling
   oneShotFloorMs:    0,            // no floor
   oneShotMinuteMod:  30,           // minute alignment for one-shot scheduling
-  recurringMaxAgeMs: 604_800_000,  // 7 days — loop auto-ages-out after this
+  recurring-max-age: 604_800_000,  // 7 days — loop auto-ages-out after this
   cacheLeadMs:       15_000,       // 15 s prompt-cache lead time
 }
 ```
 
-User/server override is possible via a Kairos cron-config feature flag, with a 30-day upper bound on `recurringMaxAgeMs` (`2_592_000_000` ms).
+User/server override is possible via a Kairos cron-config feature flag, with a 30-day upper bound on `recurring-max-age` (`2_592_000_000` ms).
 
-**Aged-out behaviour**: when `now − startedAt >= recurringMaxAgeMs`, the loop scheduler returns `null` and emits a loop aged-out telemetry event. The state record is marked `agedOut: true` with `lastScheduledFor` set in the past so subsequent calls are ignored unless the user resets the loop.
+**Aged-out behaviour**: when `now − startedAt >= recurring-max-age`, the loop scheduler returns `null` and emits a loop aged-out telemetry event. The state record is marked `agedOut: true` with `lastScheduledFor` set in the past so subsequent calls are ignored unless the user resets the loop.
 
 ---
 

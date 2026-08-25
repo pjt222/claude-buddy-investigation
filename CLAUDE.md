@@ -63,7 +63,7 @@ Research repository documenting findings about Claude Code's built-in "Buddy" co
 - `ScheduleWakeup(delaySeconds, prompt, reason)` — runtime clamps delay to `[60, 3600]` seconds; dynamic loops use `CronCreate(kind: "loop")` internally
 - Four prompt sentinels: `<<autonomous-loop>>`, `<<autonomous-loop-dynamic>>`, `<<loop.md>>`, `<<loop.md-dynamic>>`
 - Feature gates: a loop scheduler gate (tool), a slash-command gate, and a sentinel-resolution gate
-- Loop ages out at 7 days (`recurringMaxAgeMs: 604800000`, configurable up to 30 days)
+- Loop ages out at 7 days (`recurring-max-age: 604800000`, configurable up to 30 days)
 - Key binary functions (v2.1.101, paraphrased by role): a wakeup scheduler, a default-sentinel resolver, and a file-sentinel resolver
 - 2 telemetry events: loop-dynamic wakeup scheduled, loop-dynamic wakeup aged out; `/loop` invocation is also telemetered
 - Full technical spec: `loop-architecture.md`

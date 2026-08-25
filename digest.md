@@ -73,7 +73,7 @@ A wave-based probe of v2.1.111 and v2.1.112 binaries identified new subsystems a
 
 - **MCP client subsystem**: 8 transport types (stdio, SSE, WebSocket, HTTP, IDE variants, claude.ai proxy, SDK); OAuth flow with 6 dedicated event types; 42 total telemetry events.
 - **Plugin subsystem**: 6 extension types (skills, agents, hooks, MCP servers, LSP servers, monitors); 9 CLI subcommands; official marketplace with Git-based install fallback; 22 telemetry events.
-- **Auto-Dream memory scheduler**: background memory consolidation forked as a separate agent with `skipTranscript=true`; minimum 5 sessions / 24 hours between runs; 5 telemetry events.
+- **Auto-Dream memory scheduler**: background memory consolidation forked as a separate agent with `transcript-skip-flag=true`; minimum 5 sessions / 24 hours between runs; 5 telemetry events.
 - **Provider registry**: 6 provider types detected — main API, Bedrock, Vertex, Foundry (scaffolded, no telemetry), AWS (shares main API infrastructure), and an additional provider type sharing main API routing.
 - **Team telemetry**: first observed in v2.1.112; 16 team-related events (was 0 in prior versions).
 - **Remote-control bridge**: ~30 bridge telemetry events; tool permission requests can optionally include raw command strings for display in bridge UI.

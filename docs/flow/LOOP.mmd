@@ -6,7 +6,7 @@ flowchart LR
         sentinels["4 sentinels<br/>autonomous-loop / loop.md / -dynamic"]:::core
         sched_fn["scheduleLoopWakeup<br/>clamp [60, 3600]"]:::core
         cron_create["CronCreate(kind: loop)"]:::core
-        loop_state["state keyed by prompt hash<br/>recurringMaxAgeMs=7d"]:::core
+        loop_state["state keyed by prompt hash<br/>recurring-max-age=7d"]:::core
         loop_slash["/loop slash command"]:::core
     end
 

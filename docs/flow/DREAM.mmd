@@ -4,7 +4,7 @@ flowchart LR
         direction TB
         dream_gate["dreamGate() gate:<br/>non-interactive / no autoMemory"]:::core
         dream_time["Time 24h + Session 5 gate<br/>PID lock dreamPidLock()"]:::core
-        dream_agent["Dream agent<br/>forkLabel:memory_consolidation skipTranscript:true"]:::core
+        dream_agent["Dream agent<br/>forkLabel:memory_consolidation transcript-skip-flag:true"]:::core
         dream_files["~/.claude/CLAUDE.md<br/>+ project memory tree"]:::core
     end
 

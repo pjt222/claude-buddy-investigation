@@ -94,7 +94,7 @@ flowchart LR
         sentinels["4 sentinels<br/>autonomous-loop / loop.md / -dynamic"]:::core
         sched_fn["scheduleLoopWakeup<br/>clamp [60, 3600]"]:::core
         cron_create["CronCreate(kind: loop)"]:::core
-        loop_state["state keyed by prompt hash<br/>recurringMaxAgeMs=7d"]:::core
+        loop_state["state keyed by prompt hash<br/>recurring-max-age=7d"]:::core
         loop_slash["/loop slash command"]:::core
     end
     %% ===== G — MCP =====
@@ -151,7 +151,7 @@ flowchart LR
         direction TB
         dream_gate["dreamGate() gate:<br/>non-interactive / no autoMemory"]:::core
         dream_time["Time 24h + Session 5 gate<br/>PID lock dreamPidLock()"]:::core
-        dream_agent["Dream agent<br/>forkLabel:[dream-fork-label] skipTranscript:true"]:::core
+        dream_agent["Dream agent<br/>forkLabel:[dream-fork-label] transcript-skip-flag:true"]:::core
         dream_files["~/.claude/CLAUDE.md<br/>+ project memory tree"]:::core
     end
     %% ===== N — Plugins =====
@@ -166,11 +166,11 @@ flowchart LR
     %% ===== P — v2.1.111+ New Systems =====
     subgraph NEW111["P — v2.1.111+ Systems"]
         direction TB
-        opus47-launch["Opus 4.7 launch modal<br/>opus47-launch-shown<br/>opus47LaunchSeenCount"]:::core
+        opus47-launch["Opus 4.7 launch modal<br/>opus47-launch-shown<br/>model-launch-seen-count"]:::core
         bash_desc_variant["[bash-description-variant-flag]<br/>strips parallel-Bash instructions<br/>from Bash tool description"]:::core
         pwsh_tool["[powershell-tool-flag]<br/>PowerShell tool on Windows<br/>[env-flag]"]:::core
         mem_survey["[memory-survey-flag] / memory survey<br/>trigger: /memor(y|ies)/ regex<br/>co-event: [memory-survey-co-event]"]:::core
-        proxy_auth["Corporate proxy auth<br/>PROXY_URL / PROXY_HOST<br/>PROXY_AUTH_HELPER + TTL<br/>trustAccepted / timed out"]:::core
+        proxy_auth["Corporate proxy auth<br/>PROXY_URL / PROXY_HOST<br/>PROXY_AUTH_HELPER + TTL<br/>trust-accepted-flag / timed out"]:::core
         gb_sys_prompt["Server-push system prompt override<br/>[remote-system-prompt-const]<br/>remote-mode only: [env-flag]"]:::core
     end
     %% ===== K — TUI Renderer =====
@@ -194,7 +194,7 @@ flowchart LR
         daemon_dialog["r74() dialog gate<br/>!remoteDialogSeen && NT() && OAuth<br/>(non-interactive skips dialog)<br/>dialog component i74 — title 'Remote Control'<br/>useEffect: remoteDialogSeen=true on MOUNT"]:::gap
         daemon_launch["Two install paths<br/>A: spawn-fork claude daemon run<br/>--origin auto (detached .unref())<br/>B: systemd-user / launchd<br/>--origin service; com.anthropic.claude-daemon"]:::core
         daemon_env["K_5() env redact (spawn-fork only)<br/>clears INVOCATION_ID always<br/>strips OAuth token + OAUTH_TOKEN_FILE_DESCRIPTOR<br/>on Linux/Windows if refresh token in keychain<br/>INHERITS both on macOS (#101)"]:::gap
-        daemon_loop["LY4() main loop<br/>spawnMode: same-dir | worktree<br/>staleCheckIntervalMs / idleGraceMs"]:::core
+        daemon_loop["LY4() main loop<br/>spawnMode: same-dir | worktree<br/>stale-check-interval / idle-grace-window"]:::core
         daemon_lock["Single-instance lock<br/>daemon.json + process.kill(pid,0)<br/>ESRCH=proceed, reachable=exit"]:::core
         daemon_persist["[feature-flag]<br/>JG6() binary-target watch<br/>systemd Restart=always RestartSec=1<br/>WantedBy=default.target (autostart)"]:::core
         daemon_zombie["Zombie recovery<br/>[feature-flag]<br/>PID-0 probe + 2s wait + respawn"]:::core

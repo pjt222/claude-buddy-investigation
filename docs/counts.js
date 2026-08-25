@@ -188,7 +188,7 @@ window.VIZ_COUNTS = Object.freeze({
 
   // ---- Auto-Dream memory scheduler ----
   // Probed on v2.1.110 in results/auto-dream-2026-04-16.md.
-  // Background memory-consolidation; forks dream agent with skipTranscript=true.
+  // Background memory-consolidation; forks dream agent with transcript-skip-flag=true.
   memory_consolidation: {
     total_events: 5,      // _skipped, _fired, _completed, _failed, _toggled
     min_sessions_default: 5,
@@ -446,7 +446,7 @@ window.VIZ_COUNTS = Object.freeze({
   // v138→v140): the raw _PROTO_ destructure pattern, brief-mode stop-hook
   // GrowthBook reader, Datadog third-party gate, harbor PR-status flag,
   // hookSpecificOutput.updatedInput nesting, --teleport CLI flag, the
-  // forced-downgrade canary primitive, the sourceToolAssistantUUID
+  // forced-downgrade canary primitive, the originating-tool-uuid
   // transcript-replay literal, and parent_tool_use_id ([forged-parent] class)
   // all unchanged.
   v140_round_1: {
