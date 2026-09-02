@@ -1,11 +1,28 @@
 # Claude Code Advisor System — Technical Architecture
 
-**Date**: 2026-04-10 · **Last revised**: 2026-08-25 (session 87, v2.1.241 currency pass)
-**Version**: 1.9
+**Date**: 2026-04-10 · **Last revised**: 2026-09-02 (session 90, v2.1.258 currency pass)
+**Version**: 2.0
 
 > **Version scope:** The advisor tool infrastructure was already **code-complete in v2.1.96** (built 2026-04-03) — coexisting with the full buddy companion system. Both systems scored 75+/75+ in that build. The buddy UI was then removed in v2.1.97 (built 2026-04-08) while the advisor remained. The system prompt was refined in v2.1.98 (built 2026-04-10) and the feature gate bumped. The advisor is dark-launched behind a server-side feature flag and is not yet visible to all users.
 >
-> **Currency (v2.1.241, session 87, 2026-08-25):** the advisor surface is **byte-stable on string-pool literals** from v2.1.96 through v2.1.241 — re-verified session 87 across the twenty-four releases from v2.1.218 through v2.1.241: the tool type `advisor_20260301`, the advisor feature gate, the kill-switch environment variable, the advisor telemetry event names, and the system-prompt body (§4) are all byte-identical to the v2.1.98 extract. The advisor **core surface is unchanged across v2.1.217→v2.1.241**, and the valid advisor model list (`["opus", "sonnet"]`) gained **no new short-name**. Audited coverage now runs **v2.1.89 → v2.1.241** — the first move past v2.1.220 — so the "no unaudited gap" property this investigation rests on holds again. Census across the range: default-true gates **45 → 76** (74 boolean + 2 typed). Running tally: **15 critical / 41 high / 68 medium / 18 low across 184 repo issues**. Nothing in the range touches the advisor; the notes below are what a reader of this document should know about the surrounding harness. Function-reference §3 names are **minified identifiers that rotate per build** — see the §3 caveat.
+> **Currency (v2.1.258, sessions 88–90, 2026-09-02):** the advisor surface is **byte-stable on string-pool literals** from v2.1.96 through v2.1.258 — the tool type `advisor_20260301`, the advisor feature gate, the kill-switch environment variable, the advisor telemetry event names, and the system-prompt body (§4) all remain byte-identical to the v2.1.98 extract. The advisor **core surface is unchanged across v2.1.241→v2.1.258**, and the valid advisor model list (`["opus", "sonnet"]`) gained **no new short-name**. The range covers **seventeen release slots from v2.1.242 through v2.1.258, eleven of which were actually published**. Audited coverage now reaches the installed binary, **v2.1.258**, with zero unaudited gaps — and that property is no longer a sentence someone advances by hand: it is **computed**, from a generated per-version coverage table with a failing check, so a released version with no audit document reads as *missing* rather than as covered. Census across the range: default-true gates **76 → 109** (107 boolean + 2 typed, up from 74 boolean) — and the boolean figure was **corrected mid-window**, because a third gate-reader shape (a hoisted name carrying an inline default) was invisible to *two independent instruments* at once, which is the substance of **#200**. Running tally: **15 critical / 51 high / 77 medium / 19 low across 205 repo issues**. Nothing in the range touches the advisor; the notes below are what a reader of this document should know about the surrounding harness. Function-reference §3 names are **minified identifiers that rotate per build** — see the §3 caveat.
+>
+> - **v2.1.242 — the release the first pass skipped, and the largest new surface in the range.** It grew the binary by +34.9 MB and split the bundle from 11 modules to roughly 1,385. **#195 (HIGH):** a new plugin-contributed hook-module runtime lets a registered handler **substitute** the tool description sent to the model, and prompt-section text, rather than append to it — no delimiter, no attribution, and validation amounting to a type check plus a 32,000-character cap. It sits behind a **default-off internal environment gate that is absent from the served configuration cache**, so the server can arm it. Filed HIGH with the promotion gate stated as **provenance** — whether a server-influenced plugin can carry such a module — rather than shape. That gate was **answered in session 89 and explicitly not cleared**: registration is *not* restricted to locally-installed plugins, but no path lets the server supply a module's **content**, so the server arms the mechanism and the plugin distribution channel supplies the text. **#201 (HIGH)** records that v2.1.251 widened the same surface: one substitution kind rewrites the trailer block appended to every commit message and pull-request body — **the first reach in this family that leaves the machine** — and another replaces whole skill bodies.
+> - **#193 (HIGH, method) — why #195 was missed, which is the reusable part.** Every agent chose its targets from the standing anchor table, and that table is a list of the *previous* window's literals; the release's largest new subsystem was therefore invisible to the entire method **by construction**, not by oversight. There is still **no census of the model-context surface as a class**, and that absence is the open item.
+> - **v2.1.243–v2.1.246 — zero findings; the window's content is a method result, and two counting traps that had been silently corrupting earlier censuses.** First, the extraction step read 7-bit single-byte literals only, so **every census this project had ever run was blind to the binary's UTF-16 text** — and the bias runs toward **false removals**, which read as remediation. A cached diff asserting 68 removed API endpoints was wrong on 65 of them; the extractor now emits both encodings and the whole cache was re-acquired. Second, a raw occurrence count is source copies **plus one bytecode-constant-pool copy per referencing code block**, and the pool term belongs to the *build*, not to the code — it moves whenever the bundler re-chunks. All **eight** anchor "drops" at v2.1.246 are packaging: none was a remediation, none was even a refactor, and the runtime revision is **not** the predictor. A dedicated tool now makes that split before any claim is drawn. v2.1.244 was never published for this platform.
+> - **v2.1.246–v2.1.258 — one escalation of a standing finding, zero new vectors, and an unusually security-positive window.** Twelve release slots, seven published; v2.1.249 and v2.1.253–v2.1.256 never shipped, so anything introduced **and reverted** inside them is invisible and always will be.
+> - **#182 escalated from server-flippable to shipped default.** The gate whose premise was "the server *could* flip this on" flipped its **compiled default** at v2.1.248, so that premise is now what ships. The mechanism is unchanged — the cross-session inbound check still trusts a permission-mode field authored by the **sender**, which the binary's own schema concedes is only "as declared by" the sending host. What changed is reach, and the channel **inverts**: the server would now have to push the flag **off** to restore the human-approval hold for a receiver running with permission prompts bypassed.
+> - **#206 (HIGH) — of the messages in the cross-session approval family, the one that SETS THE RECEIVER'S PERMISSION MODE is the only one carrying no sender binding at all**, while its siblings all pin the sender identity to the envelope. This **overturned a "verified non-finding"** recorded earlier in the same window — and the evidence that refuted it was already in hand when the wrong conclusion was written, which is the part worth remembering.
+> - **#203 (HIGH) — the system prompt is recorded once and reused verbatim** on every later request and on resume, with a corrected relaunch ignored until compaction. This adds no injection path of its own; it **multiplies the lifetime of every injection path this project already tracks**.
+> - **#196, #197, #198 and #199 (HIGH), plus #200 and #204 (MEDIUM)** — four further server-pushed-string paths into model context, and two method/scope findings. **#199 is the sharpest shape:** serving its flag TRUE turns an auto-mode consent rule **off**, by excising a named rule from the safety classifier's own instruction text — so a census that reads compiled defaults scores a **consent-removing** control as benign.
+> - **#154 upgraded on evidence rather than on severity.** Server-authored prompt text for this finding was found sitting in the local configuration cache **on disk**, verbatim in a live session's system prompt, while **the same text is absent from the current binary** — so the binary cannot be its source. That delivery arm is in routine production use and is cohort-targeted. This is the strongest evidentiary state any finding in the server-push-into-model-context class has reached.
+> - **#202 (HIGH) — filed on v2.1.251's tracing fix, re-scoped out of HIGH by adversarial review, then RESTORED in session 90 once the deciding read was actually run.** The review was right that the first evidence was invalid and wrong to expect refutation: the project-scope filter consults its **own** blocklist, which omits the content-logging telemetry family, while the collection that *does* carry those names guards administrator settings tiers on a different path entirely. Scoped as a **stock-machine** finding — on a managed deployment a higher-trust telemetry claim reclaims the destination setting from lower-trust scopes; on an unmanaged one it does not.
+> - **Security-positive movement, worth stating because it is rare.** v2.1.251 shipped five upstream fixes, all verified still present at v2.1.258, and v2.1.257 **deletes a bundled path-walking dependency outright**. The resulting drop in path-resolution call sites *reads* like a regression and is the opposite: the replacement primitive is a file-descriptor and handle check rather than path re-resolution, and every defence axis measured grew.
+> - **Method rules earned in this range**, all of which change how future counts must be read: a flat occurrence count never proves a default is unchanged; **a default is not a state**, so every census must be diffed against the served configuration cache before severity is assigned; a literal count of zero is evidence of absence from the string pool and **never** proof of absence from the code; a property of the innermost stage of a composed filter is not a property of the filter; and in minified output a negated zero is TRUE, so it marks dead-code-elimination residue rather than an unreachable branch.
+>
+> **What this means for the advisor.** None of the issues filed in this range rides the advisor. They are plugin-channel, permission-path, telemetry-scope, prompt-lifetime and method findings, and **no advisor marker moved in any of the seventeen release slots**. The advisor prompt remains a **hardcoded in-binary literal with no server-push source**, which is exactly what keeps it out of the server-push-into-model-context class — a class that grew again this range, from #106 / #154 / #165 / #168 to include #195 / #196 / #197 / #198 / #199 / #201. One item bears on how this document should be read rather than on the advisor's own surface: **#203** means that if the advisor gate ever flips, the advisor's appended system-prompt text would inherit the same record-once-and-reuse lifetime as the rest of the system prompt. That inheritance was **not examined for the advisor path specifically and is not claimed either way** — it is noted so a future pass knows to check it.
+>
+> **Prior currency (v2.1.241, session 87, 2026-08-25):** the advisor surface was **byte-stable on string-pool literals** from v2.1.96 through v2.1.241 — re-verified session 87 across the twenty-four releases from v2.1.218 through v2.1.241: the tool type `advisor_20260301`, the advisor feature gate, the kill-switch environment variable, the advisor telemetry event names, and the system-prompt body (§4) are all byte-identical to the v2.1.98 extract. The advisor **core surface was unchanged across v2.1.217→v2.1.241**, and the valid advisor model list (`["opus", "sonnet"]`) gained **no new short-name**. Audited coverage then ran **v2.1.89 → v2.1.241** — the first move past v2.1.220 — so the "no unaudited gap" property this investigation rests on held again. Census across that range: default-true gates **45 → 76** (74 boolean + 2 typed). Running tally at that pass: **15 critical / 41 high / 68 medium / 18 low across 184 repo issues**. Nothing in the range touches the advisor; the notes below are what a reader of this document should know about the surrounding harness. Function-reference §3 names are **minified identifiers that rotate per build** — see the §3 caveat.
 >
 > - **v2.1.218 — zero findings, zero regressions, and a *silent* security fix that never reached the public changelog.** A new enforcement guard refuses to register hooks declared in an agent definition's frontmatter when that definition file came from a directory the user never accepted the trust dialog for. The refusal is applied at both the main-thread and the subagent call sites, and the registration routine itself is byte-equivalent — the change lives entirely in the callers. This **narrows #97 / #98 for the untrusted-origin case only**; hooks declared in settings files or contributed by plugins are unaffected, so **#97 / #98 remain open**. Two further hardening items landed in the same window: a memory mass-delete cap that drops an entire delete batch when the missing-locally count exceeds a threshold (its opt-out is read from the operator environment only, never through the server configuration channel), and a tokenizer-faithful asset-injection validator replacing regex script matching. **One near-miss is worth publishing as method:** a decode pass read a settings-source label as meaning "the server-pushed configuration channel", which would have made it a server-to-hook-command-execution CRITICAL — but that label denotes a *command-line* settings source, which is operator-controlled, and filing it as written would have produced a false Critical.
 > - **v2.1.219–v2.1.220 — one finding (#171, LOW), zero security regressions, and one correction against ourselves.** The window's real content is v2.1.219 (a memory subsystem with pinned auto-injection, an on-disk keyword index, and organisation/team mounts); v2.1.220 is a near-no-op. **#171:** v2.1.220 is the first release to attach a dated beta header to *both* stages of the auto-mode permission classifier, but the strip-and-retry latch that exists precisely to survive the endpoint rejecting that header is bound to a value that is only ever assigned null — so its guard is unconditionally true and **the retry can never fire**. A server rejection therefore propagates into the fail-closed catch and blocks *every* auto-mode classification for the rest of the session. The direction is fail-**closed**, so this is explicitly *not* an authorization inversion; it is an availability regression on the permission path. This is the one item in the range whose mechanism rhymes with something the advisor does — the advisor also ships a dated beta header (`advisor-tool-2026-03-01`, §5) — so it is worth being precise: the dead latch belongs to the permission classifier's own request path, and every advisor marker (tool type, beta-header constant, gate, telemetry names, prompt body) is byte-stable across this window. Whether the advisor request path carries a latch of its own was not examined and is **not claimed either way**. **Anchor re-baseline:** the server-pushed system-prompt injection finding (#154) moved 7 → 8 occurrences, and the extra occurrence is a new *local* fallback branch injecting a hardcoded default when both server tiers return empty; both server tiers are unchanged, so **#154 remains unremediated** — the higher number is neither a regression nor a fix. Separately, a second finding held a **completely flat occurrence count while its underlying default value tripled** — structurally invisible to a count-based check, and caught only by reading the public changelog. **Correction filed as #172:** an earlier claim that team memory mounts arrive only through an operator environment variable was **wrong**; a second, pre-existing route exists whose returned stores become recall-eligible, so another same-organisation principal's content can be selected into a user's context without that user naming the store. It is still not a text-injection finding — the server selects *which* stores mount, it cannot supply the injected string.
@@ -610,11 +627,141 @@ v2.1.221 -> v2.1.241    Session 87. Advisor core surface BYTE-STABLE
                         build-revision bumps map exactly to the five windows
                         whose native sections moved. Default-true gates
                         45 -> 76 (74 boolean + 2 typed); tally 15C/41H/68M/
-                        18L across 184 issues. Current binary v2.1.241;
-                        audited coverage v2.1.89 -> v2.1.241. Advisor feature
-                        flag still NOT flipped on for this account (status
-                        carried forward from session 81, not re-probed --
-                        see Section 12).
+                        18L across 184 issues. Then-current binary
+                        v2.1.241; audited coverage v2.1.89 -> v2.1.241.
+                        Advisor feature flag still NOT flipped on for this
+                        account (status carried forward from session 81,
+                        not re-probed -- see Section 12).
+v2.1.242 -> v2.1.246    Sessions 88-89. Advisor core surface BYTE-STABLE
+                        (v241->v246). NO new advisor model short-name; the
+                        valid advisor model list is unchanged. v2.1.242 is
+                        the release the first pass SKIPPED: +34.9 MB and a
+                        bundle split from 11 modules to roughly 1,385.
+                        #195 (HIGH) -- a new plugin-contributed hook-module
+                        runtime lets a registered handler SUBSTITUTE the
+                        tool description sent to the model, and
+                        prompt-section text, rather than append to it: no
+                        delimiter, no attribution, validation amounting to
+                        a type check plus a 32,000-character cap. It sits
+                        behind a default-off internal environment gate that
+                        is ABSENT from the served configuration cache, so
+                        the server can arm it. Promotion gate stated as
+                        PROVENANCE, answered in session 89 and NOT cleared:
+                        registration is not restricted to locally-installed
+                        plugins, but no path lets the server supply module
+                        CONTENT -- the server arms, the plugin distribution
+                        channel supplies. #193 (HIGH, method) is why it was
+                        missed, and is the reusable part: every agent chose
+                        its targets from the standing anchor table, which
+                        is a list of the PREVIOUS window's literals, so the
+                        release's largest new subsystem was invisible to
+                        the whole method BY CONSTRUCTION; there is still no
+                        census of the model-context surface as a class.
+                        v2.1.243 -> v2.1.246 produced ZERO findings and the
+                        window's content is a METHOD result -- two counting
+                        traps that had been silently corrupting earlier
+                        censuses. (1) The extraction step read 7-bit
+                        single-byte literals only, so every census this
+                        project had ever run was blind to the binary's
+                        UTF-16 text, biased toward FALSE REMOVALS, which
+                        read as remediation: a cached diff asserting 68
+                        removed API endpoints was wrong on 65 of them. The
+                        extractor now emits both encodings and the whole
+                        cache was re-acquired. (2) A raw occurrence count
+                        is source copies PLUS one bytecode-constant-pool
+                        copy per referencing code block, and the pool term
+                        belongs to the BUILD, not the code -- it moves
+                        whenever the bundler re-chunks. All EIGHT anchor
+                        "drops" at v2.1.246 are packaging: no remediation,
+                        not even a refactor, and the runtime revision is
+                        NOT the predictor. A dedicated tool now makes that
+                        split before any claim is drawn. v2.1.244 was never
+                        published for this platform. Advisor feature flag
+                        still NOT flipped on for this account (carried
+                        forward from session 81, not re-probed -- see
+                        Section 12).
+v2.1.247 -> v2.1.258    Sessions 89-90. Advisor core surface BYTE-STABLE
+                        (v246->v258); decoded as the v2.1.246 -> v2.1.258
+                        window. NO new advisor model short-name; the valid
+                        advisor model list is unchanged. Twelve release
+                        slots, SEVEN published -- v2.1.249 and
+                        v2.1.253-v2.1.256 never shipped, so anything
+                        introduced AND REVERTED inside them is invisible
+                        and always will be. ONE escalation of a standing
+                        finding, ZERO new vectors, and an unusually
+                        security-positive window. #182 escalated from
+                        server-flippable to SHIPPED DEFAULT at v2.1.248:
+                        the mechanism is unchanged (the cross-session
+                        inbound check still trusts a permission-mode field
+                        authored by the SENDER, which the binary's own
+                        schema concedes is only "as declared by" the
+                        sending host) but the channel INVERTS -- the server
+                        would now have to push the flag OFF to restore the
+                        human-approval hold for a receiver running with
+                        permission prompts bypassed. #206 (HIGH): of the
+                        cross-session approval family, the message that
+                        SETS THE RECEIVER'S PERMISSION MODE is the only one
+                        carrying no sender binding at all, its siblings all
+                        pinning the sender identity to the envelope; this
+                        overturned a "verified non-finding" recorded
+                        earlier in the same window, on evidence already in
+                        hand when the wrong conclusion was written. #203
+                        (HIGH): the system prompt is recorded once and
+                        reused verbatim on every later request and on
+                        resume, a corrected relaunch ignored until
+                        compaction -- no new injection path, but it
+                        MULTIPLIES THE LIFETIME of every injection path
+                        this project already tracks. #196/#197/#198/#199
+                        (HIGH) and #200/#204 (MEDIUM): four further
+                        server-pushed-string paths into model context plus
+                        two method/scope findings, #199 the sharpest shape
+                        -- serving its flag TRUE turns an auto-mode consent
+                        rule OFF by excising a named rule from the safety
+                        classifier's own instruction text, so a census that
+                        reads compiled defaults scores a CONSENT-REMOVING
+                        control as benign. #201 (HIGH): v2.1.251 widened
+                        the #195 surface -- one substitution kind rewrites
+                        the trailer block appended to every commit message
+                        and pull-request body, the FIRST reach in this
+                        family that LEAVES THE MACHINE, and another
+                        replaces whole skill bodies. #154 UPGRADED ON
+                        EVIDENCE, not on severity: server-authored prompt
+                        text for it was found in the local configuration
+                        cache ON DISK, verbatim in a live session's system
+                        prompt, while the same text is ABSENT from the
+                        current binary -- so the binary cannot be its
+                        source; that delivery arm is in routine production
+                        use and is cohort-targeted. #202 (HIGH): filed on
+                        v2.1.251's tracing fix, re-scoped out of HIGH by
+                        adversarial review, then RESTORED in session 90
+                        once the deciding read was actually run -- the
+                        project-scope filter consults its OWN blocklist,
+                        which omits the content-logging telemetry family,
+                        while the collection that does carry those names
+                        guards administrator settings tiers on a different
+                        path entirely; scoped as a STOCK-MACHINE finding.
+                        SECURITY-POSITIVE movement, rare enough to state
+                        plainly: v2.1.251 shipped five upstream fixes, all
+                        verified still present at v2.1.258, and v2.1.257
+                        DELETES a bundled path-walking dependency outright
+                        -- the resulting drop in path-resolution call sites
+                        reads like a regression and is the opposite, the
+                        replacement primitive being a file-descriptor and
+                        handle check rather than path re-resolution, with
+                        every defence axis measured GROWING. Default-true
+                        gates 76 -> 109 (107 boolean + 2 typed, up from 74
+                        boolean), the boolean figure CORRECTED MID-WINDOW
+                        because a third gate-reader shape was invisible to
+                        two independent instruments (#200); tally
+                        15C/51H/77M/19L across 205 issues. Current binary
+                        v2.1.258 (npm latest = next); audited coverage
+                        v2.1.89 -> v2.1.258 with ZERO unaudited gaps --
+                        now a COMPUTED property, from a generated
+                        per-version coverage table with a failing check,
+                        rather than a hand-advanced claim. Advisor feature
+                        flag still NOT flipped on for this account (carried
+                        forward from session 81, not re-probed -- see
+                        Section 12).
 ```
 
 ---
@@ -652,10 +799,18 @@ Unlike the server-controlled config-push, forced-downgrade, and third-party tele
 
 *Second, the undocumented-server-pushed-string gap did not close.* #106 / #154 / #165 / #168 all still stand. #154 in particular was re-baselined 7 → 8 occurrences in this range, but the added occurrence is a **local** fallback branch and both server tiers are unchanged, so it is unremediated rather than fixed. The range also added a further server-controlled path by which server-supplied text can be appended to a spawned child session's system prompt (#176), and the official documentation still describes no such channel. **The advisor's documentation posture is unchanged for the third consecutive currency pass**: the prompt is a hardcoded in-binary literal with no server-push source, the surface is user-triggered and doc-covered on rollout, and the opt-out is documented — so none of the widening applies to it.
 
+**Sessions 88–90 (v2.1.242–v2.1.258) update.** Three things, in order of how much they change this section.
+
+*The undocumented-server-pushed-string gap widened again, and in a new direction.* Until this range every instance in the class **appended** to text the client had compiled in. **#195** and **#201** introduce a plugin-contributed hook-module runtime whose registered handlers **substitute** the tool description sent to the model, prompt-section text, and — at v2.1.251 — whole skill bodies, with no delimiter, no attribution, and validation amounting to a type check plus a 32,000-character cap. One of #201's substitution kinds rewrites the trailer block appended to every commit message and pull-request body, which is **the first reach in this family that leaves the machine**. Alongside them, **#196 / #197 / #198 / #199** add four further server-pushed-string paths into model context; #199 is the one to remember, because serving its flag TRUE **removes** a named consent rule from the auto-mode safety classifier's own instruction text. And **#154 moved from inference to observation**: server-authored prompt text for it was found sitting in the local configuration cache on disk, verbatim in a live session's system prompt, while the same text is absent from the current binary — so the binary cannot be its source, and that delivery arm is in routine, cohort-targeted production use. Across all of it the official documentation still describes no such channel.
+
+*#203 changes the shape of every one of those.* The system prompt is recorded once and reused verbatim on every later request and on resume, with a corrected relaunch ignored until compaction. It adds no injection path; it multiplies the **lifetime** of each one already tracked. For this document the consequence is conditional and worth writing down before it can be forgotten: if the advisor gate ever flips, the advisor's appended system-prompt text would inherit that same record-once-and-reuse lifetime. That was **not examined for the advisor path specifically** and is not claimed either way.
+
+*The advisor's own status did not move — and neither did the instrument.* The served-value diff against the advisor gate specifically, named as the obvious next step in the session-87 note above, has **still not been run**. The standing status — **advisor gate not flipped on for this account** — is therefore still carried forward from session 81, as it was at session 87, with nothing observed across v2.1.242–v2.1.258 to indicate a flip. What did improve is the bookkeeping around it: audited coverage reaching the installed binary with zero unaudited gaps is now a **computed** property, generated from a per-version coverage table with a failing check, so a released version with no audit document can no longer be silently read as covered. **The advisor's documentation posture is unchanged for the fourth consecutive currency pass**: hardcoded in-binary prompt, no server-push source, user-triggered surface, documented opt-out — so none of the widening above applies to it.
+
 ### Redaction tooling (session 80)
 
 The publish-time enforcer behind this mirror was rebuilt in session 80: it was inverted from a hand-enumerated list of known-sensitive tokens to a **scan-and-subtract** design, extracting every internal-shaped identifier from the mirror and subtracting everything the official documentation publishes, so a newly-invented internal name is caught on day one rather than whenever someone remembers to add it to a list. The governing rule is explicit — a name published in the official docs is not sensitive and is used verbatim. The publish-time redactors additionally **fail closed**, aborting the build rather than emitting an identifier no mapping table happens to cover. The change immediately caught a class of leak the enumerated list had structurally never looked for.
 
 ---
 
-*Investigation conducted 2026-04-10; revised 2026-08-25 (session 87). Binary analysis on v2.1.96, v2.1.97, v2.1.98, v2.1.100; currency re-verified against v2.1.241 (current binary v2.1.241; audited coverage v2.1.89 → v2.1.241 with no unaudited gap). System prompt paraphrased from v2.1.98 (verbatim text withheld) and confirmed byte-identical through v2.1.241. Advisor confirmed code-complete in v2.1.96 (coexisting with full buddy system — both scored FULL). Feature-gate status: advisor gate still not rolled out to this account as of session 87 — carried forward from session 81 rather than re-probed (see §12). buddy_react API confirmed alive (200 OK, 1331ms latency) at original investigation. Companion config intact in `~/.claude/.claude.json`.*
+*Investigation conducted 2026-04-10; revised 2026-09-02 (session 90). Binary analysis on v2.1.96, v2.1.97, v2.1.98, v2.1.100; currency re-verified against v2.1.258 (current binary v2.1.258, npm `latest` = `next`; audited coverage v2.1.89 → v2.1.258 with no unaudited gap — now a computed property from a generated per-version coverage table with a failing check, not a hand-advanced claim). System prompt paraphrased from v2.1.98 (verbatim text withheld) and confirmed byte-identical through v2.1.258. Advisor confirmed code-complete in v2.1.96 (coexisting with full buddy system — both scored FULL). Feature-gate status: advisor gate still not rolled out to this account as of session 90 — still carried forward from session 81 rather than re-probed, as it was at session 87 (see §12). buddy_react API confirmed alive (200 OK, 1331ms latency) at original investigation. Companion config intact in `~/.claude/.claude.json`.*

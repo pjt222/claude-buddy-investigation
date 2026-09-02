@@ -551,8 +551,8 @@
     {
       "id": "SERVEDFLAGS",
       "label": "AP1 \u2014 Served-flag state (#185 METHOD) \u2014 every prior census read the DEFAULT; nobody diffed it against what the server actually SERVED",
-      "nodes": 6,
-      "internal_edges": 6,
+      "nodes": 7,
+      "internal_edges": 7,
       "crossing_edges": 1,
       "neighbours": [
         "SPINE"

@@ -7,6 +7,7 @@ flowchart LR
         sf_false["17 of 55 new DEFAULT-FALSE gates are SERVED TRUE.<br/>Four are model-context-injection candidates:<br/>[artifact-comments-gate], [comment-source-order-gate],<br/>[comment-autoreact-gate], [vellum-gate]"]:::risk
         sf_true["Inverse check CLEAN: of 74 default-TRUE bools only<br/>3 are served false ([startup-toggle],<br/>[outgoing-header-source-gate],<br/>[session-name-collision-gate]) — none a permission<br/>decision"]:::baseline
         sf_flip["It REVERSED a severity call. #182 filed High,<br/>downgraded to Low on a two-flag-chain argument,<br/>RESTORED to High when the cache showed BOTH<br/>[cross-session-messaging-gate] and<br/>[sender-asserted-mode-gate] served true"]:::risk
+        sf_default["SUPERSEDED AT v2.1.248 (session-89): the served state<br/>no longer matters for this pair —<br/>[cross-session-messaging-gate],<br/>[sender-asserted-mode-gate] and<br/>[cross-session-messaging-platform-gate] all flipped<br/>their COMPILED DEFAULT !1 → !0. #182 no longer depends<br/>on a server push, and the channel INVERTS: the server<br/>would now have to push it OFF to restore the<br/>human-approval hold. Severity stays High — the<br/>promotion gate is a runtime probe, still not run"]:::risk
         sf_caveat["Caveats: one account + one machine; a cache can be<br/>stale; ABSENT is not 'served false' (absent = the code<br/>default applies). 17 flags are absent, not off"]:::baseline
     end
 
@@ -14,6 +15,7 @@ flowchart LR
     sf_cache --> sf_false
     sf_cache --> sf_true
     sf_false --> sf_flip
+    sf_flip --> sf_default
     sf_cache --> sf_caveat
     sf_false -. "#182 both gates served true" .-> sf_flip
 

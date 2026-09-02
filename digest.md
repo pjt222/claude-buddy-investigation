@@ -586,7 +586,7 @@ Current binary **v2.1.217** (npm `latest` = `next` = 217); the marked-stable bin
 
 ## Phase 10: v2.1.218 → v2.1.241 — A Silent Hooks-Trust Fix, an Availability Regression, and a Twenty-Window Decode That Changed the Method
 
-**Scope**: rolling per-version harness audit from v2.1.218 through v2.1.241 (current binary **v2.1.241**; **audited coverage now runs v2.1.89 → v2.1.241**; coverage extends through **session 87**). Three sub-windows: v218 (zero findings, one silent upstream fix), v219 → v220 (one Low finding plus a correction of our own), and the v221 → v241 block — **twenty windows decoded in a single pass**, restoring the "zero unaudited gaps" property the project is built on. All flag and reader-identifier names redacted; functional descriptions and finding numbers only.
+**Scope**: rolling per-version harness audit from v2.1.218 through v2.1.241 (at the close of this window the binary was **v2.1.241** and audited coverage ran v2.1.89 → **v2.1.241**; the window's coverage ran through session 87 — see Phase 11 for the current binary and the current coverage range). Three sub-windows: v218 (zero findings, one silent upstream fix), v219 → v220 (one Low finding plus a correction of our own), and the v221 → v241 block — **twenty windows decoded in a single pass**, restoring the "zero unaudited gaps" property the project is built on. All flag and reader-identifier names redacted; functional descriptions and finding numbers only.
 
 The most consequential result of this phase is **not a finding**. It is a **method gap** (#185): for a server-controlled configuration channel, reading the *default* out of the binary answers the wrong question, and the client has been holding the right answer all along.
 
@@ -608,7 +608,7 @@ The window's real content is **v219** — a memory subsystem with **pinned auto-
 
 **#171 — LOW: a dead strip-and-retry latch can block every auto-mode classification for a whole session.** v220 is the first release to attach a **dated beta header** to *both* stages of the auto-mode permission classifier. The **strip-and-retry latch** that exists precisely to survive the endpoint rejecting that header is bound to a value that is **only ever assigned null**, so its guard is unconditionally true and **the retry can never fire**. A server rejection therefore propagates straight into the fail-closed catch and **blocks every auto-mode classification for the rest of the session**. The direction is **fail-CLOSED**, so this is explicitly **not** an authorisation inversion and **not #108-class** — it is an **availability regression on the permission path**. Carried forward as a watch item on the latch.
 
-**Anchor re-baseline — and it is NOT a remediation.** The system-prompt injection finding **#154** moved **7 → 8** occurrences. The extra occurrence is a **new local fallback branch** that injects a **hardcoded default** when both server tiers return empty. **Both server tiers are unchanged**, so **#154 remains unremediated**, now anchored at 8.
+**Anchor re-baseline — and it is NOT a remediation.** The system-prompt injection finding **#154** moved **7 → 8** occurrences. The extra occurrence is a **new local fallback branch** that injects a **hardcoded default** when both server tiers return empty. **Both server tiers are unchanged**, so **#154 remains unremediated**, now anchored at 8. *(Status update: the delivery arm was later confirmed in routine production use from on-disk evidence — see Phase 11.)*
 
 **A second finding held a completely flat occurrence count while its underlying default TRIPLED.** The server-pushed recursion-depth ceiling (**#169**) sat at an identical count across the window while its default moved **1 → 3** — structurally invisible to a count-based check, and caught only by **reading the public changelog**. Two method rules were earned here: **a flat occurrence count never proves a flag's default is unchanged**, and **the changelog is a first-class recon input**, surfacing changes that a flag / environment / endpoint diff cannot see by construction.
 
@@ -649,7 +649,7 @@ It is **fail-closed by default** and the classifier still runs, so it is **not a
 
 #### #182 — HIGH: a new cross-session message gate can be told to trust the sender's self-description
 
-A server-controlled flag makes a **new cross-session message gate trust a field the SENDER supplies about itself**, converting a **hold-for-human-review** into an **automatic accept** for a receiver running with permission prompts bypassed. This **contradicts the subsystem's own in-source contract**, which states in as many words that the sender-supplied origin field is **forgeable by any process running as the same user** and must never be used to key identity.
+A server-controlled flag makes a **new cross-session message gate trust a field the SENDER supplies about itself**, converting a **hold-for-human-review** into an **automatic accept** for a receiver running with permission prompts bypassed. This **contradicts the subsystem's own in-source contract**, which states in as many words that the sender-supplied origin field is **forgeable by any process running as the same user** and must never be used to key identity. *(Status update: the gate's compiled default flipped ON at v2.1.248, so this premise is now what ships — see Phase 11.)*
 
 #### #177, #178 and #184 — MEDIUM
 
@@ -696,13 +696,115 @@ It is now tracked as a **defence anchor** — an anchor whose **disappearance** 
 
 **Five runtime build-revision bumps correspond exactly to the five windows whose native sections moved** — **no unattributed native change anywhere in twenty windows**. The largest of those windows is also the **largest JavaScript window in the range**, a fact that the "largest native change" framing had buried.
 
-### Tally (current as of v2.1.241, Session 87)
+### Tally (prior status, as of v2.1.241, Session 87)
 
 Severities mirror `docs/counts.js` (authoritative). The live GitHub-label re-derivation across the repo issue set: **15 critical / 41 high / 68 medium / 18 low** across **184** total repo issues. Movement from the Session-81 tally: **high 38 → 41** (**#176**, **#181**, **#182**); **medium 61 → 68** and **low 15 → 18** fold in the new Medium findings (**#172**, **#177**, **#178**, **#184**), the two Low items carried alongside **#183**, the **#171** availability regression, and the session's method / tooling trackers (including **#185**). The **critical count is unchanged at 15** — no new Critical was filed across twenty-four releases. The original tooling-audit baseline census stands at **30 items** (7 critical / 9 high / 10 medium / 3 low / 1 observation).
 
 The server-flippable **DEFAULT-TRUE set stands at 76** (**74 boolean + 2 typed**). It held at **48** (46 boolean + 2 typed) from v2.1.218 through v2.1.220 and then grew across the twenty-window v221 → v241 block. The **served-value** check is now part of the census rather than the default alone: **17 of the 55 newly-added default-off gates are ON for this account**, while only **three of 76 default-on gates are served off** — none of the three a permission decision.
 
 Current binary **v2.1.241**; **audited coverage runs v2.1.89 → v2.1.241**, and the "zero unaudited gaps" property is restored. Net direction across v218 → v241: **one silent upstream remediation** that narrows **#97 / #98** for untrusted-origin agent-frontmatter hooks only; **one availability regression** on the permission path (**#171**, fail-closed); **three new High findings** (**#176** denylist-filtered server-supplied child arguments, **#181** a mandatory human approval convertible into a classifier decision, **#182** a cross-session gate trusting sender-supplied origin); **four Medium** (**#172**, **#177**, **#178**, **#184**); a **new class of local execution documented as informational** (**#183**); and a **real, partial defence of #31 AC3** that narrows the finding without retiring it. Standing against all of this, unchanged: the injection primitives **#106 / #154 / #168** (Critical) and **#155 / #165 / #127 / #151** (High), with **#110** still unremediated and **#108** still removed (0).
+
+---
+
+## Phase 11: v2.1.242 → v2.1.258 — The Skipped Release, Two Counting Traps, and a Standing Finding That Became the Shipped Default
+
+**Scope**: rolling per-version harness audit from v2.1.242 through v2.1.258 (current binary **v2.1.258**, npm `latest` = `next`; **audited coverage runs v2.1.89 → v2.1.258**; coverage extends through **sessions 88 – 90**). Three sub-windows: **v2.1.242**, the release the twenty-window pass skipped and the largest single build in this project's record; **v2.1.242 → v2.1.246**, zero findings whose entire content is a method result; and **v2.1.246 → v2.1.258**, one escalation of a standing finding, zero new vectors, and an unusually security-positive window. All flag and reader-identifier names redacted; functional descriptions and finding numbers only.
+
+**"Zero unaudited gaps" stopped being a claim and became a computed property.** Coverage is now a **generated per-version table** — one row per released version, built from document front-matter only, never from filenames and never from prose — behind a **check that fails** when a released version has no document standing for it. A sentence advanced by hand can drift; a failing check cannot.
+
+### v2.1.242 (Sessions 88–89): the release the first pass skipped — #195, #201, #193
+
+The twenty-window pass that closed Phase 10 **skipped a release**, and it was the largest one in the range: **+34.9 MB**, with the bundle split from **11 modules to roughly 1,385**.
+
+#### #195 — HIGH: a plugin-registered handler module can SUBSTITUTE model-facing text, not merely append to it
+
+A runtime introduced in this release lets a **registered plugin handler module replace** the **tool description sent to the model**, and replace **prompt-section text**, rather than appending to it. There is **no delimiter and no attribution**, so the substituted text arrives in model context indistinguishable from first-party text, and the validation is **a type check plus a 32,000-character cap**. It sits behind a **default-off internal gate that is absent from the served-value cache** — which is exactly the shape the server can arm.
+
+It was filed **High rather than Critical**, with an explicit promotion gate: **provenance, not shape** — whether a server-influenced plugin can carry such a module at all. That gate was **answered in session 89 and NOT cleared**. Registration is **not** restricted to locally-installed plugins; but **no path was found by which the server supplies the module's CONTENT**. The honest reading is a split rather than a single actor: the **server arms the gate**, and the **plugin distribution channel supplies the text**.
+
+#### #201 — HIGH: v2.1.251 widened the same surface, and one widening LEAVES THE MACHINE
+
+Two further substitution kinds landed on that runtime at **v2.1.251**. One **rewrites the co-authorship trailer block that is appended to every commit message and pull-request body** — the **first reach in this family that leaves the local machine**, because the substituted text is then committed and pushed rather than merely read by the model. The other **replaces whole skill bodies**. Everything the #195 entry records about delimiters, attribution and validation applies unchanged to both.
+
+#### #193 — HIGH (method): the reason #195 was missed is the more valuable half
+
+Every agent in the twenty-window pass chose its targets from the **standing anchor table** — which is, by construction, **a list of the PREVIOUS window's literals**. A release's **largest new subsystem is therefore invisible to the entire method**, not through oversight but by design: it has no anchors yet, so nothing in the target list points at it.
+
+The corrective is a **census of the model-context surface as a class** — every path by which externally-authored text can reach the model — and **that census still does not exist**. Until it does, this failure mode recurs on every release that ships a genuinely new subsystem.
+
+### v2.1.242 → v2.1.246 (Session 88): zero findings, and two counting traps that had been corrupting every earlier census
+
+**ZERO new findings.** The window's content is a **method result**, and both halves of it invalidate work that predates them.
+
+**Trap one: the extraction step read 7-bit single-byte literals only, so every census this project has ever run was blind to the binary's UTF-16 text.** The bias runs in the dangerous direction — text that exists but is not extracted reads as **removed**, and a removal reads as **remediation**. Concretely: a cached diff asserting **68 removed API endpoints** was **wrong on 65 of them**. The extractor now emits **both encodings**, and the **entire cached corpus was re-acquired** rather than patched in place.
+
+**Trap two: a raw occurrence count is not a property of the code.** It is **source copies plus one bytecode-constant-pool copy per referencing code block**, and the pool term belongs to the **build**, not to the program — it moves whenever the bundler **re-chunks**. Applied to this window: **all eight anchor "drops" at v2.1.246 are packaging**. None was a remediation. **None was even a refactor.** And the **runtime build-revision is not the predictor** of when this happens, which had been the working assumption. A dedicated tool now performs the source-versus-pool split **before** any claim is drawn from a count delta.
+
+**v2.1.244 was never published for this platform.**
+
+### v2.1.246 → v2.1.258 (Sessions 89–90): one escalation, zero new vectors, and an unusually security-positive window
+
+Twelve release slots, **seven published**. **v2.1.249 and v2.1.253 – v2.1.256 never shipped**, so anything introduced and reverted inside them is **invisible and always will be** — the same permanent blind spot as the unpublished **v2.1.244** slot recorded above, and for the same reason: an unpublished build cannot be acquired, so it cannot be decoded.
+
+#### #182 escalated: the premise became the shipped default
+
+The cross-session message gate filed in Phase 10 as **server-flippable on** flipped its **compiled default at v2.1.248**, so that premise is now **what ships**. The **mechanism is unchanged**: the inbound gate still trusts a **permission-mode field authored by the SENDER**, a value the binary's own schema concedes is only ever *as declared by* the sending host. What changed is **reach** — and the channel **inverts** with it. Previously the server had to push the flag **on**; now it would have to push it **off** to restore the human-approval hold for a receiver running with permission prompts bypassed.
+
+#### #206 — HIGH: the one message in the approval family with no sender binding is the one that sets the permission mode
+
+Within the **cross-session approval message family**, every message **pins the sender identity to the envelope** — except one. The response that **sets the receiver's permission mode** carries **no sender binding at all**.
+
+This entry is also a **process finding**, and is recorded as one: it **overturned a "verified non-finding"** written earlier in the same window, and **the evidence that refuted it was already in hand** when the wrong conclusion was written. A verified non-finding is the most dangerous artefact an audit can produce, because it removes the surface from every later sweep.
+
+#### #203 — HIGH: the system prompt is recorded once and replayed verbatim
+
+The system prompt is **captured once and reused verbatim** on every later request and on resume, with a **corrected relaunch ignored until compaction**. On its own it moves no permission and opens no new channel. Its significance is **multiplicative**: it **extends the lifetime of every injection path this project tracks**, because once server-pushed text lands in that recorded prompt it persists for the session and across resume instead of being re-evaluated per request.
+
+#### Four further server-pushed-string paths, plus a method and a scope finding
+
+**#196, #197, #198 and #199 (all HIGH)** are four further **server-pushed-string paths into model context** — the same family as **#106 / #154 / #165 / #168 / #195**. **#200 and #204 (MEDIUM)** are a method finding and a scope finding respectively.
+
+**#199 is the sharpest shape in the set, and it inverts the polarity a census assumes.** Serving its flag **TRUE turns an auto-mode consent rule OFF**, by **excising a named rule from the safety classifier's own instruction text**. A census that reads **compiled defaults** therefore scores a **consent-REMOVING** control as **benign**: the flag presents as an ordinary off-by-default feature toggle and is in fact an off-by-default **guarantee removal**. Every default-reading census in this project's history is exposed to that inversion.
+
+#### #154 upgraded on evidence rather than on severity
+
+The standing Critical **#154** did not change severity; it changed **proof grade**. **Server-authored prompt text for this finding was found sitting in the local configuration cache ON DISK**, and **verbatim in a live session's system prompt**, while **the same text is ABSENT from the current binary** — so the binary **cannot be its source**.
+
+That closes the last inferential step in the chain. The delivery arm is not a theoretical capability of the channel: it is **in routine production use**, and it is **cohort-targeted**.
+
+#### #202 — HIGH: filed, re-scoped out by adversarial review, then restored
+
+**#202** was filed on **v2.1.251's tracing fix**, **re-scoped out of High** by adversarial review, and then **RESTORED in session 90 once the deciding read was actually run**. The review was **right that the first evidence was invalid** and **wrong to expect refutation** — two judgements that are easy to collapse into one and must not be.
+
+The deciding facts: the **project-scope filter consults its own blocklist**, which **omits the content-logging environment-variable family**, while the collection that **does** carry those names guards **administrator settings tiers on a different code path entirely**. The two had been assumed to be the same list.
+
+It is scoped as a **stock-machine finding**, and the scope is load-bearing: on a **managed deployment** a higher-trust telemetry claim **reclaims the destination setting from lower-trust scopes**; on an **unmanaged** one it does not.
+
+#### Security-positive movement, stated because it is rare
+
+**v2.1.251 shipped five upstream fixes**, all **verified present at v2.1.258**, and **v2.1.257 deletes a bundled path-walking dependency outright**.
+
+The resulting **drop in path-resolution call sites reads like a regression and is the opposite**: the replacement primitive is a **file-descriptor and handle check** rather than a **path re-resolution**, which is the stronger check, and **every defence axis measured grew**. This is the previous window's counting trap arriving from the other direction — a falling count that means hardening, where an earlier falling count meant packaging.
+
+#### Method rules earned in this range
+
+Five, all now standing procedure, and all of which change how future counts must be read:
+
+1. **A flat occurrence count never proves a default is unchanged.** (Earned at #169; re-confirmed here.)
+2. **A default is not a state.** Every census must be diffed against the **served-value cache** before severity is assigned.
+3. **A literal count of zero is evidence of absence from the string pool, never proof of absence from the code.**
+4. **A property of the innermost stage of a composed filter is not a property of the filter.** (The #202 near-miss, in one line.)
+5. **In minified output a negated zero is TRUE**, so a guard written that way marks **dead-code-elimination residue** rather than an unreachable branch — reading it the other way retires a live path.
+
+### Tally (current as of v2.1.258, Sessions 88–90)
+
+Severities mirror `docs/counts.js` (authoritative). The live GitHub-label re-derivation across the repo issue set: **15 critical / 51 high / 77 medium / 19 low** across **205** total repo issues.
+
+Movement from the Session-87 tally reconciles exactly on the High line: **41 → 51 is +10**, and the ten new High findings are **#193**, **#195**, **#196**, **#197**, **#198**, **#199**, **#201**, **#202**, **#203** and **#206**. The **critical count is unchanged at 15** — **#154** was upgraded on **evidence**, not on severity, and **#182**'s escalation to a shipped default moves its **reach**, not its label. **Medium 68 → 77** and **low 18 → 19** fold in **#200** and **#204** together with the range's method and tooling trackers. The original tooling-audit baseline census stands at **30 items** (7 critical / 9 high / 10 medium / 3 low / 1 observation).
+
+The server-flippable **DEFAULT-TRUE set moved 76 → 109** (**boolean 74 → 107**; the two typed defaults stay **flat**). The boolean figure was **corrected mid-window from 100 to 107**: a **third reader shape** — a hoisted flag name carrying an inline default — was **invisible to two independent instruments at once**, which is the finding recorded as **#200**. A census is only as complete as its narrowest reader pattern, and this one had two narrow patterns agreeing with each other.
+
+Current binary **v2.1.258** (npm `latest` = `next`); **audited coverage runs v2.1.89 → v2.1.258**, reaching the installed binary, and the "zero unaudited gaps" property is now **computed** — a generated coverage table with a failing check behind it — rather than asserted. Net direction across v242 → v258: **one skipped release recovered**, and found to carry the range's largest new surface (**#195**, widened at v2.1.251 by **#201**, with the method gap that hid it filed as **#193**); **nine further findings** — seven High (**#196 / #197 / #198 / #199 / #202 / #203 / #206**) and two Medium (**#200 / #204**); **one standing finding escalated to the shipped default** (**#182**); **one standing Critical upgraded from inference to on-disk evidence** (**#154**); **two counting traps** that retroactively invalidated earlier remediation claims; and a genuinely **security-positive** close — five upstream fixes verified present, a path-walking dependency deleted, and every measured defence axis up. Standing against all of this, unchanged: the injection primitives **#106 / #154 / #168** (Critical) and **#155 / #165 / #127 / #151** (High), with **#110** still unremediated and **#108** still removed (0).
 
 ---
 
